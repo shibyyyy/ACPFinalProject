@@ -1,0 +1,226 @@
+{%extends 'base.html'%}
+
+{%block title%}<title>VocabuLearner - Leaderboard</title>{% endblock%}
+
+{%block content%}
+    {%block logo_link %}
+            <a href="{{ url_for('dashboard') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+    {% endblock %}
+    {%block header%}{%endblock%}
+    <div class="leaderboard-container">
+        <button class="back-btn" onclick="history.back()">← Back to Dashboard</button>
+
+        <div class="page-title">
+            <h1>Leaderboard</h1>
+            <p>Compete with trainers around the world</p>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="tab-btn active">Weekly</button>
+            <button class="tab-btn">Monthly</button>
+            <button class="tab-btn">All Time</button>
+        </div>
+
+        <!-- Top 3 Podium -->
+        <div class="top-three">
+            <div class="podium second">
+                <div class="rank">🥈</div>
+                <div class="username">WordMaster99</div>
+                <div class="score">2,450</div>
+                <div class="label">points</div>
+            </div>
+
+            <div class="podium first">
+                <div class="rank">🥇</div>
+                <div class="username">VocabKing</div>
+                <div class="score">3,120</div>
+                <div class="label">points</div>
+            </div>
+
+            <div class="podium third">
+                <div class="rank">🥉</div>
+                <div class="username">LearnFast</div>
+                <div class="score">2,180</div>
+                <div class="label">points</div>
+            </div>
+        </div>
+
+        <!-- Rest of Leaderboard -->
+        <div class="leaderboard-list">
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#4</div>
+                    <div class="item-username">PolyglotPro</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,980</div>
+                    <div class="item-words">156 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#5</div>
+                    <div class="item-username">StudyBuddy</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,850</div>
+                    <div class="item-words">142 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#6</div>
+                    <div class="item-username">QuickLearner</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,720</div>
+                    <div class="item-words">135 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#7</div>
+                    <div class="item-username">BrainPower</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,680</div>
+                    <div class="item-words">128 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#8</div>
+                    <div class="item-username">SmartCookie</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,590</div>
+                    <div class="item-words">121 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#9</div>
+                    <div class="item-username">WordNinja</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,520</div>
+                    <div class="item-words">118 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#10</div>
+                    <div class="item-username">BookLover23</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,480</div>
+                    <div class="item-words">112 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#11</div>
+                    <div class="item-username">FastReader</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,420</div>
+                    <div class="item-words">108 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#12</div>
+                    <div class="item-username">GrammarGeek</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,380</div>
+                    <div class="item-words">102 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#13</div>
+                    <div class="item-username">LexiconLord</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,340</div>
+                    <div class="item-words">98 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#14</div>
+                    <div class="item-username">ThesaurusRex</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,290</div>
+                    <div class="item-words">94 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item you">
+                <div class="item-left">
+                    <div class="item-rank">#15</div>
+                    <div class="item-username">You<span class="item-badge">YOU</span></div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,250</div>
+                    <div class="item-words">47 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#16</div>
+                    <div class="item-username">DictDiver</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,210</div>
+                    <div class="item-words">86 words</div>
+                </div>
+            </div>
+
+            <div class="leaderboard-item">
+                <div class="item-left">
+                    <div class="item-rank">#17</div>
+                    <div class="item-username">SyntaxStar</div>
+                </div>
+                <div class="item-right">
+                    <div class="item-score">1,180</div>
+                    <div class="item-words">82 words</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 VocabuLearner</p>
+    </footer>
+
+    <script>
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+{%endblock%}

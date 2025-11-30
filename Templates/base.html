@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    {%block title%}<title>VocabuLearner</title>{%endblock%}
+</head>
+<body>
+    <div class="cloud-layer">
+        <div class="cloud"><div class="cloud-pixel"></div></div>
+        <div class="cloud"><div class="cloud-pixel"></div></div>
+        <div class="cloud"><div class="cloud-pixel"></div></div>
+    </div>
+
+    <div class="mountain-bg">
+        <div class="pixel-mountain"></div>
+        <div class="pixel-mountain"></div>
+        <div class="pixel-mountain"></div>
+    </div>
+    
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <header class="header">
+        <div class="logo">
+            {% block logo_link %}
+            <a href="{{ url_for('home') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+            {% endblock %}
+        </div>
+    {%block header%}
+    {%endblock%}
+    </header>
+    {%block content%}
+    {%endblock%}
+</body>
+</html>

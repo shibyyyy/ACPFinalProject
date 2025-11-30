@@ -1,0 +1,110 @@
+{%extends 'base.html'%}
+
+{%block title%}<title>VocabuLearner</title>{% endblock%}
+
+{%block content%}
+    {%block header%}{%endblock%}
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Hello, Trainer!</h1>
+            <div class="welcome-stats">
+                <div class="stat-item">
+                    <span class="label">Daily Streak</span>
+                    <span class="value"><span class="fire-icon">🔥</span> 3 Days</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Words to Review</span>
+                    <span class="value">12 Words</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Words Mastered</span>
+                    <span class="value">47 Words</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <a href="{{ url_for('review') }}" class="action-card">
+                <div class="icon">📖</div>
+                <h3>Review How</h3>
+            </a>
+
+            <a href="{{ url_for('wordbank') }}" class="action-card">
+                <div class="icon">📝</div>
+                <h3>My Words</h3>
+            </a>
+
+            <a href="{{ url_for('addword') }}" class="action-card">
+                <div class="icon">➕</div>
+                <h3>ADD NEW WORD</h3>
+            </a>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-card">
+                <h2>Your Progress</h2>
+                <div class="progress-stat">
+                    <span class="label">Result Assured</span>
+                    <span class="value">47</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="label">Current Status</span>
+                    <span class="value">3 Days</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="label">Accuracy Rate</span>
+                    <span class="value">95%</span>
+                </div>
+                <a href="{{ url_for('progress') }}" class = "btn-secondary">VIEW DETAILED PROGRESS</a>
+            </div>
+
+            <div class="progress-card">
+                <h2>Weekly Ranking</h2>
+                <div class="progress-stat">
+                    <span class="label">Your Rank</span>
+                    <span class="value">#15</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="label">Cost Of</span>
+                    <span class="value">100 Trainings</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="label">Points</span>
+                    <span class="value">1,250</span>
+                </div>
+                <a href="{{ url_for('leaderboard') }}" class = "btn-secondary">VIEW LEADERBOARD</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal active" id="welcomeModal">
+        <div class="modal-content">
+            <h2>Welcome to VocabuLearner!</h2>
+            <p>Start your vocabulary journey today! Explore the dashboard to add words, review your collection, and track your progress.</p>
+            <p>Let's catch them all!</p>
+            <button class="btn-close" onclick="closeModal()">Start Learning</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 VocabuLearner</p>
+    </footer>
+
+    <script>
+        function closeModal() {
+            document.getElementById('welcomeModal').classList.remove('active');
+        }
+
+        function showTutorial(type) {
+            const messages = {
+                review: 'Review Now: Start your practice session and reinforce your vocabulary!',
+                words: 'My Words: Add and manage your vocabulary collection here.',
+                add: 'Add New Word: Expand your vocabulary collection!',
+                detailed: 'Detailed Progress: View comprehensive learning statistics.',
+                leaderboard: 'Leaderboard: See how you rank against other trainers!'
+            };
+            alert(messages[type] || 'Feature coming soon!');
+        }
+    </script>
+
+{%endblock%}
