@@ -3,8 +3,13 @@
 {%block title%}<title>VocabuLearner</title>{% endblock%}
 
 {%block content%}
-    {%block header%}{%endblock%}
+    {%block header%}
+    <div class="header-actions">
+        <button class="logout-btn" onclick="window.location.href='/'">Logout</button>
+    </div>
+    {%endblock%}
     <div class="dashboard-container">
+        <!-- Welcome Section -->
         <div class="welcome-section">
             <h1>Hello, Trainer!</h1>
             <div class="welcome-stats">
@@ -23,23 +28,25 @@
             </div>
         </div>
 
-        <div class="action-grid">
-            <a href="{{ url_for('review') }}" class="action-card">
+        <!-- Single Line Navigation -->
+        <div class="nav-row">
+            <div class="nav-item" onclick="window.location.href='/review'">
                 <div class="icon">📖</div>
-                <h3>Review How</h3>
-            </a>
+                <h3>VOCABCHALLENGE</h3>
+            </div>
 
-            <a href="{{ url_for('wordbank') }}" class="action-card">
+            <div class="nav-item" onclick="window.location.href='/wordbank'">
                 <div class="icon">📝</div>
-                <h3>My Words</h3>
-            </a>
+                <h3>MY WORDS</h3>
+            </div>
 
-            <a href="{{ url_for('addword') }}" class="action-card">
+            <div class="nav-item" onclick="window.location.href='/addword'">
                 <div class="icon">➕</div>
                 <h3>ADD NEW WORD</h3>
-            </a>
+            </div>
         </div>
 
+        <!-- Progress Section -->
         <div class="progress-section">
             <div class="progress-card">
                 <h2>Your Progress</h2>
@@ -55,7 +62,7 @@
                     <span class="label">Accuracy Rate</span>
                     <span class="value">95%</span>
                 </div>
-                <a href="{{ url_for('progress') }}" class = "btn-secondary">VIEW DETAILED PROGRESS</a>
+                <button class="btn-secondary" onclick="window.location.href='/progress'">VIEW DETAILED PROGRESS</button>
             </div>
 
             <div class="progress-card">
@@ -72,11 +79,12 @@
                     <span class="label">Points</span>
                     <span class="value">1,250</span>
                 </div>
-                <a href="{{ url_for('leaderboard') }}" class = "btn-secondary">VIEW LEADERBOARD</a>
+                <button class="btn-secondary" onclick="window.location.href='/leaderboard'">VIEW LEADERBOARD</button>
             </div>
         </div>
     </div>
 
+    <!-- Welcome Modal -->
     <div class="modal active" id="welcomeModal">
         <div class="modal-content">
             <h2>Welcome to VocabuLearner!</h2>
@@ -105,6 +113,13 @@
             };
             alert(messages[type] || 'Feature coming soon!');
         }
-    </script>
 
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                alert('Logging out...');
+                // In a real app, this would redirect to the login page
+                // window.location.href = 'login.html';
+            }
+        }
+    </script>
 {%endblock%}

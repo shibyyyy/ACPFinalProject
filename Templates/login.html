@@ -5,19 +5,21 @@
 {% block content %}
     {%block header%}{%endblock%}
     {{ form.hidden_tag() }}
-    <div class="login-container">
+    <div class="login-container active">
         <h1>Login</h1>
         <p>Welcome back, Trainer! Continue your vocabulary journey.</p>
 
         <form class="login-form">
-            {{form.username()}}
-            {{form.password()}}
+            <input type="email" placeholder="Email" required />
+            <input type="password" placeholder="Password" required />
 
-            {{form.submit()}}
+            <button type="button" class="btn-primary" id="login-btn">Log In</button>
 
+            <!-- Signup Button -->
             <a href="{{url_for('signup')}}" class="btn-secondary">Sign Up</a>
 
-            <a href="#" class="forgot-password">Forgot Password?</a>
+            <!-- Forgot Password link -->
+            <a href="{{url_for('forgotpass')}}" class="forgot-password" id="forgot-password-link">Forgot Password?</a>
         </form>
     </div>
 

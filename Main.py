@@ -19,6 +19,10 @@ def  signup():
     form = SignupForm()
     return render_template('signup.html',form=form)
 
+@app.route('/forgotpass')
+def forgotpass():
+    return render_template('forgotpass.html')
+
 @app.route('/features')
 def features():
     return render_template('features.html')

@@ -659,7 +659,8 @@
                 font-size: 24px;
             }
         }
-        .login-container {
+        
+        .login-container, .forgot-password-container, .update-account-container {
             margin-top: 160px;
             max-width: 480px;
             background: rgba(255,255,255,0.15);
@@ -669,22 +670,33 @@
             padding: 40px;
             margin-left: auto; margin-right: auto;
             text-align: center;
+            display: none;
         }
-        .login-container h1 {
+        
+        .login-container.active, .forgot-password-container.active, .update-account-container.active {
+            display: block;
+        }
+        
+        .login-container h1, .forgot-password-container h1, .update-account-container h1 {
             font-size: 32px;
             color: #ffd700;
             text-shadow: 4px 4px 0 #000;
             margin-bottom: 20px;
         }
 
-        .login-container p {
+        .login-container p, .forgot-password-container p, .update-account-container p {
             font-size: 12px;
             margin-bottom: 30px;
             text-shadow: 2px 2px 0 #000;
         }
 
-        .login-form { display: flex; flex-direction: column; gap: 20px; }
-        .login-form input {
+        .login-form, .forgot-password-form, .update-account-form { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        
+        .login-form input, .forgot-password-form input, .update-account-form input {
             padding: 15px;
             font-size: 12px;
             font-family: 'Press Start 2P', monospace;
@@ -715,7 +727,7 @@
         .btn-secondary:hover { background: #ffc107; }
 
         /* Forgot Password */
-        .forgot-password {
+        .forgot-password, .back-to-login {
             display: block;
             margin-top: 10px;
             font-size: 16px;
@@ -726,7 +738,7 @@
             transition: all 0.2s;
         }
 
-        .forgot-password:hover {
+        .forgot-password:hover, .back-to-login:hover {
             color: #ff4444;
             transform: translateX(2px);
         }
@@ -739,6 +751,7 @@
             margin-top: 80px;
         }
         .footer p { font-size: 10px; color: #fff; text-shadow: 2px 2px 0 #000; }
+
 
         .signup-container { margin-top: 150px; max-width: 500px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 40px; margin-left: auto; margin-right: auto; box-shadow: 8px 8px 0 #000; text-align: center; }
         .signup-container h1 { font-size: 32px; margin-bottom: 20px; text-shadow: 4px 4px 0 #000; color: #ffd700; letter-spacing: 2px; }
@@ -942,6 +955,27 @@
             }
         }
 
+        /* Logout Button */
+        .logout-btn {
+            background: #ff4444;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #ff3333;
+        }
+
+
+        /* Dashboard Specific Styles */
         .dashboard-container { margin-top: 120px; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 20px; position: relative; z-index: 10; }
 
         /* Welcome Section */
@@ -963,55 +997,50 @@
         .fire-icon { display: inline-block; animation: flicker 1.5s infinite; }
         @keyframes flicker { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
 
-        /* Main Action Cards */
-        .action-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 30px; 
+        /* Single Line Navigation */
+        .nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        .action-card {
+        
+        .nav-item {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 20px 15px;
+            box-shadow: 8px 8px 0 #000;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            /* keep retro glass style */
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            border: 4px solid #000;
-            box-shadow: 8px 8px 0 #000;
-
-            /* spacing and sizing */
-            padding: 25px;
-            min-height: 180px;
-            text-align: center;
-
-            /* button behavior */
-            cursor: pointer;
-            text-decoration: none; /* prevents link look */
-            border-radius: 8px; /* optional, keeps smooth corners */
-
-            /* animation */
-            transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+            min-height: 120px;
         }
-
-        .action-card:hover {
-            transform: translate(4px, 4px); /* retro “pressed” effect */
+        
+        .nav-item:hover {
+            transform: translate(4px, 4px);
             box-shadow: 4px 4px 0 #000;
             background: rgba(255,255,255,0.25);
         }
-
-
-        .action-card h3 { 
-            font-size: 16px; 
-            color: #ffd700; 
-            text-shadow: 3px 3px 0 #000; 
-            margin-bottom: 15px; 
+        
+        .nav-item h3 {
+            font-size: 14px;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #000;
+            margin-bottom: 10px;
         }
-        .action-card .icon { 
-            font-size: 48px; 
-            margin-bottom: 15px; 
+        
+        .nav-item .icon {
+            font-size: 36px;
+            margin-bottom: 10px;
             display: block;
         }
 
@@ -1125,15 +1154,21 @@
             transform: translate(3px,3px); 
             box-shadow: 3px 3px 0 #000; 
         }
-
-        .dashboard-container { 
-            margin-top: 120px; 
-            max-width: 1200px; 
-            margin-left: auto; 
-            margin-right: auto; 
-            padding: 20px; 
-            position: relative; 
-            z-index: 10; 
+        
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .nav-row {
+                flex-direction: column;
+            }
+            
+            .nav-item {
+                width: 100%;
+                min-width: auto;
+            }
+            
+            .header-actions {
+                gap: 10px;
+            }
         }
 
         /* Welcome Section */
