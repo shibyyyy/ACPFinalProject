@@ -14,774 +14,282 @@
             </a>
     {% endblock %}
     {%block header%}{%endblock%}
+    <!-- MAIN CONTENT -->
     <div class="progress-container">
-        <button class="back-btn" onclick="history.back()">← Back to Dashboard</button>
-
+        <!-- Page Title -->
         <div class="page-title">
-            <h1>Your Pokémon Evolution</h1>
-            <p>Track your vocabulary journey through Pokémon evolution</p>
+            <h1>Study Progress Analytics</h1>
+            <p>Track your vocabulary learning journey and progress statistics</p>
         </div>
 
-        <!-- Key Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="icon">📚</div>
-                <span class="label">Total Words</span>
-                <div class="value">47</div>
-            </div>
-            <div class="stat-card">
-                <div class="icon">✅</div>
-                <span class="label">Mastered</span>
-                <div class="value">32</div>
-            </div>
-            <div class="stat-card">
-                <div class="icon"><span class="fire-icon">🔥</span></div>
-                <span class="label">Current Streak</span>
-                <div class="value">3</div>
-            </div>
-            <div class="stat-card">
-                <div class="icon">⏱️</div>
-                <span class="label">Study Time</span>
-                <div class="value">12h</div>
-            </div>
-        </div>
-
-        <!-- Pokémon Evolution Section -->
-        <div class="evolution-section">
-            <h2>Your Pokémon Evolution</h2>
+        <!-- Study Progress Analytics Main Section -->
+        <div class="analytics-main">
+            <h2>Study Progress Analytics</h2>
             
-            <!-- Charmander Evolution Line -->
-            <div class="pokemon-evolution">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Charmander">
-                    </div>
-                    <div class="pokemon-name">Charmander</div>
-                    <div class="pokemon-level">Level 5</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 70%;"></div>
-                        <div class="pokemon-progress-text">70% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png" alt="Charmeleon">
-                    </div>
-                    <div class="pokemon-name">Charmeleon</div>
-                    <div class="pokemon-level">Level 16</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 45%;"></div>
-                        <div class="pokemon-progress-text">45% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
-                    </div>
-                    <div class="pokemon-name">Charizard</div>
-                    <div class="pokemon-level">Level 36</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 20%;"></div>
-                        <div class="pokemon-progress-text">20% to next evolution</div>
-                    </div>
-                </div>
+            <!-- Time Filter Tabs -->
+            <div class="time-filter">
+                <button class="time-tab active">Daily</button>
+                <button class="time-tab">Weekly</button>
+                <button class="time-tab">Monthly</button>
             </div>
             
-            <!-- Electabuzz Evolution Line -->
-            <div class="pokemon-evolution electric-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/239.png" alt="Elekid">
-                    </div>
-                    <div class="pokemon-name">Elekid</div>
-                    <div class="pokemon-level">Level 6</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 85%;"></div>
-                        <div class="pokemon-progress-text">85% to next evolution</div>
-                    </div>
+            <!-- Weekly Overview Section -->
+            <div class="weekly-overview">
+                <h3>Weekly Overview</h3>
+                
+                <div class="weekly-stats">
+                    <strong>Current Week:</strong> 100 words + 6.3 hours + 8 Pokémon evolved
                 </div>
                 
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/125.png" alt="Electabuzz">
-                    </div>
-                    <div class="pokemon-name">Electabuzz</div>
-                    <div class="pokemon-level">Level 30</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 60%;"></div>
-                        <div class="pokemon-progress-text">60% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/466.png" alt="Electivire">
-                    </div>
-                    <div class="pokemon-name">Electivire</div>
-                    <div class="pokemon-level">Level 45</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 15%;"></div>
-                        <div class="pokemon-progress-text">15% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Chikorita Evolution Line -->
-            <div class="pokemon-evolution grass-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png" alt="Chikorita">
-                    </div>
-                    <div class="pokemon-name">Chikorita</div>
-                    <div class="pokemon-level">Level 4</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 75%;"></div>
-                        <div class="pokemon-progress-text">75% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/153.png" alt="Bayleef">
-                    </div>
-                    <div class="pokemon-name">Bayleef</div>
-                    <div class="pokemon-level">Level 16</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 50%;"></div>
-                        <div class="pokemon-progress-text">50% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/154.png" alt="Meganium">
-                    </div>
-                    <div class="pokemon-name">Meganium</div>
-                    <div class="pokemon-level">Level 32</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 25%;"></div>
-                        <div class="pokemon-progress-text">25% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Snorlax Evolution Line -->
-            <div class="pokemon-evolution">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/446.png" alt="Munchlax">
-                    </div>
-                    <div class="pokemon-name">Манчлакс (Munchlax)</div>
-                    <div class="pokemon-level">Level 8</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 80%;"></div>
-                        <div class="pokemon-progress-text">80% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" alt="Snorlax">
-                    </div>
-                    <div class="pokemon-name">Снорлакс (Snorlax)</div>
-                    <div class="pokemon-level">Level 15</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 20%;"></div>
-                        <div class="pokemon-progress-text">20% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Pichu Evolution Line -->
-            <div class="pokemon-evolution electric-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" alt="Pichu">
-                    </div>
-                    <div class="pokemon-name">Pichu</div>
-                    <div class="pokemon-level">Level 2</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 90%;"></div>
-                        <div class="pokemon-progress-text">90% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Pikachu">
-                    </div>
-                    <div class="pokemon-name">Pikachu</div>
-                    <div class="pokemon-level">Level 12</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 65%;"></div>
-                        <div class="pokemon-progress-text">65% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png" alt="Raichu">
-                    </div>
-                    <div class="pokemon-name">Raichu</div>
-                    <div class="pokemon-level">Level 20</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 10%;"></div>
-                        <div class="pokemon-progress-text">10% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Cleffa Evolution Line -->
-            <div class="pokemon-evolution">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/173.png" alt="Cleffa">
-                    </div>
-                    <div class="pokemon-name">Cleffa</div>
-                    <div class="pokemon-level">Level 3</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 75%;"></div>
-                        <div class="pokemon-progress-text">75% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/35.png" alt="Clefairy">
-                    </div>
-                    <div class="pokemon-name">Clefairy</div>
-                    <div class="pokemon-level">Level 10</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 40%;"></div>
-                        <div class="pokemon-progress-text">40% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/36.png" alt="Clefable">
-                    </div>
-                    <div class="pokemon-name">Clefable</div>
-                    <div class="pokemon-level">Level 18</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 25%;"></div>
-                        <div class="pokemon-progress-text">25% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Igglybuff Evolution Line -->
-            <div class="pokemon-evolution">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/174.png" alt="Igglybuff">
-                    </div>
-                    <div class="pokemon-name">Igglybuff</div>
-                    <div class="pokemon-level">Level 4</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 60%;"></div>
-                        <div class="pokemon-progress-text">60% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png" alt="Jigglypuff">
-                    </div>
-                    <div class="pokemon-name">Jigglypuff</div>
-                    <div class="pokemon-level">Level 11</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 55%;"></div>
-                        <div class="pokemon-progress-text">55% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/40.png" alt="Wigglytuff">
-                    </div>
-                    <div class="pokemon-name">Wigglytuff</div>
-                    <div class="pokemon-level">Level 17</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 35%;"></div>
-                        <div class="pokemon-progress-text">35% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Nidoran Evolution Line -->
-            <div class="pokemon-evolution poison-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/29.png" alt="Nidoran♀">
-                    </div>
-                    <div class="pokemon-name">Nidoran♀</div>
-                    <div class="pokemon-level">Level 7</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 80%;"></div>
-                        <div class="pokemon-progress-text">80% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/30.png" alt="Nidorina">
-                    </div>
-                    <div class="pokemon-name">Nidorina</div>
-                    <div class="pokemon-level">Level 16</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 55%;"></div>
-                        <div class="pokemon-progress-text">55% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/31.png" alt="Nidoqueen">
-                    </div>
-                    <div class="pokemon-name">Nidoqueen</div>
-                    <div class="pokemon-level">Level 32</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 15%;"></div>
-                        <div class="pokemon-progress-text">15% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Venonat Evolution Line -->
-            <div class="pokemon-evolution bug-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/48.png" alt="Venonat">
-                    </div>
-                    <div class="pokemon-name">Venonat</div>
-                    <div class="pokemon-level">Level 9</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 65%;"></div>
-                        <div class="pokemon-progress-text">65% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/49.png" alt="Venomoth">
-                    </div>
-                    <div class="pokemon-name">Venomoth</div>
-                    <div class="pokemon-level">Level 31</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 40%;"></div>
-                        <div class="pokemon-progress-text">40% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Rookidee Evolution Line -->
-            <div class="pokemon-evolution flying-variant">
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/821.png" alt="Rookidee">
-                    </div>
-                    <div class="pokemon-name">Rookidee</div>
-                    <div class="pokemon-level">Level 6</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 75%;"></div>
-                        <div class="pokemon-progress-text">75% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/822.png" alt="Corvisquire">
-                    </div>
-                    <div class="pokemon-name">Corvisquire</div>
-                    <div class="pokemon-level">Level 18</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 50%;"></div>
-                        <div class="pokemon-progress-text">50% to next evolution</div>
-                    </div>
-                </div>
-                
-                <div class="evolution-arrow">➡️</div>
-                
-                <div class="pokemon-stage">
-                    <div class="pokemon-image">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/823.png" alt="Corviknight">
-                    </div>
-                    <div class="pokemon-name">Corviknight</div>
-                    <div class="pokemon-level">Level 38</div>
-                    <div class="pokemon-progress">
-                        <div class="pokemon-progress-fill" style="width: 25%;"></div>
-                        <div class="pokemon-progress-text">25% to next evolution</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- NEW: Type Master Achievements Section -->
-        <div class="type-achievements-section">
-            <h2>Type Master Achievements</h2>
-            
-            <!-- Rare Achievements -->
-            <div class="type-category">
-                <h3>Rare Achievements</h3>
-                <div class="type-badges-grid">
-                    <div class="type-badge water-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" alt="Squirtle">
+                <!-- Bar Chart Section -->
+                <div class="bar-chart-container">
+                    <div class="chart-title">Weekly Words Learned</div>
+                    
+                    <div class="chart-grid">
+                        <!-- Y-axis labels -->
+                        <div class="chart-y-axis">
+                            <span>150</span>
+                            <span>120</span>
+                            <span>90</span>
+                            <span>60</span>
+                            <span>30</span>
+                            <span>0</span>
                         </div>
-                        <div class="type-name">WATER</div>
-                        <div class="type-desc">Master water-related vocabulary</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge fire-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Charmander">
+                        
+                        <!-- Bar columns - NOW GROWING FROM BOTTOM -->
+                        <div class="bar-column">
+                            <div class="bar" style="height: 56.7%;" data-value="85">
+                                <div class="bar-value">85</div>
+                            </div>
                         </div>
-                        <div class="type-name">FIRE</div>
-                        <div class="type-desc">Complete fire word challenges</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge electric-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Pikachu">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 61.3%;" data-value="92">
+                                <div class="bar-value">92</div>
+                            </div>
                         </div>
-                        <div class="type-name">ELECTRIC</div>
-                        <div class="type-desc">Master electric-type words</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked craes-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png" alt="Mewtwo">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 52%;" data-value="78">
+                                <div class="bar-value">78</div>
+                            </div>
                         </div>
-                        <div class="type-name">CRAES</div>
-                        <div class="type-desc">Unlock mysterious CRAES type</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge ice-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/87.png" alt="Dewgong">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 70%;" data-value="105">
+                                <div class="bar-value">105</div>
+                            </div>
                         </div>
-                        <div class="type-name">ICE</div>
-                        <div class="type-desc">Complete ice vocabulary</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge psychic-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png" alt="Alakazam">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 80%;" data-value="120">
+                                <div class="bar-value">120</div>
+                            </div>
                         </div>
-                        <div class="type-name">PSYCHIC</div>
-                        <div class="type-desc">Master psychic word challenges</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked chark-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png" alt="Tyranitar">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 90%;" data-value="135">
+                                <div class="bar-value">135</div>
+                            </div>
                         </div>
-                        <div class="type-name">CHARK</div>
-                        <div class="type-desc">Unlock the CHARK type</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked frory-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/103.png" alt="Exeggutor">
+                        
+                        <div class="bar-column">
+                            <div class="bar" style="height: 63.3%;" data-value="95">
+                                <div class="bar-value">95</div>
+                            </div>
                         </div>
-                        <div class="type-name">FRORY</div>
-                        <div class="type-desc">Discover FRORY vocabulary</div>
-                        <div class="type-progress">Locked</div>
                     </div>
-                    <div class="type-badge normal-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" alt="Snorlax">
-                        </div>
-                        <div class="type-name">NORMAL</div>
-                        <div class="type-desc">Complete normal word sets</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked ensual-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/282.png" alt="Gardevoir">
-                        </div>
-                        <div class="type-name">ENSUAL</div>
-                        <div class="type-desc">Master ENSUAL vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked light-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/381.png" alt="Latios">
-                        </div>
-                        <div class="type-name">LIGHT</div>
-                        <div class="type-desc">Complete light word challenges</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked nuclear-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/89.png" alt="Muk">
-                        </div>
-                        <div class="type-name">NUCLEAR</div>
-                        <div class="type-desc">Master nuclear vocabulary</div>
-                        <div class="type-progress">Locked</div>
+                    
+                    <!-- SINGLE SET OF DAY LABELS - Removed duplicates -->
+                    <div class="day-labels">
+                        <div class="day-label">Mon 1</div>
+                        <div class="day-label">Tue 2</div>
+                        <div class="day-label">Wed 3</div>
+                        <div class="day-label">Thu 4</div>
+                        <div class="day-label">Fri 5</div>
+                        <div class="day-label">Sat 6</div>
+                        <div class="day-label">Sun 7</div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Legendary Achievements -->
-            <div class="type-category">
-                <h3>Legendary Achievements</h3>
-                <div class="type-badges-grid">
-                    <div class="type-badge energy-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/145.png" alt="Zapdos">
-                        </div>
-                        <div class="type-name">ENERGY</div>
-                        <div class="type-desc">Unlock ultimate energy words</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge tech-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/81.png" alt="Magnemite">
-                        </div>
-                        <div class="type-name">TECH</div>
-                        <div class="type-desc">Master technical vocabulary</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked chaos-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/487.png" alt="Giratina">
-                        </div>
-                        <div class="type-name">CHAOS</div>
-                        <div class="type-desc">Complete chaos word challenges</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked cosmid-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/384.png" alt="Rayquaza">
-                        </div>
-                        <div class="type-name">COSMID</div>
-                        <div class="type-desc">Master cosmic vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked void-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/292.png" alt="Shedinja">
-                        </div>
-                        <div class="type-name">VOID</div>
-                        <div class="type-desc">Complete void word challenges</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked eyber-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/79.png" alt="Slowpoke">
-                        </div>
-                        <div class="type-name">EYBER</div>
-                        <div class="type-desc">Unlock EYBER vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge ground-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/28.png" alt="Sandslash">
-                        </div>
-                        <div class="type-name">GROUND</div>
-                        <div class="type-desc">Master ground-type words</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge flying-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
-                        </div>
-                        <div class="type-name">FLYING</div>
-                        <div class="type-desc">Complete flying vocabulary</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge fighting-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png" alt="Machamp">
-                        </div>
-                        <div class="type-name">FIGHTING</div>
-                        <div class="type-desc">Master fighting word challenges</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked rock-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/112.png" alt="Rhydon">
-                        </div>
-                        <div class="type-name">ROCK</div>
-                        <div class="type-desc">Complete rock vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked organ-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/121.png" alt="Starmie">
-                        </div>
-                        <div class="type-name">ORGAN</div>
-                        <div class="type-desc">Master ORGAN vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked steel-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/212.png" alt="Scizor">
-                        </div>
-                        <div class="type-name">STEEL</div>
-                        <div class="type-desc">Complete steel word challenges</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge bug-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/123.png" alt="Scyther">
-                        </div>
-                        <div class="type-name">BUG</div>
-                        <div class="type-desc">Master bug-type vocabulary</div>
-                        <div class="type-progress">Unlocked!</div>
-                    </div>
-                    <div class="type-badge locked push-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/107.png" alt="Hitmonchan">
-                        </div>
-                        <div class="type-name">PUSH</div>
-                        <div class="type-desc">Unlock PUSH vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                    <div class="type-badge locked gadet-type">
-                        <div class="type-icon">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/474.png" alt="Porygon-Z">
-                        </div>
-                        <div class="type-name">GADET</div>
-                        <div class="type-desc">Master GADET vocabulary</div>
-                        <div class="type-progress">Locked</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Achievements -->
-        <div class="achievements-section">
-            <h2>Achievements</h2>
-            <div class="badges-grid">
-                <div class="badge">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" alt="Charmander">
-                    </div>
-                    <div class="badge-name">Fire Starter</div>
-                    <div class="badge-desc">Master 10 fire words</div>
-                    <div class="badge-progress">Unlocked!</div>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" alt="Pikachu">
-                    </div>
-                    <div class="badge-name">Electric Power</div>
-                    <div class="badge-desc">Complete 5 lessons</div>
-                    <div class="badge-progress">Unlocked!</div>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png" alt="Chikorita">
-                    </div>
-                    <div class="badge-name">Nature Lover</div>
-                    <div class="badge-desc">Learn 15 nature words</div>
-                    <div class="badge-progress">Unlocked!</div>
-                </div>
-                <div class="badge">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" alt="Snorlax">
-                    </div>
-                    <div class="badge-name">Rest Expert</div>
-                    <div class="badge-desc">Maintain 3-day streak</div>
-                    <div class="badge-progress">Unlocked!</div>
-                </div>
-                <div class="badge locked">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png" alt="Charizard">
-                    </div>
-                    <div class="badge-name">Dragon Master</div>
-                    <div class="badge-desc">Master 50 words</div>
-                    <div class="badge-progress">32/50 words</div>
-                </div>
-                <div class="badge locked">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/466.png" alt="Electivire">
-                    </div>
-                    <div class="badge-name">Power Surge</div>
-                    <div class="badge-desc">7-day streak</div>
-                    <div class="badge-progress">3/7 days</div>
-                </div>
-                <div class="badge locked">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/154.png" alt="Meganium">
-                    </div>
-                    <div class="badge-name">Forest Guardian</div>
-                    <div class="badge-desc">Complete all grass types</div>
-                    <div class="badge-progress">Locked</div>
-                </div>
-                <div class="badge locked">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/823.png" alt="Corviknight">
-                    </div>
-                    <div class="badge-name">Sky Master</div>
-                    <div class="badge-desc">30-day streak</div>
-                    <div class="badge-progress">Locked</div>
-                </div>
-                <div class="badge locked">
-                    <div class="badge-icon">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png" alt="Dragonite">
-                    </div>
-                    <div class="badge-name">Legendary</div>
-                    <div class="badge-desc">Complete all</div>
-                    <div class="badge-progress">Locked</div>
-                </div>
+                
+                <!-- REMOVED: Weekly Total, Weekly Average, Best Day, and Evolutions statistics -->
+                
             </div>
         </div>
     </div>
 
+    <!-- FOOTER -->
     <footer class="footer">
-        <p>© 2025 VocabuLearner</p>
+        <p>© 2025 VocabuLearner - Study Progress Analytics</p>
     </footer>
 
     <script>
-        // Simple script to handle achievement unlocking
+        // Tab switching functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const currentStreak = 3; // This would come from your app data
+            const tabs = document.querySelectorAll('.time-tab');
             
-            // Check if we've reached the 7-day streak for "Power Surge" achievement
-            if (currentStreak >= 7) {
-                const powerSurgeBadge = document.querySelector('.badge:nth-child(6)');
-                powerSurgeBadge.classList.remove('locked');
-                powerSurgeBadge.querySelector('.badge-progress').textContent = 'Unlocked!';
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Update chart based on selected period
+                    updateChart(this.textContent.toLowerCase());
+                });
+            });
+            
+            // Animate bars on load - FIXED ANIMATION TO GROW FROM BOTTOM
+            setTimeout(() => {
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach((bar, index) => {
+                    const originalHeight = bar.style.height;
+                    bar.style.height = '0%';
+                    setTimeout(() => {
+                        bar.style.transition = 'height 0.8s ease';
+                        bar.style.height = originalHeight;
+                    }, index * 150);
+                });
+            }, 300);
+            
+            // Add hover effects to bars
+            const bars = document.querySelectorAll('.bar');
+            bars.forEach(bar => {
+                bar.addEventListener('mouseenter', function() {
+                    const value = this.getAttribute('data-value');
+                    showTooltip(this, value);
+                });
+                
+                bar.addEventListener('mouseleave', function() {
+                    hideTooltip();
+                });
+            });
+            
+            // Function to update chart based on period
+            function updateChart(period) {
+                const chartTitle = document.querySelector('.chart-title');
+                const weeklyStats = document.querySelector('.weekly-stats strong');
+                const dayLabels = document.querySelectorAll('.day-label');
+                
+                if (period === 'daily') {
+                    chartTitle.textContent = 'Daily Words Learned';
+                    weeklyStats.textContent = 'Current Day: 135 words + 1.8 hours + 2 Pokémon evolved';
+                    
+                    // Update day labels for daily view
+                    const dailyLabels = ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'];
+                    dayLabels.forEach((label, index) => {
+                        label.textContent = dailyLabels[index] || '';
+                    });
+                    
+                    // Update bar data for daily view
+                    updateBarData([45, 65, 85, 72, 90, 135, 68]);
+                } else if (period === 'weekly') {
+                    chartTitle.textContent = 'Weekly Words Learned';
+                    weeklyStats.textContent = 'Current Week: 100 words + 6.3 hours + 8 Pokémon evolved';
+                    
+                    // Update day labels for weekly view
+                    const weeklyLabels = ['Mon 1', 'Tue 2', 'Wed 3', 'Thu 4', 'Fri 5', 'Sat 6', 'Sun 7'];
+                    dayLabels.forEach((label, index) => {
+                        label.textContent = weeklyLabels[index] || '';
+                    });
+                    
+                    // Update bar data for weekly view
+                    updateBarData([85, 92, 78, 105, 120, 135, 95]);
+                } else if (period === 'monthly') {
+                    chartTitle.textContent = 'Monthly Words Learned';
+                    weeklyStats.textContent = 'Current Month: 1200 words + 45 hours + 15 Pokémon evolved';
+                    
+                    // Update labels for monthly view
+                    const monthlyLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', '', '', ''];
+                    dayLabels.forEach((label, index) => {
+                        label.textContent = monthlyLabels[index] || '';
+                    });
+                    
+                    // Update bar data for monthly view (4 weeks)
+                    updateBarData([650, 720, 802, 920, 0, 0, 0]);
+                }
+                
+                // Animate the update
+                const bars = document.querySelectorAll('.bar');
+                bars.forEach((bar, index) => {
+                    bar.style.transition = 'height 0.5s ease';
+                    setTimeout(() => {
+                        bar.style.height = bar.style.height;
+                    }, index * 100);
+                });
+            }
+            
+            function updateBarData(values) {
+                const maxValue = Math.max(...values);
+                
+                // Get all bars
+                const bars = document.querySelectorAll('.bar');
+                const barValues = document.querySelectorAll('.bar-value');
+                
+                // Update each bar
+                values.forEach((value, index) => {
+                    if (bars[index]) {
+                        const heightPercentage = value > 0 ? (value / maxValue) * 90 : 0;
+                        bars[index].style.height = `${heightPercentage}%`;
+                        bars[index].setAttribute('data-value', value);
+                        
+                        if (barValues[index]) {
+                            barValues[index].textContent = value > 0 ? value : '';
+                        }
+                    }
+                });
+                
+                // Re-attach event listeners
+                setTimeout(() => {
+                    const newBars = document.querySelectorAll('.bar');
+                    newBars.forEach(bar => {
+                        bar.addEventListener('mouseenter', function() {
+                            const value = this.getAttribute('data-value');
+                            showTooltip(this, value);
+                        });
+                        
+                        bar.addEventListener('mouseleave', function() {
+                            hideTooltip();
+                        });
+                    });
+                }, 100);
+            }
+            
+            function showTooltip(element, value) {
+                // Remove existing tooltip
+                hideTooltip();
+                
+                // Create new tooltip
+                const tooltip = document.createElement('div');
+                tooltip.className = 'bar-tooltip';
+                tooltip.textContent = `${value} words`;
+                tooltip.style.cssText = `
+                    position: absolute;
+                    background: rgba(0,0,0,0.9);
+                    color: #ffd700;
+                    padding: 8px 12px;
+                    border: 2px solid #000;
+                    border-radius: 5px;
+                    font-size: 12px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    box-shadow: 4px 4px 0 #000;
+                `;
+                
+                const rect = element.getBoundingClientRect();
+                tooltip.style.left = `${rect.left + window.scrollX + rect.width/2 - 30}px`;
+                tooltip.style.top = `${rect.top + window.scrollY - 40}px`;
+                
+                document.body.appendChild(tooltip);
+            }
+            
+            function hideTooltip() {
+                const existingTooltip = document.querySelector('.bar-tooltip');
+                if (existingTooltip) {
+                    existingTooltip.remove();
+                }
             }
         });
     </script>

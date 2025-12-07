@@ -1,32 +1,33 @@
-{%extends 'base.html'%}
+{% extends 'base.html' %}
 
-{%block title%}<title>Sign up - VocabuLearner</title>{% endblock%}
+{% block title %}<title>Sign up - VocabuLearner</title>{% endblock %}
 
-{%block content%}
-    {%block header%}{%endblock%}
-    {{form.hidden_tag()}}
-    <div class="signup-container">
-        <h1>Sign Up</h1>
-        <p>Create your trainer account and start collecting words like Pokémon!</p>
+{% block content %}
+<div class="signup-container">
+    <h1>Sign Up</h1>
+    <p>Create your trainer account and start collecting words like Pokémon!</p>
 
-        <form class="signup-form">
-            {{form.username()}}
-            {{form.email()}}
-            {{form.password()}}
-            {{form.confirm_password()}}
-            <div class="terms">
-                {{form.terms()}}
-                {{form.terms.label}}
-            </div>
-            {{form.submit()}}
-        </form>
+    <form class="signup-form" method="POST">
+        {{ form.hidden_tag() }}
 
-        <div class="signup-footer">
-            Already have an account? <a href="{{url_for('login')}}">Log In</a>
+        {{ form.username(placeholder="Username") }}
+        {{ form.email(placeholder="Email") }}
+        {{ form.password(placeholder="Password") }}
+        {{ form.confirm_password(placeholder="Confirm Password") }}
+
+        <div class="terms">
+            {{ form.terms }} {{ form.terms.label }}
         </div>
-    </div>
 
-    <footer class="footer">
-        <p>© 2025 VocabuLearner</p>
-    </footer>
-{% endblock%}
+        {{ form.submit(class="btn-primary") }}
+    </form>
+
+    <div class="signup-footer">
+        Already have an account? <a href="{{ url_for('login') }}">Log In</a>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>© 2025 VocabuLearner</p>
+</footer>
+{% endblock %}

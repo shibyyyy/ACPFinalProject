@@ -64,33 +64,33 @@
     </div>
 
     <!-- Word Detail Modal -->
-    <div class="modal" id="wordModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title" id="modalWord">Ephemeral</h2>
-                <span class="modal-type" id="modalType">adjective</span>
+    <div class="modal2" id="wordModal">
+        <div class="modal2-content">
+            <div class="modal2-header">
+                <h2 class="modal2-title" id="modalWord">Ephemeral</h2>
+                <span class="modal2-type" id="modalType">adjective</span>
             </div>
-            <p class="modal-definition" id="modalDefinition">Lasting for a very short time; transient.</p>
-            <div class="modal-example" id="modalExample">"The ephemeral beauty of cherry blossoms is celebrated in Japanese culture."</div>
-            <div class="modal-stats">
-                <div class="modal-stat">
-                    <span class="modal-stat-label">Status</span>
-                    <span class="modal-stat-value" id="modalStatus">Mastered</span>
+            <p class="modal2-definition" id="modalDefinition">Lasting for a very short time; transient.</p>
+            <div class="modal2-example" id="modalExample">"The ephemeral beauty of cherry blossoms is celebrated in Japanese culture."</div>
+            <div class="modal2-stats">
+                <div class="modal2-stat">
+                    <span class="modal2-stat-label">Status</span>
+                    <span class="modal2-stat-value" id="modalStatus">Mastered</span>
                 </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-label">Times Reviewed</span>
-                    <span class="modal-stat-value" id="modalReviews">8</span>
+                <div class="modal2-stat">
+                    <span class="modal2-stat-label">Times Reviewed</span>
+                    <span class="modal2-stat-value" id="modalReviews">8</span>
                 </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-label">Accuracy</span>
-                    <span class="modal-stat-value" id="modalAccuracy">95%</span>
+                <div class="modal2-stat">
+                    <span class="modal2-stat-label">Accuracy</span>
+                    <span class="modal2-stat-value" id="modalAccuracy">95%</span>
                 </div>
-                <div class="modal-stat">
-                    <span class="modal-stat-label">Added On</span>
-                    <span class="modal-stat-value" id="modalDate">2025-03-15</span>
+                <div class="modal2-stat">
+                    <span class="modal2-stat-label">Added On</span>
+                    <span class="modal2-stat-value" id="modalDate">2025-03-15</span>
                 </div>
             </div>
-            <div class="modal-actions">
+            <div class="modal2-actions">
                 <button class="btn-edit" onclick="editWord()">EDIT</button>
                 <button class="btn-close" onclick="closeWordModal()">CLOSE</button>
             </div>
@@ -172,7 +172,7 @@
             
             wordData.forEach(word => {
                 const wordCard = document.createElement('div');
-                wordCard.className = 'word-card';
+                wordCard.className = 'word-card2';
                 wordCard.onclick = () => openWordModal(word);
                 
                 // Status indicator
@@ -249,7 +249,7 @@
             
             filteredWords.forEach(word => {
                 const wordCard = document.createElement('div');
-                wordCard.className = 'word-card';
+                wordCard.className = 'word-card2';
                 wordCard.onclick = () => openWordModal(word);
                 
                 // Status indicator

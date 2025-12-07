@@ -16,14 +16,14 @@
     {%block header%}{%endblock%}
     {{form.hidden_tag()}}
     <!-- WORD ENTRY FORM -->
-    <div class="container" id="onboarding">
-        <h2>Add Your Words</h2>
+    <div class="container" id="wordEntry">
+        <h1>Add Your Words</h1>
         
         <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution2">
+        <div class="pokemon-evolution">
             <h3>Your Vocabulary Partner</h3>
             <div class="pokemon-container">
-                <div class="pokemon" id="currentPokemonWord">
+                <div class="pokemon" id="currentPokemon">
                     <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" class="pokemon-sprite" alt="Pichu">
                     <div class="pokemon-name">Pichu</div>
                 </div>
@@ -36,102 +36,13 @@
             <p>Add words to help your Pokémon evolve!</p>
         </div>
         
-        <div class="progress-indicator" id="progressIndicator">Word 1 of 5</div>
-        
         <form class="word-form" id="wordForm">
-            {{form.word()}}
-            {{form.definition()}}
-            {{form.sentence()}}
+            <input type="text" placeholder="Word" id="wordInput" required />
+            <input type="text" placeholder="Meaning" id="meaningInput" required />
+            <textarea placeholder="Example Sentence" id="exampleInput" required></textarea>
             
-            {{form.submit()}}
+            <button type="submit" class="btn-primary" id="addWordBtn">Add Word</button>
         </form>
-        
-        <button class="nav-btn" onclick="showProgressPage()">View Pokémon Progress →</button>
-    </div>
-
-    <!-- PRACTICE SESSION -->
-    <div class="container hidden" id="practiceSession">
-        <h1>Practice Session</h1>
-        <p>Learn your first 5 words!</p>
-        
-        <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution2">
-            <h3>Your Vocabulary Partner</h3>
-            <div class="pokemon-container">
-                <div class="pokemon" id="currentPokemonPractice">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" class="pokemon-sprite" alt="Pichu">
-                    <div class="pokemon-name">Pichu</div>
-                </div>
-            </div>
-            <div class="evolution-progress">
-                <div class="evolution-dot" data-stage="0"></div>
-                <div class="evolution-dot" data-stage="1"></div>
-                <div class="evolution-dot" data-stage="2"></div>
-            </div>
-            <p>Your Pokémon is cheering you on!</p>
-        </div>
-        
-        <div class="practice-progress" id="practiceProgress">
-            <div class="progress-dot" data-index="0"></div>
-            <div class="progress-dot" data-index="1"></div>
-            <div class="progress-dot" data-index="2"></div>
-            <div class="progress-dot" data-index="3"></div>
-            <div class="progress-dot" data-index="4"></div>
-        </div>
-        
-        <div class="practice-card">
-            <div class="word-display" id="currentWord">Word</div>
-            <div class="meaning-display hidden" id="currentMeaning">Meaning</div>
-            <div class="example-display hidden" id="currentExample">Example sentence</div>
-        </div>
-        
-        <button class="btn-primary" id="revealBtn">Reveal Meaning</button>
-        <button class="btn-secondary hidden" id="nextBtn">Next Word</button>
-        
-        <button class="nav-btn" onclick="showProgressPage()">View Pokémon Progress →</button>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div class="container hidden" id="dashboard">
-        <h1>Dashboard</h1>
-        
-        <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution2">
-            <h3>Your Vocabulary Partner</h3>
-            <div class="pokemon-container">
-                <div class="pokemon" id="currentPokemonDashboard">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" class="pokemon-sprite" alt="Pichu">
-                    <div class="pokemon-name">Pichu</div>
-                </div>
-            </div>
-            <div class="evolution-progress">
-                <div class="evolution-dot" data-stage="0"></div>
-                <div class="evolution-dot" data-stage="1"></div>
-                <div class="evolution-dot" data-stage="2"></div>
-            </div>
-            <p>Keep learning to evolve your Pokémon further!</p>
-        </div>
-        
-        <div class="stats-container">
-            <div class="stat-box">
-                <div class="stat-value">🔥 1</div>
-                <div class="stat-label">DAY STREAK</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-value" id="totalWords">5</div>
-                <div class="stat-label">WORDS IN PROGRESS</div>
-            </div>
-        </div>
-        
-        <p>Great job! You've started your vocabulary journey.</p>
-        
-        <div style="margin: 30px 0;">
-            <div class="achievement-badge" id="firstWordsBadge">First Words</div>
-            <div class="achievement-badge hidden" id="fastStarterBadge">Fast Starter</div>
-        </div>
-        
-        <button class="btn-primary" style="width: auto; margin: 20px;">Add More Words</button>
-        <button class="nav-btn" onclick="showProgressPage()">View Pokémon Progress →</button>
     </div>
 
     <!-- FOOTER -->
@@ -141,39 +52,15 @@
 
     <script>
         // DOM Elements
-        const wordEntry = document.getElementById('onboarding');
-        const practiceSession = document.getElementById('practiceSession');
-        const dashboard = document.getElementById('dashboard');
-        
-        const useStarterWordsBtn = document.getElementById('useStarterWords');
-        const addOwnWordsBtn = document.getElementById('addOwnWords');
         const wordForm = document.getElementById('wordForm');
-        const progressIndicator = document.getElementById('progressIndicator');
         const addWordBtn = document.getElementById('addWordBtn');
-        
-        const practiceProgress = document.getElementById('practiceProgress');
-        const currentWord = document.getElementById('currentWord');
-        const currentMeaning = document.getElementById('currentMeaning');
-        const currentExample = document.getElementById('currentExample');
-        const revealBtn = document.getElementById('revealBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        
-        const firstWordsBadge = document.getElementById('firstWordsBadge');
-        const fastStarterBadge = document.getElementById('fastStarterBadge');
-        const totalWordsElement = document.getElementById('totalWords');
-        
-        const currentPokemonOnboarding = document.getElementById('currentPokemon');
-        const currentPokemonWord = document.getElementById('currentPokemonWord');
-        const currentPokemonPractice = document.getElementById('currentPokemonPractice');
-        const currentPokemonDashboard = document.getElementById('currentPokemonDashboard');
+        const currentPokemon = document.getElementById('currentPokemon');
         const evolutionDots = document.querySelectorAll('.evolution-dot');
 
         // State variables
         let currentWordCount = 0;
         const totalWordsNeeded = 5;
         let userWords = [];
-        let currentPracticeIndex = 0;
-        let earnedBadges = [];
         let pokemonStage = 0; // 0: Pichu, 1: Pikachu, 2: Raichu
         let totalWordsAdded = 0;
         
@@ -193,53 +80,10 @@
             }
         ];
 
-        // Starter words data
-        const starterWords = [
-            { word: "Hello", meaning: "A greeting", example: "Hello, how are you?" },
-            { word: "Thank you", meaning: "Expressing gratitude", example: "Thank you for your help!" },
-            { word: "Goodbye", meaning: "A farewell", example: "Goodbye, see you tomorrow!" },
-            { word: "Please", meaning: "Polite request", example: "Please pass the salt." },
-            { word: "Yes", meaning: "Affirmative response", example: "Yes, I understand." }
-        ];
-
         // Initialize
-        updateAllPokemon();
+        updatePokemon();
 
         // Event Listeners
-        useStarterWordsBtn.addEventListener('click', function() {
-            // Add starter words to user's collection
-            userWords = [...starterWords];
-            totalWordsAdded += 5;
-            
-            // Evolve Pokémon based on word count
-            if (totalWordsAdded >= 10) {
-                evolvePokemon(2);
-            } else if (totalWordsAdded >= 5) {
-                evolvePokemon(1);
-            }
-            
-            // Hide onboarding, show practice session
-            onboarding.classList.add('hidden');
-            practiceSession.classList.remove('hidden');
-            
-            // Start practice session with starter words
-            startPracticeSession();
-            
-            // Mark for Fast Starter badge
-            earnedBadges.push('fastStarter');
-        });
-        
-        addOwnWordsBtn.addEventListener('click', function() {
-            // Hide onboarding, show word entry form
-            onboarding.classList.add('hidden');
-            wordEntry.classList.remove('hidden');
-            
-            // Reset word count
-            currentWordCount = 0;
-            userWords = [];
-            updateProgressIndicator();
-        });
-        
         wordForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -247,6 +91,12 @@
             const word = document.getElementById('wordInput').value;
             const meaning = document.getElementById('meaningInput').value;
             const example = document.getElementById('exampleInput').value;
+            
+            // Validate inputs
+            if (!word.trim() || !meaning.trim() || !example.trim()) {
+                alert("Please fill in all fields!");
+                return;
+            }
             
             // Add to user's words
             userWords.push({ word, meaning, example });
@@ -257,7 +107,6 @@
             
             // Update progress
             currentWordCount++;
-            updateProgressIndicator();
             
             // Evolve Pokémon based on word count
             if (totalWordsAdded >= 10) {
@@ -270,122 +119,27 @@
             if (currentWordCount >= totalWordsNeeded) {
                 // Show success message
                 setTimeout(() => {
-                    alert("🎉 Great! Ready to practice?");
-                    
-                    // Hide word entry, show practice session
-                    wordEntry.classList.add('hidden');
-                    practiceSession.classList.remove('hidden');
-                    
-                    // Start practice session
-                    startPracticeSession();
+                    alert("🎉 Great! You've added all 5 words!");
+                    // You can redirect to practice or dashboard here
+                    // window.location.href = "practice.html";
                 }, 300);
             }
-        });
-        
-        revealBtn.addEventListener('click', function() {
-            currentMeaning.classList.remove('hidden');
-            currentExample.classList.remove('hidden');
-            revealBtn.classList.add('hidden');
-            nextBtn.classList.remove('hidden');
-        });
-        
-        nextBtn.addEventListener('click', function() {
-            currentPracticeIndex++;
             
-            if (currentPracticeIndex < userWords.length) {
-                // Show next word
-                updatePracticeCard();
-                revealBtn.classList.remove('hidden');
-                nextBtn.classList.add('hidden');
-                updatePracticeProgress();
-            } else {
-                // Practice session completed
-                practiceSession.classList.add('hidden');
-                dashboard.classList.remove('hidden');
-                
-                // Update dashboard stats
-                totalWordsElement.textContent = totalWordsAdded;
-                
-                // Award badges
-                earnedBadges.push('firstWords');
-                updateBadges();
-                
-                // Show completion message
-                setTimeout(() => {
-                    alert("🎉 Practice session completed! You've earned the 'First Words' badge!");
-                }, 500);
-            }
+            // Focus on word input for next entry
+            document.getElementById('wordInput').focus();
         });
-        
-        function updateProgressIndicator() {
-            progressIndicator.textContent = `Word ${currentWordCount + 1} of ${totalWordsNeeded}`;
-            
-            // Update button text for the last word
-            if (currentWordCount === totalWordsNeeded - 1) {
-                addWordBtn.textContent = "Add Final Word";
-            } else {
-                addWordBtn.textContent = "Add Word";
-            }
-        }
-        
-        function startPracticeSession() {
-            currentPracticeIndex = 0;
-            updatePracticeCard();
-            updatePracticeProgress();
-        }
-        
-        function updatePracticeCard() {
-            const currentWordData = userWords[currentPracticeIndex];
-            currentWord.textContent = currentWordData.word;
-            currentMeaning.textContent = currentWordData.meaning;
-            currentExample.textContent = currentWordData.example;
-            
-            // Hide meaning and example initially
-            currentMeaning.classList.add('hidden');
-            currentExample.classList.add('hidden');
-        }
-        
-        function updatePracticeProgress() {
-            const dots = practiceProgress.querySelectorAll('.progress-dot');
-            dots.forEach((dot, index) => {
-                dot.classList.remove('active', 'completed');
-                if (index === currentPracticeIndex) {
-                    dot.classList.add('active');
-                } else if (index < currentPracticeIndex) {
-                    dot.classList.add('completed');
-                }
-            });
-        }
-        
-        function updateBadges() {
-            if (earnedBadges.includes('firstWords')) {
-                firstWordsBadge.classList.remove('hidden');
-            }
-            if (earnedBadges.includes('fastStarter')) {
-                fastStarterBadge.classList.remove('hidden');
-            }
-        }
         
         function evolvePokemon(newStage) {
             if (newStage > pokemonStage) {
                 pokemonStage = newStage;
                 
-                // Add evolution animation to all Pokémon elements
-                const allPokemonElements = [currentPokemonOnboarding, currentPokemonWord, currentPokemonPractice, currentPokemonDashboard];
-                allPokemonElements.forEach(pokemon => {
-                    if (pokemon) {
-                        pokemon.classList.add('evolving');
-                    }
-                });
+                // Add evolution animation
+                currentPokemon.classList.add('evolving');
                 
                 // Update Pokémon after animation
                 setTimeout(() => {
-                    updateAllPokemon();
-                    allPokemonElements.forEach(pokemon => {
-                        if (pokemon) {
-                            pokemon.classList.remove('evolving');
-                        }
-                    });
+                    updatePokemon();
+                    currentPokemon.classList.remove('evolving');
                     
                     // Show evolution message
                     if (newStage === 1) {
@@ -397,19 +151,14 @@
             }
         }
         
-        function updateAllPokemon() {
+        function updatePokemon() {
             const pokemonData = pokemonEvolutions[pokemonStage];
-            const allPokemonElements = [currentPokemonOnboarding, currentPokemonWord, currentPokemonPractice, currentPokemonDashboard];
             
-            allPokemonElements.forEach(pokemonElement => {
-                if (pokemonElement) {
-                    const pokemonImg = pokemonElement.querySelector('.pokemon-sprite');
-                    const pokemonName = pokemonElement.querySelector('.pokemon-name');
-                    
-                    if (pokemonImg) pokemonImg.src = pokemonData.sprite;
-                    if (pokemonName) pokemonName.textContent = pokemonData.name;
-                }
-            });
+            const pokemonImg = currentPokemon.querySelector('.pokemon-sprite');
+            const pokemonName = currentPokemon.querySelector('.pokemon-name');
+            
+            if (pokemonImg) pokemonImg.src = pokemonData.sprite;
+            if (pokemonName) pokemonName.textContent = pokemonData.name;
             
             // Update evolution progress dots
             evolutionDots.forEach(dot => {
@@ -423,11 +172,6 @@
                 }
             });
         }
-        
-        function showProgressPage() {
-            // In a real app, this would navigate to the progress page
-            // For this demo, we'll show an alert with a link
-            alert("In the full app, this would take you to the Pokémon Progress page with all your evolution lines!\n\nYou've added " + totalWordsAdded + " words so far.");
-        }
     </script>
+
 {%endblock%}

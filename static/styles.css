@@ -1851,7 +1851,7 @@
             gap: 20px;
             margin-bottom: 30px;
         }
-        .word-card {
+        .word-card2 {
             background: rgba(255,255,255,0.15);
             backdrop-filter: blur(10px);
             border: 4px solid #000;
@@ -1860,7 +1860,7 @@
             transition: all 0.2s;
             cursor: pointer;
         }
-        .word-card:hover {
+        .word-card2:hover {
             transform: translate(4px, 4px);
             box-shadow: 4px 4px 0 #000;
             background: rgba(255,255,255,0.25);
@@ -1916,49 +1916,45 @@
         
         .wordbank-actions {
             display: flex;
-            gap: 20px;
             justify-content: center;
-            margin-top: 40px;
+            gap: 20px;
+            margin-top: 30px;
         }
-
-        .wordbank-actions a {
-            flex: 1;
-            max-width: 220px;       /* keeps both buttons equal */
-            min-width: 220px;
-            display: flex;          /* make the button itself a flexbox */
-            align-items: center;    /* vertical centering */
-            justify-content: center;/* horizontal centering */
-            padding: 16px;          /* consistent spacing */
-            font-weight: bold;
-            font-size: 14px;
-            text-transform: uppercase;
+        .btn-primary {
+            background: #ff4444;
+            color: #fff;
             border: 4px solid #000;
+            padding: 12px 25px;
+            font-size: 16px; /* Increased from 12px */
             box-shadow: 6px 6px 0 #000;
             cursor: pointer;
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-            text-decoration: none;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
         }
-
-        /* Hover effect */
-        .wordbank-actions a:hover {
-            transform: translate(2px, 2px);
-            box-shadow: 4px 4px 0 #000;
+        .btn-primary:hover {
+            transform: translate(3px,3px);
+            box-shadow: 3px 3px 0 #000;
         }
-
-        /* Color variants */
-        .btn-primary {
-            background-color: #e53935; /* red */
-            color: #fff;
+        .btn-secondary { 
+            background: #4169e1; 
+            color: #fff; 
+            border: 4px solid #000; 
+            padding: 12px 20px; 
+            font-size: 14px; /* Increased from 10px */
+            box-shadow: 6px 6px 0 #000; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-family: 'Press Start 2P', monospace; 
+            transition: all 0.2s; 
         }
-
-        .btn-secondary {
-            background-color: #fdd835; /* yellow */
-            color: #000;
+        .btn-secondary:hover { 
+            transform: translate(3px,3px); 
+            box-shadow: 3px 3px 0 #000; 
         }
-
 
         /* Word Detail Modal */
-        .modal { 
+        .modal2 { 
             display: none; 
             position: fixed; 
             top: 0; 
@@ -1970,10 +1966,10 @@
             justify-content: center; 
             align-items: center; 
         }
-        .modal.active { 
+        .modal2.active { 
             display: flex; 
         }
-        .modal-content { 
+        .modal2-content { 
             background: rgba(255,255,255,0.95); 
             backdrop-filter: blur(10px); 
             border: 4px solid #000; 
@@ -1983,18 +1979,18 @@
             box-shadow: 12px 12px 0 #000; 
             text-align: left; 
         }
-        .modal-header {
+        .modal2-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .modal-title {
+        .modal2-title {
             font-size: 28px; /* Increased from 24px */
             color: #228b22; 
             text-shadow: 3px 3px 0 #ffd700; 
         }
-        .modal-type {
+        .modal2-type {
             font-size: 16px; /* Increased from 12px */
             background: #4169e1;
             padding: 5px 10px;
@@ -2002,13 +1998,13 @@
             color: #fff;
             text-shadow: 2px 2px 0 #000;
         }
-        .modal-definition {
+        .modal2-definition {
             font-size: 18px; /* Increased from 14px */
             color: #000; 
             margin-bottom: 20px; 
             line-height: 1.6; 
         }
-        .modal-example {
+        .modal2-example {
             font-size: 16px; /* Increased from 12px */
             color: #228b22;
             font-style: italic;
@@ -2017,13 +2013,13 @@
             background: rgba(0,0,0,0.1);
             border: 2px solid #000;
         }
-        .modal-stats {
+        .modal2-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
             margin-bottom: 25px;
         }
-        .modal-stat {
+        .modal2-stat {
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -2031,16 +2027,16 @@
             background: rgba(0,0,0,0.1);
             border: 2px solid #000;
         }
-        .modal-stat-label {
+        .modal2-stat-label {
             font-size: 14px; /* Increased from 10px */
             color: #000;
         }
-        .modal-stat-value {
+        .modal2-stat-value {
             font-size: 18px; /* Increased from 14px */
             color: #228b22;
             text-shadow: 2px 2px 0 #ffd700;
         }
-        .modal-actions {
+        .modal2-actions {
             display: flex;
             justify-content: space-between;
             gap: 15px;
@@ -2464,167 +2460,273 @@
             100% { transform: scale(1); }
         }
 
-        .progress-container { margin-top: 120px; max-width: 1200px; margin-left: auto; margin-right: auto; padding: 20px; position: relative; z-index: 10; margin-bottom: 100px; }
+        /* Progress Analytics Container */
+        .progress-container { 
+            margin-top: 120px; 
+            max-width: 1200px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            padding: 20px; 
+            position: relative; 
+            z-index: 10; 
+            margin-bottom: 100px; 
+        }
 
-        .back-btn { background: #4169e1; color: #fff; border: 4px solid #000; padding: 12px 20px; font-size: 10px; box-shadow: 6px 6px 0 #000; cursor: pointer; font-family: 'Press Start 2P', monospace; margin-bottom: 20px; transition: all 0.2s; }
-        .back-btn:hover { transform: translate(3px,3px); box-shadow: 3px 3px 0 #000; }
-
-        .page-title { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; text-align: center; }
-        .page-title h1 { font-size: 32px; color: #ffd700; text-shadow: 4px 4px 0 #000; margin-bottom: 10px; }
-        .page-title p { font-size: 11px; color: #fff; text-shadow: 2px 2px 0 #000; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 25px; box-shadow: 8px 8px 0 #000; text-align: center; }
-        .stat-card .icon { font-size: 40px; margin-bottom: 15px; }
-        .stat-card .label { font-size: 10px; color: #fff; text-shadow: 2px 2px 0 #000; margin-bottom: 10px; display: block; }
-        .stat-card .value { font-size: 28px; color: #ffd700; text-shadow: 3px 3px 0 #000; font-weight: bold; }
-
-        .achievements-section { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; }
-        .achievements-section h2 { font-size: 18px; color: #ffd700; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; text-align: center; }
-        .badges-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
-        .badge { background: rgba(0,0,0,0.2); border: 3px solid #000; padding: 20px; text-align: center; transition: all 0.2s; }
-        .badge:hover { transform: scale(1.05); background: rgba(255,215,0,0.2); }
-        .badge.locked { opacity: 0.5; }
-        .badge .badge-icon { width: 60px; height: 60px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
-        .badge .badge-icon img { width: 50px; height: 50px; object-fit: contain; }
-        .badge .badge-name { font-size: 9px; color: #fff; text-shadow: 2px 2px 0 #000; margin-bottom: 5px; }
-        .badge .badge-desc { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
-        .badge .badge-progress { font-size: 8px; color: #ffd700; margin-top: 5px; }
-
-        /* Pokémon Evolution Styles */
-        .evolution-section { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; }
-        .evolution-section h2 { font-size: 18px; color: #ffd700; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; text-align: center; }
-        
-        .pokemon-evolution { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; padding: 20px; background: rgba(0,0,0,0.2); border: 3px solid #000; }
-        
-        .pokemon-stage { text-align: center; width: 30%; }
-        .pokemon-image { width: 120px; height: 120px; margin: 0 auto 15px; background: rgba(255,255,255,0.2); border: 4px solid #000; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-        .pokemon-image img { width: 100px; height: 100px; object-fit: contain; }
-        .pokemon-name { font-size: 12px; color: #ffd700; text-shadow: 2px 2px 0 #000; margin-bottom: 5px; }
-        .pokemon-level { font-size: 10px; color: #fff; text-shadow: 1px 1px 0 #000; }
-        .pokemon-progress { margin-top: 10px; height: 10px; background: rgba(0,0,0,0.3); border: 2px solid #000; position: relative; }
-        .pokemon-progress-fill { height: 100%; background: #ffd700; width: 0%; transition: width 0.5s ease; }
-        .pokemon-progress-text { position: absolute; top: -20px; left: 0; right: 0; font-size: 8px; color: #fff; text-shadow: 1px 1px 0 #000; }
-        
-        .evolution-arrow { font-size: 24px; color: #ffd700; text-shadow: 2px 2px 0 #000; animation: pulse 2s infinite; }
-        
-        @keyframes pulse { 
-            0% { transform: scale(1); opacity: 1; } 
-            50% { transform: scale(1.2); opacity: 0.7; } 
-            100% { transform: scale(1); opacity: 1; } 
+        .page-title { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 30px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+            text-align: center; 
         }
         
-        .fire-icon { display: inline-block; animation: flicker 1.5s infinite; }
-        @keyframes flicker { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
+        .page-title h1 { 
+            font-size: 36px; 
+            color: #ffd700; 
+            text-shadow: 4px 4px 0 #000; 
+            margin-bottom: 15px; 
+        }
         
-        /* Alola Variant Styles */
-        .alola-variant { background: rgba(135, 206, 250, 0.3); border: 3px solid #4169e1; }
-        .alola-badge { background: #4169e1; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* Electric Type Styles */
-        .electric-variant { background: rgba(255, 255, 0, 0.2); border: 3px solid #ffd700; }
-        .electric-badge { background: #ffd700; color: black; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* Grass Type Styles */
-        .grass-variant { background: rgba(144, 238, 144, 0.3); border: 3px solid #32cd32; }
-        .grass-badge { background: #32cd32; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* Poison Type Styles */
-        .poison-variant { background: rgba(186, 85, 211, 0.3); border: 3px solid #9932cc; }
-        .poison-badge { background: #9932cc; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* Bug Type Styles */
-        .bug-variant { background: rgba(154, 205, 50, 0.3); border: 3px solid #9acd32; }
-        .bug-badge { background: #9acd32; color: white; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* Flying Type Styles */
-        .flying-variant { background: rgba(173, 216, 230, 0.3); border: 3px solid #87ceeb; }
-        .flying-badge { background: #87ceeb; color: black; font-size: 8px; padding: 2px 5px; border-radius: 3px; margin-left: 5px; }
-        
-        /* NEW: Type Master Achievements Section */
-        .type-achievements-section { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; }
-        .type-achievements-section h2 { font-size: 18px; color: #ffd700; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; text-align: center; }
-        
-        .type-category { margin-bottom: 30px; }
-        .type-category h3 { font-size: 14px; color: #ffd700; text-shadow: 2px 2px 0 #000; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 2px solid #ffd700; }
-        
-        .type-badges-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
-        .type-badge { background: rgba(0,0,0,0.2); border: 3px solid #000; padding: 15px; text-align: center; transition: all 0.2s; }
-        .type-badge:hover { transform: scale(1.05); background: rgba(255,215,0,0.2); }
-        .type-badge.locked { opacity: 0.5; filter: grayscale(100%); }
-        .type-badge .type-icon { width: 80px; height: 80px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.2); border-radius: 50%; border: 3px solid #000; overflow: hidden; }
-        .type-badge .type-icon img { width: 70px; height: 70px; object-fit: contain; }
-        .type-badge .type-name { font-size: 10px; color: #fff; text-shadow: 2px 2px 0 #000; margin-bottom: 5px; }
-        .type-badge .type-desc { font-size: 7px; color: #ccc; text-shadow: 1px 1px 0 #000; }
-        .type-badge .type-progress { font-size: 8px; color: #ffd700; margin-top: 5px; }
-        
-        /* Type-specific colors */
-        .water-type { border-color: #6890F0; background: rgba(104, 144, 240, 0.2); }
-        .fire-type { border-color: #F08030; background: rgba(240, 128, 48, 0.2); }
-        .electric-type { border-color: #F8D030; background: rgba(248, 208, 48, 0.2); }
-        .craes-type { border-color: #A040A0; background: rgba(160, 64, 160, 0.2); }
-        .ice-type { border-color: #98D8D8; background: rgba(152, 216, 216, 0.2); }
-        .psychic-type { border-color: #F85888; background: rgba(248, 88, 136, 0.2); }
-        .chark-type { border-color: #705848; background: rgba(112, 88, 72, 0.2); }
-        .frory-type { border-color: #E0C068; background: rgba(224, 192, 104, 0.2); }
-        .normal-type { border-color: #A8A878; background: rgba(168, 168, 120, 0.2); }
-        .ensual-type { border-color: #A890F0; background: rgba(168, 144, 240, 0.2); }
-        .light-type { border-color: #F8F878; background: rgba(248, 248, 120, 0.2); }
-        .nuclear-type { border-color: #78C850; background: rgba(120, 200, 80, 0.2); }
-        .energy-type { border-color: #F05030; background: rgba(240, 80, 48, 0.2); }
-        .tech-type { border-color: #B8B8D0; background: rgba(184, 184, 208, 0.2); }
-        .chaos-type { border-color: #7038F8; background: rgba(112, 56, 248, 0.2); }
-        .cosmid-type { border-color: #705898; background: rgba(112, 88, 152, 0.2); }
-        .void-type { border-color: #705848; background: rgba(112, 88, 72, 0.2); }
-        .eyber-type { border-color: #68A090; background: rgba(104, 160, 144, 0.2); }
-        .ground-type { border-color: #E0C068; background: rgba(224, 192, 104, 0.2); }
-        .flying-type { border-color: #A890F0; background: rgba(168, 144, 240, 0.2); }
-        .fighting-type { border-color: #C03028; background: rgba(192, 48, 40, 0.2); }
-        .rock-type { border-color: #B8A038; background: rgba(184, 160, 56, 0.2); }
-        .organ-type { border-color: #98D8D8; background: rgba(152, 216, 216, 0.2); }
-        .steel-type { border-color: #B8B8D0; background: rgba(184, 184, 208, 0.2); }
-        .bug-type { border-color: #A8B820; background: rgba(168, 184, 32, 0.2); }
-        .push-type { border-color: #A8A878; background: rgba(168, 168, 120, 0.2); }
-        .gadet-type { border-color: #A040A0; background: rgba(160, 64, 160, 0.2); }
+        .page-title p { 
+            font-size: 16px; 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000; 
+        }
 
-        .leaderboard-container { margin-top: 120px; max-width: 900px; margin-left: auto; margin-right: auto; padding: 20px; position: relative; z-index: 10; margin-bottom: 100px; }
+        /* Study Progress Analytics Main Section */
+        .analytics-main { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 30px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+        }
+        
+        .analytics-main h2 { 
+            font-size: 28px; 
+            color: #ffd700; 
+            text-shadow: 3px 3px 0 #000; 
+            margin-bottom: 25px; 
+            text-align: center; 
+        }
 
-        .back-btn { background: #4169e1; color: #fff; border: 4px solid #000; padding: 12px 20px; font-size: 10px; box-shadow: 6px 6px 0 #000; cursor: pointer; font-family: 'Press Start 2P', monospace; margin-bottom: 20px; transition: all 0.2s; }
-        .back-btn:hover { transform: translate(3px,3px); box-shadow: 3px 3px 0 #000; }
+        /* Time Filter Tabs */
+        .time-filter {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
 
-        .page-title { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; text-align: center; }
-        .page-title h1 { font-size: 32px; color: #ffd700; text-shadow: 4px 4px 0 #000; margin-bottom: 10px; }
-        .page-title p { font-size: 11px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .time-tab {
+            background: #4169e1;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 12px 25px;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+            box-shadow: 4px 4px 0 #000;
+        }
 
-        .filter-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
-        .tab-btn { background: rgba(255,255,255,0.15); color: #fff; border: 4px solid #000; padding: 12px 20px; font-size: 10px; box-shadow: 6px 6px 0 #000; cursor: pointer; font-family: 'Press Start 2P', monospace; transition: all 0.2s; text-shadow: 2px 2px 0 #000; }
-        .tab-btn:hover { transform: translate(2px,2px); box-shadow: 4px 4px 0 #000; }
-        .tab-btn.active { background: #ffd700; color: #000; text-shadow: none; }
+        .time-tab:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #3159d1;
+        }
 
-        .top-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .podium { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 25px; box-shadow: 8px 8px 0 #000; text-align: center; position: relative; }
-        .podium.first { order: 2; background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,255,255,0.15)); border-color: #ffd700; transform: scale(1.1); }
-        .podium.second { order: 1; }
-        .podium.third { order: 3; }
-        .podium .rank { font-size: 48px; margin-bottom: 10px; }
-        .podium .username { font-size: 12px; color: #ffd700; text-shadow: 2px 2px 0 #000; margin-bottom: 10px; }
-        .podium .score { font-size: 16px; color: #fff; text-shadow: 2px 2px 0 #000; }
-        .podium .label { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
+        .time-tab.active {
+            background: #ffd700;
+            color: #000;
+            font-weight: bold;
+        }
 
-        .leaderboard-list { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 20px; box-shadow: 8px 8px 0 #000; }
-        .leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border: 3px solid #000; transition: all 0.2s; }
-        .leaderboard-item:hover { background: rgba(0,0,0,0.3); transform: translateX(5px); }
-        .leaderboard-item.you { background: rgba(255,215,0,0.2); border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
-        .item-left { display: flex; align-items: center; gap: 15px; }
-        .item-rank { font-size: 16px; color: #ffd700; text-shadow: 2px 2px 0 #000; min-width: 40px; }
-        .item-username { font-size: 11px; color: #fff; text-shadow: 2px 2px 0 #000; }
-        .item-badge { font-size: 8px; background: #ff4444; color: #fff; padding: 4px 8px; border: 2px solid #000; margin-left: 10px; }
-        .item-right { display: flex; flex-direction: column; align-items: flex-end; }
-        .item-score { font-size: 14px; color: #ffd700; text-shadow: 2px 2px 0 #000; }
-        .item-words { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
+        /* Weekly Overview Section */
+        .weekly-overview {
+            background: rgba(0,0,0,0.2);
+            border: 3px solid #000;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
 
-        /* CONTAINER STYLES */
-        .container {
+        .weekly-overview h3 {
+            font-size: 20px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .weekly-stats {
+            text-align: center;
+            font-size: 16px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #000;
+        }
+
+        .weekly-stats strong {
+            color: #ffd700;
+        }
+
+        /* Bar Chart Container */
+        .bar-chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border: 3px solid #000;
+        }
+
+        .chart-title {
+            text-align: center;
+            font-size: 18px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 20px;
+        }
+
+        .chart-grid {
+            display: flex;
+            align-items: flex-end;
+            height: 300px;
+            gap: 15px;
+            padding: 20px 20px 40px 50px;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #000;
+            position: relative;
+        }
+
+        .chart-y-axis {
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 40px;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px 5px;
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* Bar Chart Columns - FIXED TO GROW FROM BOTTOM */
+        .bar-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            position: relative;
+            justify-content: flex-end;
+        }
+
+        .bar {
+            width: 60%;
+            background: linear-gradient(to top, #4169e1, #6495ed);
+            border: 3px solid #000;
+            border-bottom: none;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 -4px 0 rgba(0,0,0,0.3);
+        }
+
+        .bar:hover {
+            transform: scaleX(1.1);
+            background: linear-gradient(to top, #ffd700, #ffed4e);
+            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 12px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            font-weight: bold;
+        }
+
+        /* SINGLE DAY LABELS - Removed duplicate labels */
+        .day-labels {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid #000;
+        }
+
+        .day-label {
+            text-align: center;
+            font-size: 12px;
+            color: #ffd700;
+            text-shadow: 1px 1px 0 #000;
+            flex: 1;
+        }
+
+        .fire-icon { 
+            display: inline-block; 
+            animation: flicker 1.5s infinite; 
+        }
+        
+        @keyframes flicker { 
+            0%, 100% { opacity: 1; transform: scale(1); } 
+            50% { opacity: 0.8; transform: scale(1.1); } 
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .time-filter {
+                flex-wrap: wrap;
+            }
+            
+            .chart-grid {
+                height: 250px;
+                gap: 8px;
+                padding: 20px 20px 40px 50px;
+            }
+            
+            .bar {
+                width: 70%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .time-tab {
+                flex: 1;
+                min-width: 100px;
+                text-align: center;
+            }
+            
+            .chart-grid {
+                height: 200px;
+                gap: 5px;
+                padding: 20px 20px 40px 40px;
+            }
+            
+            .bar {
+                width: 80%;
+            }
+            
+            .bar-value {
+                font-size: 10px;
+                top: -20px;
+            }
+        }
+
+.container {
             margin-top: 160px;
             max-width: 600px;
             background: rgba(255,255,255,0.15);
@@ -2650,14 +2752,27 @@
             line-height: 1.5;
         }
 
-        .options-container {
+        /* WORD ENTRY FORM */
+        .word-form {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            margin-bottom: 30px;
         }
-
-        .btn-primary, .btn-secondary {
+        
+        .word-form input, .word-form textarea {
+            padding: 15px;
+            font-size: 12px;
+            font-family: 'Press Start 2P', monospace;
+            border: 4px solid #000;
+            outline: none;
+            resize: none;
+        }
+        
+        .word-form textarea {
+            height: 100px;
+        }
+        
+        .btn-primary {
             background: #ff4444;
             color: #fff;
             border: 4px solid #000;
@@ -2667,21 +2782,22 @@
             box-shadow: 6px 6px 0 #000;
             cursor: pointer;
             text-transform: uppercase;
-            text-decoration: none;
             transition: all 0.2s;
-            display: inline-block;
             width: 100%;
         }
 
-        .btn-primary:hover, .btn-secondary:hover { transform: translate(3px,3px); box-shadow: 3px 3px 0 #000; }
-        .btn-primary:active, .btn-secondary:active { transform: translate(6px,6px); box-shadow: 0 0 0 #000; }
-
-        /* Secondary button color */
-        .btn-secondary { background: #ffd700; color: #000; }
-        .btn-secondary:hover { background: #ffc107; }
+        .btn-primary:hover { 
+            transform: translate(3px,3px); 
+            box-shadow: 3px 3px 0 #000; 
+        }
+        
+        .btn-primary:active { 
+            transform: translate(6px,6px); 
+            box-shadow: 0 0 0 #000; 
+        }
 
         /* POKEMON EVOLUTION AREA */
-        .pokemon-evolution2 {
+        .pokemon-evolution {
             margin: 30px 0;
             padding: 20px;
             background: rgba(255,255,255,0.2);
@@ -2732,32 +2848,28 @@
             background: #76c442;
         }
         
-        /* WORD ENTRY FORM */
-        .progress-indicator {
-            font-size: 14px;
-            margin-bottom: 20px;
-            color: #ffd700;
-            text-shadow: 2px 2px 0 #000;
+        /* POKEMON SPRITES */
+        .pokemon-sprite {
+            image-rendering: pixelated;
+            width: 80px;
+            height: 80px;
         }
         
-        .word-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        /* EVOLUTION ANIMATION */
+        @keyframes evolve {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.5); opacity: 0.7; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
         
-        .word-form input, .word-form textarea {
-            padding: 15px;
-            font-size: 12px;
-            font-family: 'Press Start 2P', monospace;
-            border: 4px solid #000;
-            outline: none;
-            resize: none;
+        .evolving {
+            animation: evolve 1s ease-in-out;
         }
         
-        .word-form textarea {
-            height: 100px;
+        .hidden {
+            display: none;
         }
+
         
         /* PRACTICE SESSION */
         .practice-card {
@@ -3261,7 +3373,58 @@
             margin: 10px 0;
         }
 
-         .profile-container {
+         /* Header Actions */
+        .header-actions {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: #4169e1;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #3159d1;
+        }
+
+        /* Logout Button */
+        .logout-btn {
+            background: #ff4444;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #ff3333;
+        }
+
+        /* Profile Container */
+        .profile-container {
             margin-top: 120px;
             max-width: 1200px;
             margin-left: auto;
@@ -3519,82 +3682,6 @@
             background: #3159d1;
         }
 
-        /* Badges Section */
-        .badges-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .badge2 {
-            background: rgba(255, 255, 255, 0.9);
-            border: 4px solid #000;
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 6px 6px 0 #000;
-        }
-
-        .badge2:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 10px 10px 0 #000;
-        }
-
-        .badge2.unlocked {
-            background: linear-gradient(135deg, #ffd700, #ffed4e);
-        }
-
-        .badge2.locked {
-            opacity: 0.5;
-            filter: grayscale(100%);
-        }
-
-        .badge2-icon {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .badge2-title {
-            font-size: 8px;
-            text-align: center;
-            color: #000;
-            font-weight: bold;
-            text-shadow: 1px 1px 0 #fff;
-        }
-
-        .badge2-tooltip {
-            position: absolute;
-            bottom: 120%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 9px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            border: 2px solid #ffd700;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .badge2:hover .badge2-tooltip {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(-5px);
-        }
-
         /* Partner Section */
         .partner-section {
             text-align: center;
@@ -3640,7 +3727,7 @@
             margin-bottom: 15px;
         }
 
-        .change-partner-btn {
+        .change-name-btn {
             background: #228b22;
             color: #fff;
             border: 3px solid #000;
@@ -3653,7 +3740,7 @@
             box-shadow: 4px 4px 0 #000;
         }
 
-        .change-partner-btn:hover {
+        .change-name-btn:hover {
             transform: translate(2px, 2px);
             box-shadow: 2px 2px 0 #000;
             background: #1e7b1e;
@@ -3699,14 +3786,6 @@
             background: #1e7b1e;
         }
 
-        .action-btn.export {
-            background: #ffa500;
-        }
-
-        .action-btn.export:hover {
-            background: #e69500;
-        }
-
         .action-btn.delete {
             background: #ff4444;
         }
@@ -3740,6 +3819,75 @@
         .cloud:nth-child(2){ top:18%; left:-150px; animation-duration:60s; animation-delay:10s; }
         .cloud:nth-child(3){ top:12%; left:-80px; animation-duration:55s; animation-delay:20s; }
 
+        /* Footer */
+        .footer { padding: 40px 50px; text-align: center; background: #228b22; border-top: 4px solid #ffd700; margin-top: 80px; }
+        .footer p { color: #fff; text-shadow: 2px 2px 0 #000; font-size: 10px; }
+
+        /* Pokémon Achievements Grid */
+        .pokemon-achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .pokemon-badge {
+            background: rgba(0,0,0,0.2);
+            border: 3px solid #000;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pokemon-badge:hover {
+            transform: scale(1.05);
+            background: rgba(255,215,0,0.2);
+        }
+        
+        .pokemon-badge.locked {
+            opacity: 0.5;
+        }
+        
+        .pokemon-badge .pokemon-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pokemon-badge .pokemon-icon img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+        
+        .pokemon-badge .pokemon-name {
+            font-size: 9px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 5px;
+        }
+        
+        .pokemon-badge .pokemon-desc {
+            font-size: 8px;
+            color: #ccc;
+            text-shadow: 1px 1px 0 #000;
+            margin-bottom: 8px;
+        }
+        
+        .pokemon-badge .pokemon-progress {
+            font-size: 8px;
+            color: #ffd700;
+            margin-top: 5px;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .profile-sections {
@@ -3750,8 +3898,8 @@
                 grid-template-columns: repeat(2, 1fr);
             }
             
-            .badges-container {
-                grid-template-columns: repeat(3, 1fr);
+            .pokemon-achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .profile-actions {
@@ -3770,8 +3918,8 @@
                 grid-template-columns: 1fr;
             }
             
-            .badges-container {
-                grid-template-columns: repeat(2, 1fr);
+            .pokemon-achievements-grid {
+                grid-template-columns: 1fr;
             }
             
             .profile-avatar {
@@ -3800,6 +3948,7 @@
                 padding: 10px;
             }
         }
+
 
         /* Main content */
         .main-content {

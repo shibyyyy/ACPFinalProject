@@ -12,22 +12,35 @@
                 VocabuLearner
             </a>
     {% endblock %}
-    {%block header%}{%endblock%}
-        <div class="profile-container">
+    {%block header%}
+    <div class="header-actions">
+        <button class="logout-btn" onclick="confirmLogout()">Logout</button>
+    </div>
+
+
+    {%endblock%}
+    
+    <div class="profile-container">
         <!-- Profile Header -->
         <div class="profile-header-section">
             <div class="profile-avatar-container">
                 <div class="profile-avatar" id="profileAvatar">
-                    <div class="avatar-icon">👤</div>
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture }}" alt="Profile Avatar" class="avatar-img">
+                    {% else %}
+                        <div class="avatar-icon">👤</div>
+                    {% endif %}
+                    <!-- Hidden file input -->
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
                 </div>
-                <button class="change-avatar-btn" onclick="changeAvatar()">✎</button>
+                <button class="change-avatar-btn" onclick="document.getElementById('avatarUpload').click()">✎</button>
             </div>
             
-            <h1 class="profile-title" id="profileName">Ash Ketchum</h1>
-            <p class="profile-subtitle">Vocabulary Trainer since <span id="joinDate">March 2025</span></p>
+            <h1 class="profile-title" id="profileName">{{ user.name }}</h1>
+            <p class="profile-subtitle">Vocabulary Trainer since <span id="joinDate">{{ user.date_created.strftime('%B %Y') }}</span></p>
             
             <div class="profile-level-badge" id="levelBadge">
-                Level 15 • 1,250 XP
+                {{ user.total_points }} XP • Streak: {{ user.current_streak }} days
             </div>
         </div>
 
@@ -35,28 +48,28 @@
         <div class="profile-stats-grid">
             <div class="stat-card">
                 <h3>📚 WORDS MASTERED</h3>
-                <div class="stat-value" id="totalWords">47</div>
-                <div class="stat-label">Out of 100 word goal</div>
+                <div class="stat-value" id="totalWords">{{ words_learned }}</div>
+                <div class="stat-label">Total words learned</div>
                 <div class="stat-progress">
-                    <div class="stat-progress-fill" style="width: 47%"></div>
+                    <div class="stat-progress-fill" id="wordsProgressFill"></div>
                 </div>
             </div>
             
             <div class="stat-card">
                 <h3>🔥 STREAK</h3>
-                <div class="stat-value" id="streakDays">3</div>
+                <div class="stat-value" id="streakDays">{{ user.current_streak }}</div>
                 <div class="stat-label">Days in a row</div>
                 <div class="stat-progress">
-                    <div class="stat-progress-fill" style="width: 30%"></div>
+                    <div class="stat-progress-fill" id="streakProgressFill"></div>
                 </div>
             </div>
             
             <div class="stat-card">
-                <h3>🏆 RANK</h3>
-                <div class="stat-value">#15</div>
-                <div class="stat-label">Weekly leaderboard</div>
+                <h3>⭐ POINTS</h3>
+                <div class="stat-value">{{ user.total_points }}</div>
+                <div class="stat-label">Pokémon EXP earned</div>
                 <div class="stat-progress">
-                    <div class="stat-progress-fill" style="width: 85%"></div>
+                    <div class="stat-progress-fill" id="pointsProgressFill"></div>
                 </div>
             </div>
         </div>
@@ -70,7 +83,7 @@
                 <div class="info-item">
                     <div>
                         <div class="info-label">USERNAME</div>
-                        <div class="info-value" id="username">ash_ketchum</div>
+                        <div class="info-value" id="username">{{ user.name }}</div>
                     </div>
                     <button class="edit-btn" onclick="editField('username')">✎</button>
                 </div>
@@ -78,7 +91,7 @@
                 <div class="info-item">
                     <div>
                         <div class="info-label">EMAIL</div>
-                        <div class="info-value" id="email">ash@pokemon.com</div>
+                        <div class="info-value" id="email">{{ user.email }}</div>
                     </div>
                     <button class="edit-btn" onclick="editField('email')">✎</button>
                 </div>
@@ -86,7 +99,20 @@
                 <div class="info-item">
                     <div>
                         <div class="info-label">ACCOUNT CREATED</div>
-                        <div class="info-value" id="accountCreated">March 15, 2025</div>
+                        <div class="info-value" id="accountCreated">{{ user.date_created.strftime('%B %d, %Y') }}</div>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div>
+                        <div class="info-label">LAST LOGIN</div>
+                        <div class="info-value" id="lastLogin">
+                            {% if user.last_login %}
+                                {{ user.last_login.strftime('%B %d, %Y %I:%M %p') }}
+                            {% else %}
+                                Never
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -97,13 +123,26 @@
                 
                 <div class="partner-section">
                     <div class="partner-card">
-                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
-                             alt="Pikachu" 
-                             class="partner-image"
-                             id="partnerImage">
-                        <div class="partner-name" id="partnerName">Pikachu</div>
-                        <div class="partner-type" id="partnerType">ELECTRIC TYPE</div>
-                        <button class="change-name-btn" onclick="changePartnerName()">
+                        {% if pokemon %}
+                            <img src="{{ pokemon.url if pokemon.url else 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' }}" 
+                                alt="{{ pokemon.name }}" 
+                                class="partner-image"
+                                id="partnerImage">
+                            <div class="partner-name" id="partnerName">
+                                {{ pokemon_display_name }}
+                            </div>
+                            <div class="partner-type" id="partnerType">{{ pokemon.rarity.upper() if pokemon.rarity else 'COMMON' }}</div>
+                        {% else %}
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
+                                alt="Pikachu" 
+                                class="partner-image"
+                                id="partnerImage">
+                            <div class="partner-name" id="partnerName">No Pokémon Yet</div>
+                            <div class="partner-type" id="partnerType">EARN POINTS TO UNLOCK</div>
+                        {% endif %}
+                        
+                        <!-- Move button OUTSIDE the if block so it always shows -->
+                        <button class="change-name-btn" onclick="changePartnerName()" id="changeNameBtn">
                             Change Partner Name
                         </button>
                     </div>
@@ -116,10 +155,39 @@
 
             <!-- Achievements -->
             <div class="profile-section" style="grid-column: span 2;">
-                <h2 data-icon="🏆">ACHIEVEMENTS & BADGES</h2>
+                <h2 data-icon="🏆">ACHIEVEMENTS</h2>
                 
-                <div class="badges-container" id="badgesContainer">
-                    <!-- Badges will be populated by JavaScript -->
+                <!-- Pokémon Achievements Grid -->
+                <div class="pokemon-achievements-grid">
+                    {% for achievement in all_achievements %}
+                        {% set user_achievement = none %}
+                        {% for ua in user_achievements %}
+                            {% if ua.achievement_id == achievement.achievement_id %}
+                                {% set user_achievement = ua %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% set pokemon_data = achievement_pokemon.get(achievement.achievement_id) %}
+                        
+                        <div class="pokemon-badge {% if not user_achievement %}locked{% endif %}">
+                            <div class="pokemon-icon">
+                                {% if pokemon_data and pokemon_data.url %}
+                                    <img src="{{ pokemon_data.url }}" alt="{{ pokemon_data.name }}">
+                                {% else %}
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Unknown">
+                                {% endif %}
+                            </div>
+                            <div class="pokemon-name">{{ achievement.name }}</div>
+                            <div class="pokemon-desc">{{ achievement.description }}</div>
+                            <div class="pokemon-progress">
+                                {% if user_achievement %}
+                                    Unlocked!
+                                {% else %}
+                                    Locked
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -127,7 +195,10 @@
         <!-- Profile Actions -->
         <div class="profile-actions">
             <button class="action-btn save" onclick="saveProfile()">
-                💾 SAVE CHANGES
+                💾 UPDATE PROFILE
+            </button>
+            <button class="action-btn export" onclick="exportData()">
+                📤 EXPORT PROFILE DATA
             </button>
             <button class="action-btn delete" onclick="deleteAccount()">
                 🗑️ DELETE ACCOUNT
@@ -140,251 +211,283 @@
     </footer>
 
     <script>
-        // Profile data
-        let profileData = {
-            username: "ash_ketchum",
-            email: "ash@pokemon.com",
-            fullName: "Ash Ketchum",
-            joinDate: "March 15, 2025",
-            partnerName: "Pikachu",
-            partnerType: "ELECTRIC",
-            partnerImage: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
-            totalWords: 47,
-            streakDays: 3,
-            xpPoints: 1250,
-            level: 15,
-            badges: [
-                { id: 1, name: "Streak Master", icon: "🔥", description: "7-day learning streak", unlocked: true },
-                { id: 2, name: "Bookworm", icon: "📚", description: "Mastered 50 words", unlocked: true },
-                { id: 3, name: "Speed Learner", icon: "⚡", description: "Complete 100 reviews in a day", unlocked: true },
-                { id: 4, name: "Perfect Score", icon: "🎯", description: "100% accuracy in practice", unlocked: false },
-                { id: 5, name: "Vocabulary King", icon: "👑", description: "Master 500 words", unlocked: false },
-                { id: 6, name: "Legendary Trainer", icon: "🌟", description: "Reach Level 50", unlocked: false },
-                { id: 7, name: "Top Ranker", icon: "🏅", description: "Rank #1 on leaderboard", unlocked: true },
-                { id: 8, name: "Diamond Member", icon: "💎", description: "365-day streak", unlocked: false }
-            ]
-        };
+        // Store user data
+        const currentuserId = parseInt("{{ user.user_id }}") || 0;
+        const wordsLearned = parseInt("{{ words_learned }}") || 0;
+        const streakDays = parseInt("{{ user.current_streak }}") || 0;
+        const totalPoints = parseInt("{{ user.total_points }}") || 0;
 
-        // Initialize the profile page
         document.addEventListener('DOMContentLoaded', function() {
-            loadProfileData();
-            loadBadges();
-            updateLevelBadge();
+            // Calculate progress values
+            const wordsProgress = Math.min(wordsLearned, 100);
+            const streakProgress = Math.min(streakDays, 10) * 10;
+            const pointsProgress = Math.min(totalPoints % 1000, 100);
+            
+            // Set progress bar widths
+            document.getElementById('wordsProgressFill').style.width = wordsProgress + '%';
+            document.getElementById('streakProgressFill').style.width = streakProgress + '%';
+            document.getElementById('pointsProgressFill').style.width = pointsProgress + '%';
         });
 
-        function loadProfileData() {
-            // Load from localStorage if available
-            const savedProfile = localStorage.getItem('profileData');
-            if (savedProfile) {
-                const parsedData = JSON.parse(savedProfile);
-                // Merge with default data to ensure all fields exist
-                profileData = { ...profileData, ...parsedData };
-            }
-
-            // Update all profile fields
-            document.getElementById('profileName').textContent = profileData.fullName;
-            document.getElementById('username').textContent = profileData.username;
-            document.getElementById('email').textContent = profileData.email;
-            document.getElementById('joinDate').textContent = profileData.joinDate;
-            document.getElementById('accountCreated').textContent = profileData.joinDate;
-            
-            // Update partner information
-            document.getElementById('partnerName').textContent = profileData.partnerName;
-            document.getElementById('partnerType').textContent = profileData.partnerType + " TYPE";
-            document.getElementById('partnerImage').src = profileData.partnerImage;
-            
-            // Update statistics
-            document.getElementById('totalWords').textContent = profileData.totalWords;
-            document.getElementById('streakDays').textContent = profileData.streakDays;
-            
-            // Update progress bars
-            document.querySelector('.stat-progress-fill:nth-child(1)').style.width = `${profileData.totalWords}%`;
-            document.querySelector('.stat-progress-fill:nth-child(2)').style.width = `${(profileData.streakDays / 10) * 100}%`;
-        }
-
-        function loadBadges() {
-            const badgesContainer = document.getElementById('badgesContainer');
-            badgesContainer.innerHTML = '';
-            
-            profileData.badges.forEach(badge => {
-                const badgeElement = document.createElement('div');
-                badgeElement.className = `badge ${badge.unlocked ? 'unlocked' : 'locked'}`;
-                
-                badgeElement.innerHTML = `
-                    <div class="badge-icon">${badge.icon}</div>
-                    <div class="badge-title">${badge.name}</div>
-                    <div class="badge-tooltip">${badge.description}</div>
-                `;
-                
-                badgesContainer.appendChild(badgeElement);
-            });
-        }
-
-        function updateLevelBadge() {
-            const level = profileData.level;
-            const xp = profileData.xpPoints;
-            const nextLevelXP = level * 100;
-            const progress = Math.min((xp / nextLevelXP) * 100, 100);
-            
-            document.getElementById('levelBadge').innerHTML = `
-                Level ${level} • ${xp.toLocaleString()} XP
-                <div style="font-size: 8px; margin-top: 5px;">
-                    ${Math.round(progress)}% to Level ${level + 1}
-                </div>
-            `;
-        }
-
-        function changeAvatar() {
-            const avatars = ["👤", "🧑‍🎓", "🥷", "🦸", "🧙", "👨‍🚀", "🧑‍🔬", "👨‍💻"];
-            const currentAvatar = document.querySelector('.avatar-icon').textContent;
-            const currentIndex = avatars.indexOf(currentAvatar);
-            const nextIndex = (currentIndex + 1) % avatars.length;
-            
-            document.querySelector('.avatar-icon').textContent = avatars[nextIndex];
-            
-            // Save to profile data
-            profileData.avatar = avatars[nextIndex];
-            localStorage.setItem('profileData', JSON.stringify(profileData));
-            
-            // Show feedback
-            showNotification('Avatar updated!');
-        }
-
         function editField(field) {
-            const currentValue = profileData[field];
-            let promptMessage = '';
+            const fieldElement = document.getElementById(field);
+            const currentValue = fieldElement.textContent;
             
-            switch(field) {
-                case 'username':
-                    promptMessage = 'Enter new username:';
-                    break;
-                case 'email':
-                    promptMessage = 'Enter new email address:';
-                    break;
-                case 'fullName':
-                    promptMessage = 'Enter your full name:';
-                    break;
-                default:
-                    promptMessage = `Enter new ${field}:`;
-            }
-            
+            let promptMessage = field === 'name' ? 'Enter new username:' : 'Enter new email address:';
             const newValue = prompt(promptMessage, currentValue);
             
             if (newValue !== null && newValue.trim() !== '') {
-                profileData[field] = newValue;
-                document.getElementById(field).textContent = newValue;
-                
-                // Special handling for full name
-                if (field === 'fullName') {
+                fieldElement.textContent = newValue;
+                if (field === 'name') {
                     document.getElementById('profileName').textContent = newValue;
                 }
                 
-                showNotification(`${field} updated successfully!`);
+                fetch('/api/update_profile', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        field: field === 'username' ? 'name' : field, // Convert 'username' to 'name'
+                        value: newValue
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showNotification(data.message || 'Updated successfully!');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error updating');
+                });
             }
         }
 
         function changePartnerName() {
-            const currentName = profileData.partnerName;
+            // Check if user has a Pokémon
+            const partnerNameElement = document.getElementById('partnerName');
+            if (!partnerNameElement) {
+                showNotification('You need to unlock a Pokémon first!');
+                return;
+            }
+            
+            const currentName = partnerNameElement.textContent;
+            
+            // Check if it's "No Pokémon Yet" message
+            if (currentName === "No Pokémon Yet" || currentName === "No Pokémon") {
+                showNotification('You need to unlock a Pokémon before you can rename it!');
+                return;
+            }
+            
             const newName = prompt('Enter new name for your Pokémon partner:', currentName);
             
             if (newName !== null && newName.trim() !== '') {
-                profileData.partnerName = newName;
-                document.getElementById('partnerName').textContent = newName;
-                
-                // Save to localStorage
-                localStorage.setItem('profileData', JSON.stringify(profileData));
-                
-                showNotification(`Partner name changed to: ${newName} ⚡`);
+                fetch('/api/update_pokemon_name', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({pokemon_name: newName})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update UI immediately
+                        partnerNameElement.textContent = newName;
+                        showNotification(`Partner name changed to: ${newName} ⚡`);
+                    } else {
+                        showNotification('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error updating partner name');
+                });
             }
         }
 
         function saveProfile() {
-            localStorage.setItem('profileData', JSON.stringify(profileData));
-            showNotification('Profile saved successfully! ✅');
+            const profileData = {
+                name: document.getElementById('username').textContent,
+                email: document.getElementById('email').textContent
+            };
+            
+            fetch('/api/save_profile', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(profileData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.message || 'Profile saved! ✅');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error saving profile');
+            });
+        }
+
+        function exportData() {
+            fetch('/api/export_data')
+                .then(response => response.json())
+                .then(data => {
+                    const dataStr = JSON.stringify(data, null, 2);
+                    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+                    const fileName = `vocabulearner-profile-${data.name || 'user'}.json`;
+                    
+                    const link = document.createElement('a');
+                    link.setAttribute('href', dataUri);
+                    link.setAttribute('download', fileName);
+                    link.click();
+                    
+                    showNotification('Profile data exported! 📥');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error exporting data');
+                });
         }
 
         function deleteAccount() {
-            if (confirm('⚠️ WARNING: This will delete all your data!\n\nAre you sure you want to delete your account?')) {
-                if (confirm('This action cannot be undone. All your progress will be lost. Type "DELETE" to confirm:')) {
-                    const confirmation = prompt('Please type "DELETE" to confirm account deletion:');
+            if (confirm('⚠️ WARNING: This will delete all your data!\n\nAre you sure?')) {
+                if (confirm('This cannot be undone. Type "DELETE" to confirm:')) {
+                    const confirmation = prompt('Type "DELETE" to confirm:');
                     
                     if (confirmation === 'DELETE') {
-                        localStorage.removeItem('profileData');
-                        localStorage.removeItem('selectedPokemon');
-                        showNotification('Account deleted. Redirecting...');
-                        
-                        // Redirect to home page after delay
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
+                        fetch('/api/delete_account', {method: 'DELETE'})
+                        .then(response => response.json())
+                        .then(data => {
+                            showNotification(data.message || 'Account deleted. Redirecting...');
+                            setTimeout(() => { window.location.href = "/"; }, 2000);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showNotification('Error deleting account');
+                        });
                     } else {
-                        showNotification('Account deletion cancelled.');
+                        showNotification('Cancelled.');
                     }
                 }
             }
         }
 
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                showNotification('Logging out...');
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1000);
-            }
-        }
-
         function showNotification(message) {
-            // Create notification element
             const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 100px;
-                right: 20px;
-                background: rgba(0, 0, 0, 0.9);
-                color: white;
-                padding: 15px 20px;
-                border: 3px solid #ffd700;
-                font-family: 'Press Start 2P', monospace;
-                font-size: 10px;
-                z-index: 10000;
-                box-shadow: 6px 6px 0 #000;
-                animation: slideIn 0.3s ease;
-                max-width: 300px;
-                text-align: center;
-            `;
-            
             notification.textContent = message;
+            
+            // Set styles individually to avoid CSS error
+            notification.style.position = 'fixed';
+            notification.style.top = '100px';
+            notification.style.right = '20px';
+            notification.style.background = 'rgba(0, 0, 0, 0.9)';
+            notification.style.color = 'white';
+            notification.style.padding = '15px 20px';
+            notification.style.border = '3px solid #ffd700';
+            notification.style.fontFamily = "'Press Start 2P', monospace";
+            notification.style.fontSize = '10px';
+            notification.style.zIndex = '10000';
+            notification.style.boxShadow = '6px 6px 0 #000';
+            notification.style.animation = 'slideIn 0.3s ease';
+            notification.style.maxWidth = '300px';
+            notification.style.textAlign = 'center';
+            
             document.body.appendChild(notification);
             
-            // Remove after 3 seconds
+            // Add animation styles
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => {
-                    document.body.removeChild(notification);
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
                 }, 300);
             }, 3000);
-            
-            // Add keyframes for animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes slideIn {
-                    from { transform: translateX(100%); opacity: 0; }
-                    to { transform: translateX(0); opacity: 1; }
-                }
-                @keyframes slideOut {
-                    from { transform: translateX(0); opacity: 1; }
-                    to { transform: translateX(100%); opacity: 0; }
-                }
-            `;
-            document.head.appendChild(style);
         }
 
-        // Make back button work
-        document.querySelector('.logo').addEventListener('click', function(e) {
-            if (!this.getAttribute('href')) {
-                e.preventDefault();
-                window.location.href = 'dashboard';
+        // Handle avatar upload
+        document.getElementById('avatarUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file size (limit to 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                showNotification('File too large! Max 2MB');
+                return;
             }
+            
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                showNotification('Please select an image file');
+                return;
+            }
+            
+            // Preview image immediately
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const avatarDiv = document.querySelector('.profile-avatar');
+                // Replace avatar content with image
+                avatarDiv.innerHTML = `<img src="${e.target.result}" alt="Profile Avatar" class="avatar-img">`;
+                
+                // Upload to server
+                uploadAvatar(file);
+            };
+            reader.readAsDataURL(file);
         });
+
+        function uploadAvatar(file) {
+            const formData = new FormData();
+            formData.append('avatar', file);
+            
+            fetch('/api/upload_avatar', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification('Avatar updated successfully!');
+                    // Update the image src with the server URL if provided
+                    if (data.avatar_url) {
+                        const img = document.querySelector('.profile-avatar img');
+                        if (img) {
+                            img.src = data.avatar_url;
+                        }
+                    }
+                } else {
+                    showNotification(data.error || 'Error uploading avatar');
+                    // Revert to default avatar
+                    revertToDefaultAvatar();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error uploading avatar');
+                revertToDefaultAvatar();
+            });
+        }
+
+        function revertToDefaultAvatar() {
+            const avatarDiv = document.querySelector('.profile-avatar');
+            avatarDiv.innerHTML = '<div class="avatar-icon">👤</div>';
+        }
+
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = "{{ url_for('logout') }}";
+            }
+        }
+
     </script>
 {%endblock%}

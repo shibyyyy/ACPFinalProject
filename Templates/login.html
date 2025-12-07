@@ -3,27 +3,38 @@
 {% block title %}<title>Login - VocabuLearner</title>{% endblock %}
 
 {% block content %}
-    {%block header%}{%endblock%}
-    {{ form.hidden_tag() }}
-    <div class="login-container">
+    {% block header %}{% endblock %}
+    <div class="login-container active">
         <h1>Login</h1>
         <p>Welcome back, Trainer! Continue your vocabulary journey.</p>
 
-        <form class="login-form">
-            <input type="email" placeholder="Email" required />
-            <input type="password" placeholder="Password" required />
+        <form class="login-form" method="POST">
+            {{ form.hidden_tag() }}
 
-            <button type="button" class="btn-primary" id="login-btn">Log In</button>
+            <!-- Email field -->
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+            
+
+            <!-- Password field -->
+            {{ form.password }}
+            {% for error in form.password.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <!-- Submit button -->
+            {{ form.submit }}
 
             <!-- Signup Button -->
-            <a href="{{url_for('signup')}}" class="btn-secondary">Sign Up</a>
+            <a href="{{ url_for('signup') }}" class="btn-secondary">Sign Up</a>
 
             <!-- Forgot Password link -->
-            <a href="{{url_for('forgotpass')}}" class="forgot-password">Forgot Password?</a>
+            <a href="{{ url_for('forgotpass') }}" class="forgot-password" id="forgot-password-link">Forgot Password?</a>
         </form>
     </div>
 
-    <!-- FOOTER -->
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>

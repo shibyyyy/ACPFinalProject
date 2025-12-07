@@ -3,7 +3,7 @@ from wtforms import StringField, PasswordField, SubmitField, TextAreaField, Sele
 from wtforms.validators import DataRequired, NumberRange, Length, Email
 
 class LoginForm(FlaskForm):
-    username = StringField(
+    email = StringField(
         'Username', 
         validators=[DataRequired()],
         render_kw={"placeholder": "Enter your email"}
