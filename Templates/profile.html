@@ -1,0 +1,432 @@
+{%extends 'base.html'%}
+{%block title%}<title>Profile - VocabuLearner</title>{% endblock%}
+
+{%block content%}
+    {%block logo_link %}
+            <a href="{{ url_for('dashboard') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+    {% endblock %}
+    {%block header%}{%endblock%}
+            <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header-section">
+            <div class="profile-avatar-container">
+                <div class="profile-avatar" id="profileAvatar">
+                    <div class="avatar-icon">👤</div>
+                </div>
+                <button class="change-avatar-btn" onclick="changeAvatar()">✎</button>
+            </div>
+            
+            <h1 class="profile-title" id="profileName">Ash Ketchum</h1>
+            <p class="profile-subtitle">Vocabulary Trainer since <span id="joinDate">March 2025</span></p>
+            
+            <div class="profile-level-badge" id="levelBadge">
+                Level 15 • 1,250 XP
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="profile-stats-grid">
+            <div class="stat-card">
+                <h3>📚 WORDS MASTERED</h3>
+                <div class="stat-value" id="totalWords">47</div>
+                <div class="stat-label">Out of 100 word goal</div>
+                <div class="stat-progress">
+                    <div class="stat-progress-fill" style="width: 47%"></div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🔥 STREAK</h3>
+                <div class="stat-value" id="streakDays">3</div>
+                <div class="stat-label">Days in a row</div>
+                <div class="stat-progress">
+                    <div class="stat-progress-fill" style="width: 30%"></div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>🏆 RANK</h3>
+                <div class="stat-value">#15</div>
+                <div class="stat-label">Weekly leaderboard</div>
+                <div class="stat-progress">
+                    <div class="stat-progress-fill" style="width: 85%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Sections -->
+        <div class="profile-sections">
+            <!-- Personal Information -->
+            <div class="profile-section">
+                <h2 data-icon="👤">PERSONAL INFORMATION</h2>
+                
+                <div class="info-item">
+                    <div>
+                        <div class="info-label">USERNAME</div>
+                        <div class="info-value" id="username">ash_ketchum</div>
+                    </div>
+                    <button class="edit-btn" onclick="editField('username')">✎</button>
+                </div>
+                
+                <div class="info-item">
+                    <div>
+                        <div class="info-label">EMAIL</div>
+                        <div class="info-value" id="email">ash@pokemon.com</div>
+                    </div>
+                    <button class="edit-btn" onclick="editField('email')">✎</button>
+                </div>
+                
+                <div class="info-item">
+                    <div>
+                        <div class="info-label">ACCOUNT CREATED</div>
+                        <div class="info-value" id="accountCreated">March 15, 2025</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Partner -->
+            <div class="profile-section">
+                <h2 data-icon="⚡">LEARNING PARTNER</h2>
+                
+                <div class="partner-section">
+                    <div class="partner-card" onclick="changePartner()">
+                        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
+                             alt="Pikachu" 
+                             class="partner-image"
+                             id="partnerImage">
+                        <div class="partner-name" id="partnerName">Pikachu</div>
+                        <div class="partner-type" id="partnerType">ELECTRIC TYPE</div>
+                        <button class="change-partner-btn" onclick="changePartner(event)">
+                            Change Partner
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; font-size: 9px; color: #fff; text-align: center; opacity: 0.8;">
+                    Your Pokémon partner accompanies you on your vocabulary journey!
+                </div>
+            </div>
+
+            <!-- Achievements -->
+            <div class="profile-section" style="grid-column: span 2;">
+                <h2 data-icon="🏆">ACHIEVEMENTS & BADGES</h2>
+                
+                <div class="badges-container" id="badgesContainer">
+                    <!-- Badges will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Actions -->
+        <div class="profile-actions">
+            <button class="action-btn save" onclick="saveProfile()">
+                💾 SAVE CHANGES
+            </button>
+            <button class="action-btn export" onclick="exportData()">
+                📤 EXPORT PROFILE DATA
+            </button>
+            <button class="action-btn delete" onclick="deleteAccount()">
+                🗑️ DELETE ACCOUNT
+            </button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 VocabuLearner • Profile Management</p>
+    </footer>
+
+    <script>
+        // Profile data
+        let profileData = {
+            username: "ash_ketchum",
+            email: "ash@pokemon.com",
+            fullName: "Ash Ketchum",
+            joinDate: "March 15, 2025",
+            partnerName: "Pikachu",
+            partnerType: "ELECTRIC",
+            partnerImage: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png",
+            totalWords: 47,
+            streakDays: 3,
+            xpPoints: 1250,
+            level: 15,
+            badges: [
+                { id: 1, name: "Streak Master", icon: "🔥", description: "7-day learning streak", unlocked: true },
+                { id: 2, name: "Bookworm", icon: "📚", description: "Mastered 50 words", unlocked: true },
+                { id: 3, name: "Speed Learner", icon: "⚡", description: "Complete 100 reviews in a day", unlocked: true },
+                { id: 4, name: "Perfect Score", icon: "🎯", description: "100% accuracy in practice", unlocked: false },
+                { id: 5, name: "Vocabulary King", icon: "👑", description: "Master 500 words", unlocked: false },
+                { id: 6, name: "Legendary Trainer", icon: "🌟", description: "Reach Level 50", unlocked: false },
+                { id: 7, name: "Top Ranker", icon: "🏅", description: "Rank #1 on leaderboard", unlocked: true },
+                { id: 8, name: "Diamond Member", icon: "💎", description: "365-day streak", unlocked: false }
+            ]
+        };
+
+        // Pokemon partners data
+        const pokemonPartners = [
+            { id: 25, name: "Pikachu", type: "ELECTRIC", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
+            { id: 1, name: "Bulbasaur", type: "GRASS/POISON", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" },
+            { id: 4, name: "Charmander", type: "FIRE", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" },
+            { id: 7, name: "Squirtle", type: "WATER", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" },
+            { id: 133, name: "Eevee", type: "NORMAL", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" }
+        ];
+
+        // Initialize the profile page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProfileData();
+            loadBadges();
+            updateLevelBadge();
+        });
+
+        function loadProfileData() {
+            // Load from localStorage if available
+            const savedProfile = localStorage.getItem('profileData');
+            if (savedProfile) {
+                const parsedData = JSON.parse(savedProfile);
+                // Merge with default data to ensure all fields exist
+                profileData = { ...profileData, ...parsedData };
+            }
+
+            // Update all profile fields
+            document.getElementById('profileName').textContent = profileData.fullName;
+            document.getElementById('username').textContent = profileData.username;
+            document.getElementById('email').textContent = profileData.email;
+            document.getElementById('joinDate').textContent = profileData.joinDate;
+            document.getElementById('accountCreated').textContent = profileData.joinDate;
+            
+            // Update partner information
+            document.getElementById('partnerName').textContent = profileData.partnerName;
+            document.getElementById('partnerType').textContent = profileData.partnerType + " TYPE";
+            document.getElementById('partnerImage').src = profileData.partnerImage;
+            
+            // Update statistics
+            document.getElementById('totalWords').textContent = profileData.totalWords;
+            document.getElementById('streakDays').textContent = profileData.streakDays;
+            
+            // Update progress bars
+            document.querySelector('.stat-progress-fill:nth-child(1)').style.width = `${profileData.totalWords}%`;
+            document.querySelector('.stat-progress-fill:nth-child(2)').style.width = `${(profileData.streakDays / 10) * 100}%`;
+        }
+
+        function loadBadges() {
+            const badgesContainer = document.getElementById('badgesContainer');
+            badgesContainer.innerHTML = '';
+            
+            profileData.badges.forEach(badge => {
+                const badgeElement = document.createElement('div');
+                badgeElement.className = `badge ${badge.unlocked ? 'unlocked' : 'locked'}`;
+                
+                badgeElement.innerHTML = `
+                    <div class="badge-icon">${badge.icon}</div>
+                    <div class="badge-title">${badge.name}</div>
+                    <div class="badge-tooltip">${badge.description}</div>
+                `;
+                
+                badgesContainer.appendChild(badgeElement);
+            });
+        }
+
+        function updateLevelBadge() {
+            const level = profileData.level;
+            const xp = profileData.xpPoints;
+            const nextLevelXP = level * 100;
+            const progress = Math.min((xp / nextLevelXP) * 100, 100);
+            
+            document.getElementById('levelBadge').innerHTML = `
+                Level ${level} • ${xp.toLocaleString()} XP
+                <div style="font-size: 8px; margin-top: 5px;">
+                    ${Math.round(progress)}% to Level ${level + 1}
+                </div>
+            `;
+        }
+
+        function changeAvatar() {
+            const avatars = ["👤", "🧑‍🎓", "🥷", "🦸", "🧙", "👨‍🚀", "🧑‍🔬", "👨‍💻"];
+            const currentAvatar = document.querySelector('.avatar-icon').textContent;
+            const currentIndex = avatars.indexOf(currentAvatar);
+            const nextIndex = (currentIndex + 1) % avatars.length;
+            
+            document.querySelector('.avatar-icon').textContent = avatars[nextIndex];
+            
+            // Save to profile data
+            profileData.avatar = avatars[nextIndex];
+            localStorage.setItem('profileData', JSON.stringify(profileData));
+            
+            // Show feedback
+            showNotification('Avatar updated!');
+        }
+
+        function editField(field) {
+            const currentValue = profileData[field];
+            let promptMessage = '';
+            
+            switch(field) {
+                case 'username':
+                    promptMessage = 'Enter new username:';
+                    break;
+                case 'email':
+                    promptMessage = 'Enter new email address:';
+                    break;
+                case 'fullName':
+                    promptMessage = 'Enter your full name:';
+                    break;
+                default:
+                    promptMessage = `Enter new ${field}:`;
+            }
+            
+            const newValue = prompt(promptMessage, currentValue);
+            
+            if (newValue !== null && newValue.trim() !== '') {
+                profileData[field] = newValue;
+                document.getElementById(field).textContent = newValue;
+                
+                // Special handling for full name
+                if (field === 'fullName') {
+                    document.getElementById('profileName').textContent = newValue;
+                }
+                
+                showNotification(`${field} updated successfully!`);
+            }
+        }
+
+        function changePartner(event) {
+            if (event) event.stopPropagation();
+            
+            const currentPartner = profileData.partnerName;
+            const partnerList = pokemonPartners.map(p => p.name).join(', ');
+            const newPartnerName = prompt(`Available partners: ${partnerList}\n\nEnter name of new partner:`, currentPartner);
+            
+            if (newPartnerName) {
+                const newPartner = pokemonPartners.find(p => p.name.toLowerCase() === newPartnerName.toLowerCase());
+                
+                if (newPartner) {
+                    profileData.partnerName = newPartner.name;
+                    profileData.partnerType = newPartner.type;
+                    profileData.partnerImage = newPartner.img;
+                    
+                    // Update UI
+                    document.getElementById('partnerName').textContent = newPartner.name;
+                    document.getElementById('partnerType').textContent = newPartner.type + " TYPE";
+                    document.getElementById('partnerImage').src = newPartner.img;
+                    
+                    // Save to localStorage
+                    localStorage.setItem('profileData', JSON.stringify(profileData));
+                    localStorage.setItem('selectedPokemon', newPartner.name);
+                    
+                    showNotification(`${newPartner.name} is now your learning partner! ⚡`);
+                } else {
+                    alert('Partner not found! Please choose from available partners.');
+                }
+            }
+        }
+
+        function saveProfile() {
+            localStorage.setItem('profileData', JSON.stringify(profileData));
+            showNotification('Profile saved successfully! ✅');
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(profileData, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `vocabulearner-profile-${profileData.username}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+            
+            showNotification('Profile data exported! 📥');
+        }
+
+        function deleteAccount() {
+            if (confirm('⚠️ WARNING: This will delete all your data!\n\nAre you sure you want to delete your account?')) {
+                if (confirm('This action cannot be undone. All your progress will be lost. Type "DELETE" to confirm:')) {
+                    const confirmation = prompt('Please type "DELETE" to confirm account deletion:');
+                    
+                    if (confirmation === 'DELETE') {
+                        localStorage.removeItem('profileData');
+                        localStorage.removeItem('selectedPokemon');
+                        showNotification('Account deleted. Redirecting...');
+                        
+                        // Redirect to home page after delay
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    } else {
+                        showNotification('Account deletion cancelled.');
+                    }
+                }
+            }
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                showNotification('Logging out...');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 15px 20px;
+                border: 3px solid #ffd700;
+                font-family: 'Press Start 2P', monospace;
+                font-size: 10px;
+                z-index: 10000;
+                box-shadow: 6px 6px 0 #000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                text-align: center;
+            `;
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+            
+            // Add keyframes for animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        // Make back button work
+        document.querySelector('.logo').addEventListener('click', function(e) {
+            if (!this.getAttribute('href')) {
+                e.preventDefault();
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+{%endblock%}

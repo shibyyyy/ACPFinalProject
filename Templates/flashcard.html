@@ -1,0 +1,391 @@
+{%extends 'base.html'%}
+
+{%block title%}<title>VocabuLearner</title>{% endblock%}
+
+{%block content%}
+    {%block logo_link %}
+            <a href="{{ url_for('dashboard') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+    {% endblock %}
+    {%block header%}{%endblock%}
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Review Words!</h1>
+            <div class="welcome-stats">
+                <div class="stat-item">
+                    <span class="label">Current Streak</span>
+                    <span class="value"><span class="fire-icon">🔥</span> 5 Days</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Challenges Completed</span>
+                    <span class="value">12</span>
+                </div>
+                <div class="stat-item">
+                    <span class="label">Total XP</span>
+                    <span class="value">1,240</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Flashcard Challenge -->
+        <div class="challenge-container">
+            <div class="challenge-header">
+                <div class="challenge-title">
+                    <span>🏆</span> Flashcard Challenge
+                </div>
+                <div class="challenge-stats">
+                    <div class="stat-badge">
+                        <div class="label">Cards</div>
+                        <div class="value"><span id="current-card">1</span>/<span id="total-cards">10</span></div>
+                        <div class="xp-badge">XP</div>
+                    </div>
+                    <div class="stat-badge">
+                        <div class="label">Score</div>
+                        <div class="value" id="score">0</div>
+                    </div>
+                    <div class="stat-badge">
+                        <div class="label">Streak</div>
+                        <div class="value" id="streak">0<span class="streak-fire">🔥</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="difficulty-selector">
+                <div class="difficulty-btn active" data-difficulty="easy">Easy</div>
+                <div class="difficulty-btn" data-difficulty="medium">Medium</div>
+                <div class="difficulty-btn" data-difficulty="hard">Hard</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span>Progress</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <div class="timer" id="timer">Time: 0s</div>
+            
+            <div class="flashcard-area">
+                <div class="flashcard" id="flashcard">
+                    <div class="flashcard-front">
+                        <div class="word" id="word-front">Ubiquitous</div>
+                        <div class="part-of-speech" id="part-of-speech-front">adjective</div>
+                        <div class="hint">Click to flip card</div>
+                    </div>
+                    <div class="flashcard-back">
+                        <div class="word" id="word-back">Ubiquitous</div>
+                        <div class="part-of-speech" id="part-of-speech-back">adjective</div>
+                        <div class="definition" id="definition">Present, appearing, or found everywhere</div>
+                        <div class="example" id="example">"Mobile phones are now ubiquitous in modern society."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="challenge-controls">
+                <button class="challenge-btn incorrect" id="btn-dont-know">Don't Know</button>
+                <button class="challenge-btn correct" id="btn-know">I Know This!</button>
+            </div>
+            
+            <div class="completion-message" id="completion-message">
+                <h2>Challenge Complete! 🎉</h2>
+                <div class="xp-earned">+50 XP Earned!</div>
+                <div class="badge-earned">New Badge: Vocabulary Master!</div>
+                <div class="completion-stats">
+                    <div class="completion-stat">
+                        <div class="label">Score</div>
+                        <div class="value" id="final-score">0</div>
+                    </div>
+                    <div class="completion-stat">
+                        <div class="label">Accuracy</div>
+                        <div class="value" id="accuracy">0%</div>
+                    </div>
+                    <div class="completion-stat">
+                        <div class="label">Time</div>
+                        <div class="value" id="final-time">0s</div>
+                    </div>
+                </div>
+                <button class="challenge-btn" id="btn-restart">Try Another Challenge</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 VocabuLearner</p>
+    </footer>
+
+    <script>
+        // Enhanced vocabulary data
+        const vocabulary = {
+            easy: [
+                {
+                    word: "Happy",
+                    definition: "Feeling or showing pleasure or contentment",
+                    example: "She was happy to see her friends after a long time.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Big",
+                    definition: "Of considerable size or extent",
+                    example: "They live in a big house near the lake.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Run",
+                    definition: "Move at a speed faster than a walk",
+                    example: "He can run very fast when he needs to.",
+                    partOfSpeech: "verb"
+                },
+                {
+                    word: "Beautiful",
+                    definition: "Pleasing the senses or mind aesthetically",
+                    example: "The sunset over the ocean was truly beautiful.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Book",
+                    definition: "A written or printed work consisting of pages",
+                    example: "She borrowed a book from the library.",
+                    partOfSpeech: "noun"
+                }
+            ],
+            medium: [
+                {
+                    word: "Ubiquitous",
+                    definition: "Present, appearing, or found everywhere",
+                    example: "Mobile phones are now ubiquitous in modern society.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Ephemeral",
+                    definition: "Lasting for a very short time",
+                    example: "The ephemeral beauty of cherry blossoms attracts many tourists.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Resilient",
+                    definition: "Able to withstand or recover quickly from difficult conditions",
+                    example: "Children are often more resilient than adults think.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Eloquent",
+                    definition: "Fluent or persuasive in speaking or writing",
+                    example: "Her eloquent speech moved the entire audience.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Pragmatic",
+                    definition: "Dealing with things sensibly and realistically",
+                    example: "We need a pragmatic approach to solve this problem.",
+                    partOfSpeech: "adjective"
+                }
+            ],
+            hard: [
+                {
+                    word: "Serendipity",
+                    definition: "The occurrence of events by chance in a happy or beneficial way",
+                    example: "Finding this book was a wonderful serendipity.",
+                    partOfSpeech: "noun"
+                },
+                {
+                    word: "Quintessential",
+                    definition: "Representing the most perfect or typical example of a quality or class",
+                    example: "He is the quintessential English gentleman.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Ineffable",
+                    definition: "Too great or extreme to be expressed or described in words",
+                    example: "The ineffable beauty of the northern lights left us speechless.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Perspicacious",
+                    definition: "Having a ready insight into and understanding of things",
+                    example: "His perspicacious comments revealed a deep understanding of the issue.",
+                    partOfSpeech: "adjective"
+                },
+                {
+                    word: "Supercilious",
+                    definition: "Behaving or looking as though one thinks one is superior to others",
+                    example: "She gave a supercilious smile when she heard the suggestion.",
+                    partOfSpeech: "adjective"
+                }
+            ]
+        };
+
+        // Game state
+        let currentCardIndex = 0;
+        let score = 0;
+        let streak = 0;
+        let cardsAnswered = 0;
+        let totalCards = 5;
+        let currentDifficulty = 'easy';
+        let startTime;
+        let timerInterval;
+
+        // DOM elements
+        const flashcard = document.getElementById('flashcard');
+        const wordFront = document.getElementById('word-front');
+        const wordBack = document.getElementById('word-back');
+        const partOfSpeechFront = document.getElementById('part-of-speech-front');
+        const partOfSpeechBack = document.getElementById('part-of-speech-back');
+        const definition = document.getElementById('definition');
+        const example = document.getElementById('example');
+        const currentCardDisplay = document.getElementById('current-card');
+        const totalCardsDisplay = document.getElementById('total-cards');
+        const scoreDisplay = document.getElementById('score');
+        const streakDisplay = document.getElementById('streak');
+        const progressFill = document.getElementById('progress-fill');
+        const progressPercent = document.getElementById('progress-percent');
+        const btnKnow = document.getElementById('btn-know');
+        const btnDontKnow = document.getElementById('btn-dont-know');
+        const completionMessage = document.getElementById('completion-message');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const finalTimeDisplay = document.getElementById('final-time');
+        const btnRestart = document.getElementById('btn-restart');
+        const timerDisplay = document.getElementById('timer');
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+
+        // Initialize the game
+        function initGame() {
+            currentCardIndex = 0;
+            score = 0;
+            streak = 0;
+            cardsAnswered = 0;
+            totalCards = vocabulary[currentDifficulty].length;
+            updateDisplay();
+            loadCard(currentCardIndex);
+            completionMessage.style.display = 'none';
+            
+            // Start timer
+            startTime = new Date();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            updateTimer();
+        }
+
+        // Update timer
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+            timerDisplay.textContent = `Time: ${elapsedSeconds}s`;
+        }
+
+        // Load a card
+        function loadCard(index) {
+            const card = vocabulary[currentDifficulty][index];
+            wordFront.textContent = card.word;
+            wordBack.textContent = card.word;
+            partOfSpeechFront.textContent = card.partOfSpeech;
+            partOfSpeechBack.textContent = card.partOfSpeech;
+            definition.textContent = card.definition;
+            example.textContent = `"${card.example}"`;
+            
+            // Reset card to front
+            flashcard.classList.remove('flipped');
+        }
+
+        // Update display elements
+        function updateDisplay() {
+            currentCardDisplay.textContent = currentCardIndex + 1;
+            totalCardsDisplay.textContent = totalCards;
+            scoreDisplay.textContent = score;
+            streakDisplay.textContent = `${streak}🔥`;
+            
+            const progress = (cardsAnswered / totalCards) * 100;
+            progressFill.style.width = `${progress}%`;
+            progressPercent.textContent = `${Math.round(progress)}%`;
+        }
+
+        // Create floating XP animation
+        function createFloatingXP(x, y, amount) {
+            const floatingXP = document.createElement('div');
+            floatingXP.className = 'floating-xp';
+            floatingXP.textContent = `+${amount} XP`;
+            floatingXP.style.left = `${x}px`;
+            floatingXP.style.top = `${y}px`;
+            document.querySelector('.challenge-container').appendChild(floatingXP);
+            
+            setTimeout(() => {
+                floatingXP.remove();
+            }, 1000);
+        }
+
+        // Handle card flip
+        flashcard.addEventListener('click', function() {
+            this.classList.toggle('flipped');
+        });
+
+        // Handle "I Know This" button
+        btnKnow.addEventListener('click', function(e) {
+            score++;
+            streak++;
+            cardsAnswered++;
+            
+            // Create floating XP
+            createFloatingXP(e.clientX, e.clientY, 10);
+            
+            updateDisplay();
+            nextCard();
+        });
+
+        // Handle "Don't Know" button
+        btnDontKnow.addEventListener('click', function() {
+            streak = 0;
+            cardsAnswered++;
+            updateDisplay();
+            nextCard();
+        });
+
+        // Move to next card or end game
+        function nextCard() {
+            currentCardIndex++;
+            
+            if (currentCardIndex < totalCards) {
+                loadCard(currentCardIndex);
+            } else {
+                endGame();
+            }
+        }
+
+        // End the game
+        function endGame() {
+            clearInterval(timerInterval);
+            const endTime = new Date();
+            const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
+            
+            const accuracy = Math.round((score / totalCards) * 100);
+            finalScoreDisplay.textContent = score;
+            accuracyDisplay.textContent = `${accuracy}%`;
+            finalTimeDisplay.textContent = `${elapsedSeconds}s`;
+            completionMessage.style.display = 'block';
+        }
+
+        // Handle difficulty selection
+        difficultyBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                difficultyBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDifficulty = this.dataset.difficulty;
+                initGame();
+            });
+        });
+
+        // Restart the game
+        btnRestart.addEventListener('click', initGame);
+
+        // Initialize the game when page loads
+        window.addEventListener('DOMContentLoaded', initGame);
+    </script>
+{%endblock%}

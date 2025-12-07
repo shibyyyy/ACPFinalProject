@@ -5,7 +5,8 @@
 {% block content %}
 {%block header%}
 {% endblock %}
-    <div class="forgot-password-container">
+    <!-- FORGOT PASSWORD BOX -->
+    <div class="forgot-password-container active">
         <h1>Forgot Password</h1>
         <p>Enter your email to reset your password.</p>
 
@@ -15,8 +16,53 @@
             <button type="button" class="btn-primary" id="reset-password-btn">Reset Password</button>
 
             <!-- Back to Login link -->
-            <a href="#" class="back-to-login" id="back-to-login-link">Back to Login</a>
+            <a href="{{url_for('login')}}" class="back-to-login">Back to Login</a>
         </form>
     </div>
 
+    <!-- UPDATE ACCOUNT BOX (Hidden by default) -->
+    <div class="update-account-container">
+        <h1>Update Account</h1>
+        <p>Update your account information.</p>
+
+        <form class="update-account-form">
+            <input type="password" placeholder="New Password" required />
+            <input type="password" placeholder="Confirm Password" required />
+
+            <button type="button" class="btn-primary" id="update-account-btn">Update Account</button>
+
+            <!-- Back to Login link -->
+            <a href="login.html" class="back-to-login">Back to Login</a>
+        </form>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>© 2025 VocabuLearner</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all containers
+            const forgotPasswordContainer = document.querySelector('.forgot-password-container');
+            const updateAccountContainer = document.querySelector('.update-account-container');
+            
+            // Get buttons
+            const resetPasswordBtn = document.getElementById('reset-password-btn');
+            const updateAccountBtn = document.getElementById('update-account-btn');
+            
+            // Reset Password button click
+            resetPasswordBtn.addEventListener('click', function() {
+                forgotPasswordContainer.classList.remove('active');
+                updateAccountContainer.classList.add('active');
+            });
+            
+            // Update Account button click
+            updateAccountBtn.addEventListener('click', function() {
+                alert("Account updated successfully!");
+                // Redirect to login page
+                window.location.href = "login.html";
+            });
+        });
+    </script>
 {% endblock %}

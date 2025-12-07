@@ -5,7 +5,7 @@
 {% block content %}
     {%block header%}{%endblock%}
     {{ form.hidden_tag() }}
-    <div class="login-container active">
+    <div class="login-container">
         <h1>Login</h1>
         <p>Welcome back, Trainer! Continue your vocabulary journey.</p>
 
@@ -19,10 +19,11 @@
             <a href="{{url_for('signup')}}" class="btn-secondary">Sign Up</a>
 
             <!-- Forgot Password link -->
-            <a href="{{url_for('forgotpass')}}" class="forgot-password" id="forgot-password-link">Forgot Password?</a>
+            <a href="{{url_for('forgotpass')}}" class="forgot-password">Forgot Password?</a>
         </form>
     </div>
 
+    <!-- FOOTER -->
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>

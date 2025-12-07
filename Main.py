@@ -31,6 +31,10 @@ def features():
 def dashboard():
     return render_template('dashboard.html')
 
+@app.route('/profile')
+def profile():
+    return render_template('profile.html')
+
 @app.route('/challenges')
 def challenges():
     return render_template('challenges.html')
@@ -55,6 +59,18 @@ def leaderboard():
 def addword():
     form = AddWordForm()
     return render_template('addword.html',form=form)
+
+@app.route('/flashcard')
+def flashcard():
+    return render_template('flashcard.html')
+
+@app.route('/multichoi')
+def multichoi():
+    return render_template('multichoi.html')
+
+@app.route('/matchingtype')
+def matchingtype():
+    return render_template('matchingtype.html') 
 
 if __name__ == '__main__':
     app.run(debug=True)

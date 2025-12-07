@@ -41,51 +41,20 @@
 
         <!-- Activity Selection -->
         <div class="activity-selection">
-            <div class="activity-card" data-activity="flashcards">
+            <div class="activity-card" data-activity="flashcards" onclick="window.location.href='/flashcard'">
                 <div class="icon">📇</div>
                 <h3>Flashcards</h3>
                 <p class="description">Flip cards to reveal definitions and examples</p>
             </div>
-            <div class="activity-card" data-activity="quiz">
+            <div class="activity-card" data-activity="quiz" onclick="window.location.href='/multichoi'">
                 <div class="icon">❓</div>
                 <h3>Multiple Choice</h3>
                 <p class="description">Test your knowledge with multiple choice questions</p>
             </div>
-            <div class="activity-card" data-activity="matching">
+            <div class="activity-card" data-activity="matching" onclick="window.location.href='/matchingtype'">
                 <div class="icon">🔀</div>
                 <h3>Matching Game</h3>
                 <p class="description">Match words with their correct definitions</p>
-            </div>
-        </div>
-
-        <!-- Flashcard Session -->
-        <div class="review-session" id="flashcardSession">
-            <div class="session-header">
-                <h2 class="session-title">Flashcards</h2>
-                <div class="session-stats">
-                    <span>📚 <span id="flashcardProgress">1/12</span></span>
-                    <span>⭐ <span id="flashcardMastered">0</span> Mastered</span>
-                </div>
-            </div>
-            <div class="flashcard-container">
-                <div class="flashcard" id="flashcard">
-                    <div class="flashcard-front">
-                        <div class="flashcard-word" id="flashcardWord">Ephemeral</div>
-                        <div class="flashcard-type" id="flashcardType">adjective</div>
-                        <div class="flashcard-hint">Click to flip</div>
-                    </div>
-                    <div class="flashcard-back">
-                        <div class="flashcard-definition" id="flashcardDefinition">Lasting for a very short time; transient.</div>
-                        <div class="flashcard-example" id="flashcardExample">"The ephemeral beauty of cherry blossoms is celebrated in Japanese culture."</div>
-                        <div class="flashcard-hint">Click to flip back</div>
-                    </div>
-                </div>
-            </div>
-            <div class="session-controls">
-                <button class="btn-secondary" id="flashcardAgain">Again</button>
-                <button class="btn-secondary" id="flashcardHard">Hard</button>
-                <button class="btn-success" id="flashcardGood">Good</button>
-                <button class="btn-primary" id="flashcardEasy">Easy</button>
             </div>
         </div>
 
