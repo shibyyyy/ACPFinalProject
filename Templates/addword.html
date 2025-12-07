@@ -15,41 +15,12 @@
     {% endblock %}
     {%block header%}{%endblock%}
     {{form.hidden_tag()}}
-    <div class="container" id="onboarding">
-        <h1>Let's Get Started!</h1>
-        <p>Add your first 5 words to begin learning</p>
-        
-        <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution">
-            <h3>Your Vocabulary Partner</h3>
-            <div class="pokemon-container">
-                <div class="pokemon" id="currentPokemon">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" class="pokemon-sprite" alt="Pichu">
-                    <div class="pokemon-name">Pichu</div>
-                </div>
-            </div>
-            <div class="evolution-progress">
-                <div class="evolution-dot" data-stage="0"></div>
-                <div class="evolution-dot" data-stage="1"></div>
-                <div class="evolution-dot" data-stage="2"></div>
-            </div>
-            <p>Add words to help your Pokémon evolve into Pikachu!</p>
-        </div>
-
-        <div class="options-container">
-            <button class="btn-primary" id="useStarterWords">USE STARTER WORDS</button>
-            <button class="btn-secondary" id="addOwnWords">ADD OWN WORDS</button>
-        </div>
-        
-        <button class="nav-btn" onclick="showProgressPage()">View Pokémon Progress →</button>
-    </div>
-
     <!-- WORD ENTRY FORM -->
-    <div class="container hidden" id="wordEntry">
+    <div class="container" id="onboarding">
         <h2>Add Your Words</h2>
         
         <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution">
+        <div class="pokemon-evolution2">
             <h3>Your Vocabulary Partner</h3>
             <div class="pokemon-container">
                 <div class="pokemon" id="currentPokemonWord">
@@ -84,7 +55,7 @@
         <p>Learn your first 5 words!</p>
         
         <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution">
+        <div class="pokemon-evolution2">
             <h3>Your Vocabulary Partner</h3>
             <div class="pokemon-container">
                 <div class="pokemon" id="currentPokemonPractice">
@@ -125,7 +96,7 @@
         <h1>Dashboard</h1>
         
         <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution">
+        <div class="pokemon-evolution2">
             <h3>Your Vocabulary Partner</h3>
             <div class="pokemon-container">
                 <div class="pokemon" id="currentPokemonDashboard">
@@ -170,8 +141,7 @@
 
     <script>
         // DOM Elements
-        const onboarding = document.getElementById('onboarding');
-        const wordEntry = document.getElementById('wordEntry');
+        const wordEntry = document.getElementById('onboarding');
         const practiceSession = document.getElementById('practiceSession');
         const dashboard = document.getElementById('dashboard');
         

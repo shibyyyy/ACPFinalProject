@@ -13,7 +13,7 @@
             </a>
     {% endblock %}
     {%block header%}{%endblock%}
-            <div class="profile-container">
+        <div class="profile-container">
         <!-- Profile Header -->
         <div class="profile-header-section">
             <div class="profile-avatar-container">
@@ -96,15 +96,15 @@
                 <h2 data-icon="⚡">LEARNING PARTNER</h2>
                 
                 <div class="partner-section">
-                    <div class="partner-card" onclick="changePartner()">
+                    <div class="partner-card">
                         <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
                              alt="Pikachu" 
                              class="partner-image"
                              id="partnerImage">
                         <div class="partner-name" id="partnerName">Pikachu</div>
                         <div class="partner-type" id="partnerType">ELECTRIC TYPE</div>
-                        <button class="change-partner-btn" onclick="changePartner(event)">
-                            Change Partner
+                        <button class="change-name-btn" onclick="changePartnerName()">
+                            Change Partner Name
                         </button>
                     </div>
                 </div>
@@ -128,9 +128,6 @@
         <div class="profile-actions">
             <button class="action-btn save" onclick="saveProfile()">
                 💾 SAVE CHANGES
-            </button>
-            <button class="action-btn export" onclick="exportData()">
-                📤 EXPORT PROFILE DATA
             </button>
             <button class="action-btn delete" onclick="deleteAccount()">
                 🗑️ DELETE ACCOUNT
@@ -167,15 +164,6 @@
                 { id: 8, name: "Diamond Member", icon: "💎", description: "365-day streak", unlocked: false }
             ]
         };
-
-        // Pokemon partners data
-        const pokemonPartners = [
-            { id: 25, name: "Pikachu", type: "ELECTRIC", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
-            { id: 1, name: "Bulbasaur", type: "GRASS/POISON", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" },
-            { id: 4, name: "Charmander", type: "FIRE", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" },
-            { id: 7, name: "Squirtle", type: "WATER", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" },
-            { id: 133, name: "Eevee", type: "NORMAL", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" }
-        ];
 
         // Initialize the profile page
         document.addEventListener('DOMContentLoaded', function() {
@@ -295,54 +283,24 @@
             }
         }
 
-        function changePartner(event) {
-            if (event) event.stopPropagation();
+        function changePartnerName() {
+            const currentName = profileData.partnerName;
+            const newName = prompt('Enter new name for your Pokémon partner:', currentName);
             
-            const currentPartner = profileData.partnerName;
-            const partnerList = pokemonPartners.map(p => p.name).join(', ');
-            const newPartnerName = prompt(`Available partners: ${partnerList}\n\nEnter name of new partner:`, currentPartner);
-            
-            if (newPartnerName) {
-                const newPartner = pokemonPartners.find(p => p.name.toLowerCase() === newPartnerName.toLowerCase());
+            if (newName !== null && newName.trim() !== '') {
+                profileData.partnerName = newName;
+                document.getElementById('partnerName').textContent = newName;
                 
-                if (newPartner) {
-                    profileData.partnerName = newPartner.name;
-                    profileData.partnerType = newPartner.type;
-                    profileData.partnerImage = newPartner.img;
-                    
-                    // Update UI
-                    document.getElementById('partnerName').textContent = newPartner.name;
-                    document.getElementById('partnerType').textContent = newPartner.type + " TYPE";
-                    document.getElementById('partnerImage').src = newPartner.img;
-                    
-                    // Save to localStorage
-                    localStorage.setItem('profileData', JSON.stringify(profileData));
-                    localStorage.setItem('selectedPokemon', newPartner.name);
-                    
-                    showNotification(`${newPartner.name} is now your learning partner! ⚡`);
-                } else {
-                    alert('Partner not found! Please choose from available partners.');
-                }
+                // Save to localStorage
+                localStorage.setItem('profileData', JSON.stringify(profileData));
+                
+                showNotification(`Partner name changed to: ${newName} ⚡`);
             }
         }
 
         function saveProfile() {
             localStorage.setItem('profileData', JSON.stringify(profileData));
             showNotification('Profile saved successfully! ✅');
-        }
-
-        function exportData() {
-            const dataStr = JSON.stringify(profileData, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `vocabulearner-profile-${profileData.username}.json`;
-            
-            const linkElement = document.createElement('a');
-            linkElement.setAttribute('href', dataUri);
-            linkElement.setAttribute('download', exportFileDefaultName);
-            linkElement.click();
-            
-            showNotification('Profile data exported! 📥');
         }
 
         function deleteAccount() {
@@ -425,7 +383,7 @@
         document.querySelector('.logo').addEventListener('click', function(e) {
             if (!this.getAttribute('href')) {
                 e.preventDefault();
-                window.location.href = 'dashboard.html';
+                window.location.href = 'dashboard';
             }
         });
     </script>

@@ -790,7 +790,7 @@
         .btn-secondary:hover { background: #ffc107; }
 
         /* Back to Login */
-        .back-to-login {
+        .back-to-login,.forgot-password {
             display: block;
             margin-top: 10px;
             font-size: 16px;
@@ -1064,9 +1064,6 @@
         }
         .welcome-section h1 { font-size: 28px; color: #ffd700; text-shadow: 4px 4px 0 #000; margin-bottom: 15px; }
         .welcome-stats { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px; }
-        .stat-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-        .stat-item .label { font-size: 10px; color: #fff; text-shadow: 2px 2px 0 #000; }
-        .stat-item .value { font-size: 18px; color: #ffd700; text-shadow: 3px 3px 0 #000; }
         .fire-icon { display: inline-block; animation: flicker 1.5s infinite; }
         @keyframes flicker { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
 
@@ -2626,6 +2623,7 @@
         .item-score { font-size: 14px; color: #ffd700; text-shadow: 2px 2px 0 #000; }
         .item-words { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
 
+        /* CONTAINER STYLES */
         .container {
             margin-top: 160px;
             max-width: 600px;
@@ -2683,7 +2681,7 @@
         .btn-secondary:hover { background: #ffc107; }
 
         /* POKEMON EVOLUTION AREA */
-        .pokemon-evolution {
+        .pokemon-evolution2 {
             margin: 30px 0;
             padding: 20px;
             background: rgba(255,255,255,0.2);
@@ -2817,6 +2815,81 @@
             background: #76c442;
         }
         
+        /* DASHBOARD */
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+        }
+        
+        .stat-box {
+            background: rgba(255,255,255,0.2);
+            border: 4px solid #000;
+            padding: 15px;
+            min-width: 150px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .achievement-badge {
+            display: inline-block;
+            background: #ffd700;
+            color: #000;
+            padding: 10px 15px;
+            margin: 10px;
+            border: 4px solid #000;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        /* POKEMON SPRITES */
+        .pokemon-sprite {
+            image-rendering: pixelated;
+            width: 80px;
+            height: 80px;
+        }
+        
+        /* EVOLUTION ANIMATION */
+        @keyframes evolve {
+            0% { transform: translateX(-50%) scale(1); opacity: 1; }
+            50% { transform: translateX(-50%) scale(1.5); opacity: 0.7; }
+            100% { transform: translateX(-50%) scale(1); opacity: 1; }
+        }
+        
+        .evolving {
+            animation: evolve 1s ease-in-out;
+        }
+        
+        /* Navigation Button */
+        .nav-btn {
+            background: #4169e1;
+            color: #fff;
+            border: 4px solid #000;
+            padding: 12px 20px;
+            font-size: 10px;
+            box-shadow: 6px 6px 0 #000;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
+            margin: 10px;
+            transition: all 0.2s;
+        }
+        .nav-btn:hover { transform: translate(3px,3px); box-shadow: 3px 3px 0 #000; }
+        
         /* Enhanced Flashcard Challenge Styles */
         .challenge-container {
             background: rgba(255,255,255,0.15);
@@ -2890,7 +2963,7 @@
             100% { transform: scale(1); }
         }
         
-        .progress-container {
+        .progress-container1 {
             margin: 20px 0;
         }
         
@@ -3454,7 +3527,7 @@
             margin-top: 20px;
         }
 
-        .badge {
+        .badge2 {
             background: rgba(255, 255, 255, 0.9);
             border: 4px solid #000;
             border-radius: 50%;
@@ -3470,26 +3543,26 @@
             box-shadow: 6px 6px 0 #000;
         }
 
-        .badge:hover {
+        .badge2:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 10px 10px 0 #000;
         }
 
-        .badge.unlocked {
+        .badge2.unlocked {
             background: linear-gradient(135deg, #ffd700, #ffed4e);
         }
 
-        .badge.locked {
+        .badge2.locked {
             opacity: 0.5;
             filter: grayscale(100%);
         }
 
-        .badge-icon {
+        .badge2-icon {
             font-size: 32px;
             margin-bottom: 8px;
         }
 
-        .badge-title {
+        .badge2-title {
             font-size: 8px;
             text-align: center;
             color: #000;
@@ -3497,7 +3570,7 @@
             text-shadow: 1px 1px 0 #fff;
         }
 
-        .badge-tooltip {
+        .badge2-tooltip {
             position: absolute;
             bottom: 120%;
             left: 50%;
@@ -3516,7 +3589,7 @@
             pointer-events: none;
         }
 
-        .badge:hover .badge-tooltip {
+        .badge2:hover .badge2-tooltip {
             opacity: 1;
             visibility: visible;
             transform: translateX(-50%) translateY(-5px);
@@ -3791,7 +3864,7 @@
             margin-bottom: 20px;
         }
 
-        .type-icon {
+        .type-icon2 {
             font-size: 40px;
             width: 60px;
             height: 60px;
@@ -3802,7 +3875,7 @@
             border: 3px solid #ffd700;
         }
 
-        .type-badge {
+        .type-badge2 {
             background: #ff4444;
             color: white;
             padding: 5px 12px;
@@ -3994,7 +4067,7 @@
         }
 
         /* Progress Bar */
-        .progress-container {
+        .progress-container2 {
             margin-bottom: 40px;
         }
 
