@@ -1,22 +1,25 @@
-{%extends 'base.html'%}
+{% extends 'base.html' %}
 
-{%block title%}
+
+{% block title %}
     <title>VocabuLearner - Word Bank</title>
-{%endblock%}
+{% endblock %}
 
-{%block content%}
+
+{% block content %}
     {% block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
-    {%block header%}
-    {%endblock%}
+    {% block header %}{% endblock %}
+
+
     <div class="dashboard-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
@@ -24,18 +27,12 @@
             <div class="welcome-stats">
                 <div class="stat-item">
                     <span class="label">Total Words</span>
-                    <span class="value">47 Words</span>
+                    <span class="value">{{ words|length }} Words</span>
                 </div>
-                <div class="stat-item">
-                    <span class="label">Mastered</span>
-                    <span class="value">32 Words</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">To Review</span>
-                    <span class="value">12 Words</span>
-                </div>
+                <!-- You can compute mastered/review stats in Python and pass them in -->
             </div>
         </div>
+
 
         <!-- WordBank Header -->
         <div class="wordbank-header">
@@ -51,43 +48,47 @@
             </div>
         </div>
 
+
         <!-- Words Grid -->
         <div class="words-grid" id="wordsGrid">
-            <!-- Word cards will be dynamically generated here -->
+            {% for user_word, vocab in words %}
+                <div class="word-card2" onclick="openWordModal('{{ vocab.word }}','{{ vocab.definition }}','{{ vocab.example_sentence }}','{{ user_word.date_learned.strftime(%Y-%m-%d) }}')">
+                    <div class="word-header">
+                        <h3 class="word-text">{{ vocab.word }}</h3>
+                        <span class="word-type">{{ vocab.category or "N/A" }}</span>
+                    </div>
+                    <p class="word-definition">{{ vocab.definition }}</p>
+                    <div class="word-example">"{{ vocab.example_sentence }}"</div>
+                    <div class="word-stats">
+                        <span>🟡 Learned</span>
+                        <span>📅 {{ user_word.date_learned.strftime('%Y-%m-%d') }}</span>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
+
 
         <!-- WordBank Actions -->
         <div class="wordbank-actions">
-            <button class="btn-primary" onclick="window.location.href='/addword'">ADD NEW WORD</button>
+            <button class="btn-primary" onclick="window.location.href='/add_word'">ADD NEW WORD</button>
             <button class="btn-secondary" onclick="window.location.href='/review'">PRACTICE WORDS</button>
         </div>
     </div>
+
 
     <!-- Word Detail Modal -->
     <div class="modal2" id="wordModal">
         <div class="modal2-content">
             <div class="modal2-header">
-                <h2 class="modal2-title" id="modalWord">Ephemeral</h2>
-                <span class="modal2-type" id="modalType">adjective</span>
+                <h2 class="modal2-title" id="modalWord"></h2>
+                <span class="modal2-type" id="modalType"></span>
             </div>
-            <p class="modal2-definition" id="modalDefinition">Lasting for a very short time; transient.</p>
-            <div class="modal2-example" id="modalExample">"The ephemeral beauty of cherry blossoms is celebrated in Japanese culture."</div>
+            <p class="modal2-definition" id="modalDefinition"></p>
+            <div class="modal2-example" id="modalExample"></div>
             <div class="modal2-stats">
                 <div class="modal2-stat">
-                    <span class="modal2-stat-label">Status</span>
-                    <span class="modal2-stat-value" id="modalStatus">Mastered</span>
-                </div>
-                <div class="modal2-stat">
-                    <span class="modal2-stat-label">Times Reviewed</span>
-                    <span class="modal2-stat-value" id="modalReviews">8</span>
-                </div>
-                <div class="modal2-stat">
-                    <span class="modal2-stat-label">Accuracy</span>
-                    <span class="modal2-stat-value" id="modalAccuracy">95%</span>
-                </div>
-                <div class="modal2-stat">
                     <span class="modal2-stat-label">Added On</span>
-                    <span class="modal2-stat-value" id="modalDate">2025-03-15</span>
+                    <span class="modal2-stat-value" id="modalDate"></span>
                 </div>
             </div>
             <div class="modal2-actions">
@@ -97,195 +98,62 @@
         </div>
     </div>
 
+
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+
     <script>
-        const wordData = [
-            {
-                word: "Ephemeral",
-                type: "adjective",
-                definition: "Lasting for a very short time; transient.",
-                example: "The ephemeral beauty of cherry blossoms is celebrated in Japanese culture.",
-                status: "mastered",
-                reviews: 8,
-                accuracy: 95,
-                date: "2025-03-15"
-            },
-            {
-                word: "Ubiquitous",
-                type: "adjective",
-                definition: "Present, appearing, or found everywhere.",
-                example: "Smartphones have become ubiquitous in modern society.",
-                status: "mastered",
-                reviews: 12,
-                accuracy: 92,
-                date: "2025-03-10"
-            },
-            {
-                word: "Serendipity",
-                type: "noun",
-                definition: "The occurrence of events by chance in a happy or beneficial way.",
-                example: "Finding that rare book at the flea market was pure serendipity.",
-                status: "learning",
-                reviews: 5,
-                accuracy: 75,
-                date: "2025-03-20"
-            },
-            {
-                word: "Eloquent",
-                type: "adjective",
-                definition: "Fluent or persuasive in speaking or writing.",
-                example: "Her eloquent speech moved the entire audience.",
-                status: "mastered",
-                reviews: 10,
-                accuracy: 88,
-                date: "2025-03-05"
-            },
-            {
-                word: "Resilient",
-                type: "adjective",
-                definition: "Able to withstand or recover quickly from difficult conditions.",
-                example: "Children are often more resilient than adults give them credit for.",
-                status: "learning",
-                reviews: 6,
-                accuracy: 70,
-                date: "2025-03-18"
-            },
-            {
-                word: "Pragmatic",
-                type: "adjective",
-                definition: "Dealing with things sensibly and realistically.",
-                example: "Her pragmatic approach to problem-solving saved the company time and money.",
-                status: "new",
-                reviews: 2,
-                accuracy: 60,
-                date: "2025-03-25"
-            }
-        ];
-
-        // Initialize the word grid
-        function initializeWordGrid() {
-            const wordsGrid = document.getElementById('wordsGrid');
-            wordsGrid.innerHTML = '';
-            
-            wordData.forEach(word => {
-                const wordCard = document.createElement('div');
-                wordCard.className = 'word-card2';
-                wordCard.onclick = () => openWordModal(word);
-                
-                // Status indicator
-                let statusIcon = '🟡';
-                if (word.status === 'mastered') statusIcon = '🟢';
-                else if (word.status === 'new') statusIcon = '🔴';
-                
-                wordCard.innerHTML = `
-                    <div class="word-header">
-                        <h3 class="word-text">${word.word}</h3>
-                        <span class="word-type">${word.type}</span>
-                    </div>
-                    <p class="word-definition">${word.definition}</p>
-                    <div class="word-example">"${word.example}"</div>
-                    <div class="word-stats">
-                        <span>${statusIcon} ${word.status.charAt(0).toUpperCase() + word.status.slice(1)}</span>
-                        <span>📊 ${word.accuracy}%</span>
-                        <span>🔄 ${word.reviews} reviews</span>
-                    </div>
-                `;
-                
-                wordsGrid.appendChild(wordCard);
-            });
-        }
-
         // Open word detail modal
-        function openWordModal(word) {
-            document.getElementById('modalWord').textContent = word.word;
-            document.getElementById('modalType').textContent = word.type;
-            document.getElementById('modalDefinition').textContent = word.definition;
-            document.getElementById('modalExample').textContent = `"${word.example}"`;
-            document.getElementById('modalStatus').textContent = word.status.charAt(0).toUpperCase() + word.status.slice(1);
-            document.getElementById('modalReviews').textContent = word.reviews;
-            document.getElementById('modalAccuracy').textContent = `${word.accuracy}%`;
-            document.getElementById('modalDate').textContent = word.date;
-            
+        function openWordModal(word, definition, example, date) {
+            document.getElementById('modalWord').textContent = word;
+            document.getElementById('modalDefinition').textContent = definition;
+            document.getElementById('modalExample').textContent = `"${example}"`;
+            document.getElementById('modalDate').textContent = date;
             document.getElementById('wordModal').classList.add('active');
         }
+
 
         // Close word detail modal
         function closeWordModal() {
             document.getElementById('wordModal').classList.remove('active');
         }
 
+
         // Edit word function
         function editWord() {
             alert('Edit word feature coming soon!');
         }
 
-        // Search and filter functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            filterWords();
-        });
 
-        document.getElementById('filterSelect').addEventListener('change', function() {
-            filterWords();
-        });
+        // Search and filter functionality
+        document.getElementById('searchInput').addEventListener('input', filterWords);
+        document.getElementById('filterSelect').addEventListener('change', filterWords);
+
 
         function filterWords() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const filterValue = document.getElementById('filterSelect').value;
-            
-            const wordsGrid = document.getElementById('wordsGrid');
-            wordsGrid.innerHTML = '';
-            
-            const filteredWords = wordData.filter(word => {
-                const matchesSearch = word.word.toLowerCase().includes(searchTerm) || 
-                                     word.definition.toLowerCase().includes(searchTerm);
-                
-                const matchesFilter = filterValue === 'all' || word.status === filterValue;
-                
-                return matchesSearch && matchesFilter;
-            });
-            
-            filteredWords.forEach(word => {
-                const wordCard = document.createElement('div');
-                wordCard.className = 'word-card2';
-                wordCard.onclick = () => openWordModal(word);
-                
-                // Status indicator
-                let statusIcon = '🟡';
-                if (word.status === 'mastered') statusIcon = '🟢';
-                else if (word.status === 'new') statusIcon = '🔴';
-                
-                wordCard.innerHTML = `
-                    <div class="word-header">
-                        <h3 class="word-text">${word.word}</h3>
-                        <span class="word-type">${word.type}</span>
-                    </div>
-                    <p class="word-definition">${word.definition}</p>
-                    <div class="word-example">"${word.example}"</div>
-                    <div class="word-stats">
-                        <span>${statusIcon} ${word.status.charAt(0).toUpperCase() + word.status.slice(1)}</span>
-                        <span>📊 ${word.accuracy}%</span>
-                        <span>🔄 ${word.reviews} reviews</span>
-                    </div>
-                `;
-                
-                wordsGrid.appendChild(wordCard);
+            const cards = document.querySelectorAll('.word-card2');
+
+
+            cards.forEach(card => {
+                const word = card.querySelector('.word-text').textContent.toLowerCase();
+                const definition = card.querySelector('.word-definition').textContent.toLowerCase();
+                const matchesSearch = word.includes(searchTerm) || definition.includes(searchTerm);
+                const matchesFilter = filterValue === 'all'; // extend later with status field
+
+
+                if (matchesSearch && matchesFilter) {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
             });
         }
-
-        function showTutorial(type) {
-            const messages = {
-                add: 'Add New Word: Expand your vocabulary collection!',
-                practice: 'Practice Words: Test your knowledge with interactive exercises!'
-            };
-            alert(messages[type] || 'Feature coming soon!');
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeWordGrid();
-        });
     </script>
-{%endblock%}
+{% endblock %}
+
+
+

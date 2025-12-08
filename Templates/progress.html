@@ -1,296 +1,138 @@
-{%extends 'base.html'%}
+{% extends 'base.html' %}
 
-{%block title%}<title>VocabuLearner - Progress</title>{% endblock%}
 
-{%block content%}
-    {%block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+{% block title %}<title>VocabuLearner - Progress</title>{% endblock %}
+
+
+{% block content %}
+    {% block logo_link %}
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
-    {%block header%}{%endblock%}
-    <!-- MAIN CONTENT -->
+    {% block header %}{% endblock %}
+
+
     <div class="progress-container">
-        <!-- Page Title -->
         <div class="page-title">
             <h1>Study Progress Analytics</h1>
             <p>Track your vocabulary learning journey and progress statistics</p>
         </div>
 
-        <!-- Study Progress Analytics Main Section -->
+
         <div class="analytics-main">
             <h2>Study Progress Analytics</h2>
-            
-            <!-- Time Filter Tabs -->
+
+
+            <!-- Tabs -->
             <div class="time-filter">
-                <button class="time-tab active">Daily</button>
-                <button class="time-tab">Weekly</button>
-                <button class="time-tab">Monthly</button>
+                <button class="time-tab active" data-period="weekly">Weekly</button>
+                <button class="time-tab" data-period="daily">Daily</button>
+                <button class="time-tab" data-period="monthly">Monthly</button>
             </div>
-            
-            <!-- Weekly Overview Section -->
+
+
+            <!-- Overview -->
             <div class="weekly-overview">
-                <h3>Weekly Overview</h3>
-                
+                <h3 id="overview-title">Weekly Overview</h3>
                 <div class="weekly-stats">
-                    <strong>Current Week:</strong> 100 words + 6.3 hours + 8 Pokémon evolved
+                    <strong id="overview-stats">
+                        Current Week: {{ weekly_total }} words + {{ evolutions }} Pokémon evolved
+                    </strong>
                 </div>
-                
-                <!-- Bar Chart Section -->
+
+
+                <!-- Chart -->
                 <div class="bar-chart-container">
-                    <div class="chart-title">Weekly Words Learned</div>
-                    
-                    <div class="chart-grid">
-                        <!-- Y-axis labels -->
-                        <div class="chart-y-axis">
-                            <span>150</span>
-                            <span>120</span>
-                            <span>90</span>
-                            <span>60</span>
-                            <span>30</span>
-                            <span>0</span>
-                        </div>
-                        
-                        <!-- Bar columns - NOW GROWING FROM BOTTOM -->
-                        <div class="bar-column">
-                            <div class="bar" style="height: 56.7%;" data-value="85">
-                                <div class="bar-value">85</div>
+                    <div class="chart-title" id="chart-title">Weekly Words Learned</div>
+                    <div class="chart-grid" id="chart-grid">
+                        {% for date, count in weekly_data.items() %}
+                            <div class="bar-column">
+                                <div class="bar" style="height: '{{ (count / (weekly_total if weekly_total else 1)) * 90 }}%;'" data-value="{{ count }}">
+                                    <div class="bar-value">{{ count }}</div>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 61.3%;" data-value="92">
-                                <div class="bar-value">92</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 52%;" data-value="78">
-                                <div class="bar-value">78</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 70%;" data-value="105">
-                                <div class="bar-value">105</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 80%;" data-value="120">
-                                <div class="bar-value">120</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 90%;" data-value="135">
-                                <div class="bar-value">135</div>
-                            </div>
-                        </div>
-                        
-                        <div class="bar-column">
-                            <div class="bar" style="height: 63.3%;" data-value="95">
-                                <div class="bar-value">95</div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
-                    
-                    <!-- SINGLE SET OF DAY LABELS - Removed duplicates -->
-                    <div class="day-labels">
-                        <div class="day-label">Mon 1</div>
-                        <div class="day-label">Tue 2</div>
-                        <div class="day-label">Wed 3</div>
-                        <div class="day-label">Thu 4</div>
-                        <div class="day-label">Fri 5</div>
-                        <div class="day-label">Sat 6</div>
-                        <div class="day-label">Sun 7</div>
+                    <div class="day-labels" id="day-labels">
+                        {% for date, count in weekly_data.items() %}
+                            <div class="day-label">{{ date }}</div>
+                        {% endfor %}
                     </div>
                 </div>
-                
-                <!-- REMOVED: Weekly Total, Weekly Average, Best Day, and Evolutions statistics -->
-                
             </div>
         </div>
     </div>
 
-    <!-- FOOTER -->
+
     <footer class="footer">
         <p>© 2025 VocabuLearner - Study Progress Analytics</p>
     </footer>
 
+
     <script>
-        // Tab switching functionality
         document.addEventListener('DOMContentLoaded', function() {
             const tabs = document.querySelectorAll('.time-tab');
-            
+
+
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
-                    // Remove active class from all tabs
                     tabs.forEach(t => t.classList.remove('active'));
-                    
-                    // Add active class to clicked tab
                     this.classList.add('active');
-                    
-                    // Update chart based on selected period
-                    updateChart(this.textContent.toLowerCase());
+                    updateChart(this.dataset.period); // ✅ use data-period
                 });
             });
-            
-            // Animate bars on load - FIXED ANIMATION TO GROW FROM BOTTOM
-            setTimeout(() => {
-                const bars = document.querySelectorAll('.bar');
-                bars.forEach((bar, index) => {
-                    const originalHeight = bar.style.height;
-                    bar.style.height = '0%';
-                    setTimeout(() => {
-                        bar.style.transition = 'height 0.8s ease';
-                        bar.style.height = originalHeight;
-                    }, index * 150);
-                });
-            }, 300);
-            
-            // Add hover effects to bars
-            const bars = document.querySelectorAll('.bar');
-            bars.forEach(bar => {
-                bar.addEventListener('mouseenter', function() {
-                    const value = this.getAttribute('data-value');
-                    showTooltip(this, value);
-                });
-                
-                bar.addEventListener('mouseleave', function() {
-                    hideTooltip();
-                });
-            });
-            
-            // Function to update chart based on period
+
+
             function updateChart(period) {
-                const chartTitle = document.querySelector('.chart-title');
-                const weeklyStats = document.querySelector('.weekly-stats strong');
-                const dayLabels = document.querySelectorAll('.day-label');
-                
+                const chartGrid = document.getElementById('chart-grid');
+                const dayLabels = document.getElementById('day-labels');
+                chartGrid.innerHTML = '';
+                dayLabels.innerHTML = '';
+
+
+                let data = {};
                 if (period === 'daily') {
-                    chartTitle.textContent = 'Daily Words Learned';
-                    weeklyStats.textContent = 'Current Day: 135 words + 1.8 hours + 2 Pokémon evolved';
-                    
-                    // Update day labels for daily view
-                    const dailyLabels = ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'];
-                    dayLabels.forEach((label, index) => {
-                        label.textContent = dailyLabels[index] || '';
-                    });
-                    
-                    // Update bar data for daily view
-                    updateBarData([45, 65, 85, 72, 90, 135, 68]);
+                    data = '{{ daily_data|tojson }}';
+                    document.getElementById('chart-title').textContent = 'Daily Words Learned';
+                    document.getElementById('overview-title').textContent = 'Daily Overview';
+                    document.getElementById('overview-stats').textContent = 'Current Day: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
                 } else if (period === 'weekly') {
-                    chartTitle.textContent = 'Weekly Words Learned';
-                    weeklyStats.textContent = 'Current Week: 100 words + 6.3 hours + 8 Pokémon evolved';
-                    
-                    // Update day labels for weekly view
-                    const weeklyLabels = ['Mon 1', 'Tue 2', 'Wed 3', 'Thu 4', 'Fri 5', 'Sat 6', 'Sun 7'];
-                    dayLabels.forEach((label, index) => {
-                        label.textContent = weeklyLabels[index] || '';
-                    });
-                    
-                    // Update bar data for weekly view
-                    updateBarData([85, 92, 78, 105, 120, 135, 95]);
+                    data = '{{ weekly_data|tojson }}';
+                    document.getElementById('chart-title').textContent = 'Weekly Words Learned';
+                    document.getElementById('overview-title').textContent = 'Weekly Overview';
+                    document.getElementById('overview-stats').textContent = 'Current Week: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
                 } else if (period === 'monthly') {
-                    chartTitle.textContent = 'Monthly Words Learned';
-                    weeklyStats.textContent = 'Current Month: 1200 words + 45 hours + 15 Pokémon evolved';
-                    
-                    // Update labels for monthly view
-                    const monthlyLabels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', '', '', ''];
-                    dayLabels.forEach((label, index) => {
-                        label.textContent = monthlyLabels[index] || '';
-                    });
-                    
-                    // Update bar data for monthly view (4 weeks)
-                    updateBarData([650, 720, 802, 920, 0, 0, 0]);
+                    data = '{{ monthly_data|tojson }}';
+                    document.getElementById('chart-title').textContent = 'Monthly Words Learned';
+                    document.getElementById('overview-title').textContent = 'Monthly Overview';
+                    document.getElementById('overview-stats').textContent = 'Current Month: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
                 }
-                
-                // Animate the update
-                const bars = document.querySelectorAll('.bar');
-                bars.forEach((bar, index) => {
-                    bar.style.transition = 'height 0.5s ease';
-                    setTimeout(() => {
-                        bar.style.height = bar.style.height;
-                    }, index * 100);
+
+
+                const maxValue = Math.max(...Object.values(data), 1);
+                Object.entries(data).forEach(([label, value]) => {
+                    const barCol = document.createElement('div');
+                    barCol.className = 'bar-column';
+                    barCol.innerHTML = `
+                        <div class="bar" style="height:${(value/maxValue)*90}%;" data-value="${value}">
+                            <div class="bar-value">${value}</div>
+                        </div>`;
+                    chartGrid.appendChild(barCol);
+
+
+                    const dayLabel = document.createElement('div');
+                    dayLabel.className = 'day-label';
+                    dayLabel.textContent = label;
+                    dayLabels.appendChild(dayLabel);
                 });
-            }
-            
-            function updateBarData(values) {
-                const maxValue = Math.max(...values);
-                
-                // Get all bars
-                const bars = document.querySelectorAll('.bar');
-                const barValues = document.querySelectorAll('.bar-value');
-                
-                // Update each bar
-                values.forEach((value, index) => {
-                    if (bars[index]) {
-                        const heightPercentage = value > 0 ? (value / maxValue) * 90 : 0;
-                        bars[index].style.height = `${heightPercentage}%`;
-                        bars[index].setAttribute('data-value', value);
-                        
-                        if (barValues[index]) {
-                            barValues[index].textContent = value > 0 ? value : '';
-                        }
-                    }
-                });
-                
-                // Re-attach event listeners
-                setTimeout(() => {
-                    const newBars = document.querySelectorAll('.bar');
-                    newBars.forEach(bar => {
-                        bar.addEventListener('mouseenter', function() {
-                            const value = this.getAttribute('data-value');
-                            showTooltip(this, value);
-                        });
-                        
-                        bar.addEventListener('mouseleave', function() {
-                            hideTooltip();
-                        });
-                    });
-                }, 100);
-            }
-            
-            function showTooltip(element, value) {
-                // Remove existing tooltip
-                hideTooltip();
-                
-                // Create new tooltip
-                const tooltip = document.createElement('div');
-                tooltip.className = 'bar-tooltip';
-                tooltip.textContent = `${value} words`;
-                tooltip.style.cssText = `
-                    position: absolute;
-                    background: rgba(0,0,0,0.9);
-                    color: #ffd700;
-                    padding: 8px 12px;
-                    border: 2px solid #000;
-                    border-radius: 5px;
-                    font-size: 12px;
-                    z-index: 1000;
-                    pointer-events: none;
-                    box-shadow: 4px 4px 0 #000;
-                `;
-                
-                const rect = element.getBoundingClientRect();
-                tooltip.style.left = `${rect.left + window.scrollX + rect.width/2 - 30}px`;
-                tooltip.style.top = `${rect.top + window.scrollY - 40}px`;
-                
-                document.body.appendChild(tooltip);
-            }
-            
-            function hideTooltip() {
-                const existingTooltip = document.querySelector('.bar-tooltip');
-                if (existingTooltip) {
-                    existingTooltip.remove();
-                }
             }
         });
     </script>
-{%endblock%}
+{% endblock %}
+

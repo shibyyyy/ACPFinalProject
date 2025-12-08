@@ -1,6 +1,5 @@
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-
 db = SQLAlchemy()
 
 # ---------------- POKEMON TABLE ----------------
@@ -10,6 +9,7 @@ class Pokemon(db.Model):
     url = db.Column(db.String(200))
     min_points_required = db.Column(db.Integer, default=0)
     rarity = db.Column(db.String(20), default="common")
+    family_id = db.Column(db.Integer, nullable=False)
 
 # ---------------- ACHIEVEMENTS TABLE ----------------
 class Achievement(db.Model):
@@ -57,3 +57,10 @@ class UserAchievement(db.Model):
     achievement_id = db.Column(db.Integer, db.ForeignKey('achievement.achievement_id'), nullable=False)
     current_progress = db.Column(db.Integer, default=0)
     date_earned = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    
+ # ---------------- WORD HISTORY TABLE ----------------   
+class WordHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    word_id = db.Column(db.Integer, db.ForeignKey('vocabulary.word_id'), nullable=False)
+    date_shown = db.Column(db.Date, nullable=False)

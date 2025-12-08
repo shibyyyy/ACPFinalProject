@@ -1,29 +1,32 @@
-{%extends 'base.html'%}
+{% extends 'base.html' %}
 
-{%block title%}<title>VocabuLearner</title>{% endblock%}
 
-{%block content%}
-    {%block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+{% block title %}<title>VocabuLearner</title>{% endblock %}
+
+
+{% block content %}
+    {% block logo_link %}
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
-    {%block header%}
+    {% block header %}
     <div class="header-actions">
         <button class="logout-btn" onclick="window.location.href='/'">Logout</button>
     </div>
-    {%endblock%}
-   <div class="right-buttons">
+    {% endblock %}
+
+
+    <div class="right-buttons">
         <!-- Profile Button -->
         <div class="profile-btn" onclick="window.location.href='/profile'">
             <div class="profile-icon">👤</div>
         </div>
-        
         <!-- Notification Button -->
         <div class="notification-btn" onclick="toggleNotifications()">
             <div class="notification-bell-icon">🔔</div>
@@ -31,29 +34,31 @@
         </div>
     </div>
 
+
     <!-- Notification Container -->
     <div class="notification-container">
         <div class="notification-dropdown" id="notificationDropdown">
             <div class="notification-header">
                 <h3>NOTIFICATIONS</h3>
             </div>
-            <div class="notification-list" id="notificationList">
-                <!-- Notifications will be dynamically added here -->
-            </div>
+            <div class="notification-list" id="notificationList"></div>
             <div class="notification-footer">
                 <button class="btn-clear-all" onclick="clearAllNotifications()">Clear All</button>
             </div>
         </div>
     </div>
 
+
+    <!-- Hidden element to store Pokémon data -->
+    <div id="pokemonDataStorage" data-pokemons='{{ pokemons|tojson|safe }}' style="display: none;"></div>
+
+
     <div class="dashboard-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
             <h1>Hello, Trainer!</h1>
-            <div class="welcome-stats">
-        
-            </div>
         </div>
+
 
         <!-- Word of the Day Section -->
         <div class="word-of-day-section">
@@ -61,7 +66,6 @@
                 <h2 class="word-of-day-title">📚 WORD OF THE DAY</h2>
                 <div class="word-date" id="currentDate"></div>
             </div>
-            
             <table class="word-table">
                 <thead>
                     <tr>
@@ -74,283 +78,137 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>
-                            <span class="word-main" id="wordOfDay">Ephemeral</span>
-                        </td>
-                        <td>
-                            <span class="word-pronunciation" id="wordPronunciation">/ɪˈfɛmərəl/</span>
-                        </td>
-                        <td>
-                            <span class="word-type" id="wordType">Adjective</span>
-                        </td>
+                        <td><span class="word-main" id="wordOfDay">Ephemeral</span></td>
+                        <td><span class="word-pronunciation" id="wordPronunciation">/ɪˈfɛmərəl/</span></td>
+                        <td><span class="word-type" id="wordType">Adjective</span></td>
                         <td id="wordMeaning">Lasting for a very short time; transient.</td>
-                        <td>
-                            <div class="word-example" id="wordExample">
-                                "The beauty of cherry blossoms is ephemeral, lasting only a few days each spring."
-                            </div>
-                        </td>
+                        <td><div class="word-example" id="wordExample">"The beauty of cherry blossoms is ephemeral, lasting only a few days each spring."</div></td>
                     </tr>
                 </tbody>
             </table>
-            
             <div class="word-actions">
                 <button class="btn-save-word" onclick="saveWordOfTheDay()">➕ Save to Collection</button>
             </div>
         </div>
 
-        <!-- Single Line Navigation -->
+
+        <!-- Navigation -->
         <div class="nav-row">
-            <div class="nav-item" onclick="window.location.href='/review'">
-                <div class="icon">📖</div>
-                <h3>Review Now</h3>
-            </div>
-
-            <div class="nav-item" onclick="window.location.href='/wordbank'">
-                <div class="icon">📝</div>
-                <h3>My Words</h3>
-            </div>
-
-            <div class="nav-item" onclick="window.location.href='/addword'">
-                <div class="icon">➕</div>
-                <h3>ADD NEW WORD</h3>
-            </div>
+            <div class="nav-item" onclick="window.location.href='/review'"><div class="icon">📖</div><h3>Review Now</h3></div>
+            <div class="nav-item" onclick="window.location.href='/wordbank'"><div class="icon">📝</div><h3>My Words</h3></div>
+            <div class="nav-item" onclick="window.location.href='/add_word'"><div class="icon">➕</div><h3>ADD NEW WORD</h3></div>
         </div>
+
 
         <!-- Progress Section -->
         <div class="progress-section">
             <div class="progress-card">
                 <h2>Your Progress</h2>
                 <div class="progress-stat">
-                    <span class="label">Result Assured</span>
-                    <span class="value">47</span>
+                    <span class="label">Words Learned This Week</span>
+                    <span class="value">{{ weekly_total }}</span>
                 </div>
                 <div class="progress-stat">
-                    <span class="label">Current Status</span>
-                    <span class="value">3 Days</span>
+                    <span class="label">Current Streak</span>
+                    <span class="value">{{ streak }} Days</span>
+                </div>
+                <div class="progress-stat">
+                    <span class="label">Pokémon Evolutions</span>
+                    <span class="value">{{ evolutions }}</span>
                 </div>
                 <div class="progress-stat">
                     <span class="label">Accuracy Rate</span>
-                    <span class="value">95%</span>
+                    <span class="value">{{ accuracy }}%</span>
                 </div>
                 <button class="btn-secondary" onclick="window.location.href='/progress'">VIEW DETAILED PROGRESS</button>
             </div>
 
+
             <div class="progress-card">
                 <h2>All Time Ranking</h2>
                 <div class="progress-stat">
-                    <span class="label">Your Rank</span>
-                    <span class="value">#15</span>
-                </div>
-                <div class="progress-stat">
-                    <span class="label">Total Players</span>
-                    <span class="value">100 Players</span>
-                </div>
-                <div class="progress-stat">
-                    <span class="label">Points</span>
-                    <span class="value">1,250</span>
+                    <span class="label">Total Points</span>
+                    <span class="value">{{ total_points }}</span>
                 </div>
                 <button class="btn-secondary" onclick="window.location.href='/leaderboard'">VIEW LEADERBOARD</button>
             </div>
         </div>
     </div>
 
-    <!-- Welcome Modal -->
+
+    <!-- Starter Modal -->
+    {% if showStarterModal %}
     <div class="modal active" id="welcomeModal">
         <div class="modal-content">
             <h2>Welcome to VocabuLearner!</h2>
             <p>Start your vocabulary journey today! Explore the dashboard to add words, review your collection, and track your progress.</p>
             <p>First, choose your Pokémon partner to accompany you on your learning adventure!</p>
-            <button class="btn-close" onclick="openPokemonModal()">Choose Your Partner</button>
+            <button class="btn-confirm" onclick="openPokemonModal()">Choose Your Pokémon Partner!</button>
         </div>
     </div>
 
-    <!-- Pokemon Selection Modal -->
+
     <div class="pokemon-modal" id="pokemonModal">
         <div class="pokemon-modal-content">
             <h2>Choose Your Learning Partner!</h2>
-            <p>Every great trainer needs a loyal companion! Select your Pokémon partner who will accompany you on your vocabulary journey.</p>
-            
-            <div class="pokemon-grid" id="pokemonGrid">
-                <!-- Pokemon cards will be generated here -->
-            </div>
-            
-            <div style="margin-top: 30px;">
-                <button class="btn-confirm" onclick="confirmPartner()">Start Learning with <span id="selectedPartnerName">Pikachu</span>!</button>
-                <button class="btn-close" onclick="closePokemonModal()">Close</button>
-            </div>
+            <p>Select your Pokémon partner who will accompany you on your vocabulary journey.</p>
+            <div class="pokemon-grid" id="pokemonGrid"></div>
+            <form action="{{ url_for('choose_partner') }}" method="POST" style="margin-top: 30px;">
+                <input type="hidden" name="pokemon_id" id="selectedPokemonId">
+                <button type="submit" class="btn-confirm">
+                    Start Learning with <span id="selectedPartnerName">Pikachu</span>!
+                </button>
+            </form>
         </div>
     </div>
+    {% endif %}
+
 
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+
     <script>
-        // Pokemon data
-        const pokemonData = [
-            { id: 1, name: "Bulbasaur", type: "Grass/Poison", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" },
-            { id: 4, name: "Charmander", type: "Fire", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" },
-            { id: 7, name: "Squirtle", type: "Water", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" },
-            { id: 25, name: "Pikachu", type: "Electric", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
-            { id: 133, name: "Eevee", type: "Normal", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" },
-            { id: 143, name: "Snorlax", type: "Normal", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" },
-            { id: 151, name: "Mew", type: "Psychic", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png" },
-            { id: 39, name: "Jigglypuff", type: "Normal/Fairy", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png" }
-        ];
+        document.addEventListener("DOMContentLoaded", function() {
+            const pokemonData = JSON.parse(document.getElementById("pokemonDataStorage").dataset.pokemons);
+            const grid = document.getElementById("pokemonGrid");
+            const selectedIdInput = document.getElementById("selectedPokemonId");
+            const selectedNameSpan = document.getElementById("selectedPartnerName");
 
-        // Word of the Day database
-        const wordsOfDay = [
-            {
-                word: "Ephemeral",
-                pronunciation: "/ɪˈfɛmərəl/",
-                type: "Adjective",
-                meaning: "Lasting for a very short time; transient.",
-                example: "The beauty of cherry blossoms is ephemeral, lasting only a few days each spring."
-            },
-            {
-                word: "Ubiquitous",
-                pronunciation: "/juːˈbɪkwɪtəs/",
-                type: "Adjective",
-                meaning: "Present, appearing, or found everywhere.",
-                example: "Smartphones have become ubiquitous in modern society."
-            },
-            {
-                word: "Eloquent",
-                pronunciation: "/ˈɛləkwənt/",
-                type: "Adjective",
-                meaning: "Fluent or persuasive in speaking or writing.",
-                example: "Her eloquent speech moved the entire audience to tears."
-            },
-            {
-                word: "Mellifluous",
-                pronunciation: "/mɛˈlɪflʊəs/",
-                type: "Adjective",
-                meaning: "Sweet or musical; pleasant to hear.",
-                example: "The singer's mellifluous voice captivated everyone in the concert hall."
-            },
-            {
-                word: "Serendipity",
-                pronunciation: "/ˌsɛrənˈdɪpɪti/",
-                type: "Noun",
-                meaning: "The occurrence of events by chance in a happy or beneficial way.",
-                example: "Finding that rare book in the small bookstore was pure serendipity."
-            },
-            {
-                word: "Resilient",
-                pronunciation: "/rɪˈzɪlɪənt/",
-                type: "Adjective",
-                meaning: "Able to withstand or recover quickly from difficult conditions.",
-                example: "Despite facing many challenges, she remained resilient and optimistic."
-            },
-            {
-                word: "Quintessential",
-                pronunciation: "/ˌkwɪntɪˈsɛnʃl/",
-                type: "Adjective",
-                meaning: "Representing the most perfect example of a quality or class.",
-                example: "The little black dress is considered the quintessential fashion item."
-            },
-            {
-                word: "Luminous",
-                pronunciation: "/ˈluːmɪnəs/",
-                type: "Adjective",
-                meaning: "Full of or shedding light; bright or shining.",
-                example: "The moon cast a luminous glow over the tranquil lake."
-            }
-        ];
+            // Filter only starter Pokémon and limit to 6 (3x2)
+            const starters = pokemonData.filter(p => p.rarity === "starter").slice(0, 6);
 
-        // Notification data - using let instead of const so we can modify it
-        let notifications = [
-            {
-                id: 1,
-                title: "Daily Streak Reminder",
-                message: "You're on a 3-day streak! Keep going to unlock special rewards.",
-                time: "2 hours ago",
-                unread: true
-            },
-            {
-                id: 2,
-                title: "New Word Added",
-                message: "The word 'Ephemeral' has been added to your collection.",
-                time: "5 hours ago",
-                unread: true
-            },
-            {
-                id: 3,
-                title: "Weekly Progress",
-                message: "You've mastered 5 new words this week! Great job!",
-                time: "1 day ago",
-                unread: true
-            },
-            {
-                id: 4,
-                title: "Rank Update",
-                message: "You've moved up 3 spots on the leaderboard!",
-                time: "2 days ago",
-                unread: false
-            },
-            {
-                id: 5,
-                title: "Friend Challenge",
-                message: "Ash has challenged you to a vocabulary duel!",
-                time: "3 days ago",
-                unread: false
-            }
-        ];
+            starters.forEach(p => {
+                const card = document.createElement("div");
+                card.className = "pokemon-card";
+                card.innerHTML = `
+                    <img src="${p.img}" alt="${p.name}" class="pokemon-sprite">
+                    <p>${p.name}</p>
+                `;
+                card.addEventListener("click", () => {
+                    document.querySelectorAll(".pokemon-card").forEach(c => c.classList.remove("selected"));
+                    card.classList.add("selected");
 
-        let selectedPokemon = localStorage.getItem('selectedPokemon') || "Pikachu";
-        let selectedPokemonName = selectedPokemon;
-        let currentWordIndex = 0;
+                    selectedIdInput.value = p.id;
+                    selectedNameSpan.textContent = p.name;
+                });
+                grid.appendChild(card);
+            });
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set current date
-            setCurrentDate();
-            
-            // Set word of the day
-            setWordOfTheDay();
-            
-            // Render Pokemon selection grid
-            renderPokemonGrid();
-            
-            // Load notifications
+            // Load notifications on page init
             loadNotifications();
         });
 
-        function setCurrentDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateString = now.toLocaleDateString('en-US', options);
-            document.getElementById('currentDate').textContent = dateString;
+        function openPokemonModal() {
+            document.getElementById('welcomeModal').classList.remove('active');
+            document.getElementById('pokemonModal').classList.add('active');
+        }
+        function closePokemonModal() {
+            document.getElementById('pokemonModal').classList.remove('active');
         }
 
-        function setWordOfTheDay() {
-            // Get today's date to determine which word to show
-            const today = new Date();
-            const dayOfMonth = today.getDate();
-            
-            // Use day of month to select word (cycles through the list)
-            currentWordIndex = (dayOfMonth - 1) % wordsOfDay.length;
-            const wordData = wordsOfDay[currentWordIndex];
-            
-            document.getElementById('wordOfDay').textContent = wordData.word;
-            document.getElementById('wordPronunciation').textContent = wordData.pronunciation;
-            document.getElementById('wordType').textContent = wordData.type;
-            document.getElementById('wordMeaning').textContent = wordData.meaning;
-            document.getElementById('wordExample').textContent = `"${wordData.example}"`;
-        }
-
-        function saveWordOfTheDay() {
-            const word = document.getElementById('wordOfDay').textContent;
-            alert(`✅ "${word}" has been added to your word collection!`);
-            // In a real app, you would save this to a database or localStorage
-        }
-
-        function goToProfile() {
-            alert("Redirecting to profile page...");
-            // In a real app, this would redirect to the profile page
-            // window.location.href = 'profile.html';
-        }
-
+        // --- Notification Methods ---
         function loadNotifications() {
             const notificationList = document.getElementById('notificationList');
             notificationList.innerHTML = '';
@@ -366,7 +224,7 @@
             
             notifications.forEach(notification => {
                 const item = document.createElement('div');
-                item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
+                item.className = "notification-item ${notification.unread ? 'unread' : ''}";
                 item.onclick = () => markAsRead(notification.id);
                 
                 item.innerHTML = `
@@ -411,116 +269,14 @@
             }
             
             if (confirm('Are you sure you want to clear all notifications?')) {
-                // Clear all notifications
                 notifications = [];
                 loadNotifications();
                 toggleNotifications();
                 alert("All notifications have been cleared!");
             }
         }
-
-        function renderPokemonGrid() {
-            const grid = document.getElementById('pokemonGrid');
-            grid.innerHTML = '';
-            
-            pokemonData.forEach(pokemon => {
-                const isSelected = pokemon.name === selectedPokemonName;
-                const card = document.createElement('div');
-                card.className = `pokemon-card ${isSelected ? 'selected' : ''}`;
-                card.onclick = () => selectPokemon(pokemon.name);
-                
-                // Format type to be all uppercase
-                const typeFormatted = pokemon.type.toUpperCase();
-                
-                card.innerHTML = `
-                    <img src="${pokemon.img}" alt="${pokemon.name}" class="pokemon-img">
-                    <div class="pokemon-name">${pokemon.name}</div>
-                    <div class="pokemon-type">${typeFormatted}</div>
-                `;
-                
-                grid.appendChild(card);
-            });
-            
-            // Update selected partner name in button
-            document.getElementById('selectedPartnerName').textContent = selectedPokemonName;
-        }
-
-        function selectPokemon(name) {
-            selectedPokemonName = name;
-            
-            // Update grid selection
-            renderPokemonGrid();
-        }
-
-        function confirmPartner() {
-            selectedPokemon = selectedPokemonName;
-            localStorage.setItem('selectedPokemon', selectedPokemon);
-            
-            // Close both modals
-            closeModal();
-            closePokemonModal();
-            
-            // Show success message
-            alert(`🎉 ${selectedPokemon} is now your learning partner! Get ready for your vocabulary adventure!`);
-        }
-
-        function openPokemonModal() {
-            closeModal();
-            document.getElementById('pokemonModal').classList.add('active');
-        }
-
-        function closePokemonModal() {
-            document.getElementById('pokemonModal').classList.remove('active');
-        }
-
-        function closeModal() {
-            document.getElementById('welcomeModal').classList.remove('active');
-        }
-
-        function showTutorial(type) {
-            const messages = {
-                review: 'Review Now: Start your practice session and reinforce your vocabulary!',
-                words: 'My Words: Add and manage your vocabulary collection here.',
-                add: 'Add New Word: Expand your vocabulary collection!',
-                detailed: 'Detailed Progress: View comprehensive learning statistics.',
-                leaderboard: 'Leaderboard: See how you rank against other trainers!'
-            };
-            alert(messages[type] || 'Feature coming soon!');
-        }
-
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                alert('Logging out...');
-                // In a real app, this would redirect to the login page
-                // window.location.href = 'login.html';
-            }
-        }
-
-        // Close notification dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('notificationDropdown');
-            const bell = document.querySelector('.notification-btn');
-            
-            if (dropdown.classList.contains('active') && 
-                !dropdown.contains(e.target) && 
-                !bell.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
-        });
-
-        // Keyboard support
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                const dropdown = document.getElementById('notificationDropdown');
-                if (dropdown.classList.contains('active')) {
-                    dropdown.classList.remove('active');
-                }
-                
-                if (document.getElementById('pokemonModal').classList.contains('active')) {
-                    closePokemonModal();
-                }
-            }
-        });
     </script>
+{% endblock %}
 
-{%endblock%}
+
+

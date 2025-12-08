@@ -1,177 +1,228 @@
-{%extends 'base.html'%}
+{% extends 'base.html' %}
 
-{%block title%}<title>VocabuLearner - Add Words</title>{% endblock%}
 
-{%block content%}
-    {%block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+{% block title %}<title>VocabuLearner - Add Words</title>{% endblock %}
+
+
+{% block content %}
+    {% block logo_link %}
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
-    {%block header%}{%endblock%}
-    {{form.hidden_tag()}}
+    {% block header %}{% endblock %}
+    {{ form.hidden_tag() }}
+
+
     <!-- WORD ENTRY FORM -->
     <div class="container" id="wordEntry">
         <h1>Add Your Words</h1>
-        
+       
         <!-- Pokémon Evolution Area -->
         <div class="pokemon-evolution">
             <h3>Your Vocabulary Partner</h3>
             <div class="pokemon-container">
                 <div class="pokemon" id="currentPokemon">
-                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" class="pokemon-sprite" alt="Pichu">
-                    <div class="pokemon-name">Pichu</div>
+                    {% if current_pokemon %}
+                        <img src="{{ current_pokemon.url }}" class="pokemon-sprite" alt="{{ current_pokemon.name }}">
+                        <div class="pokemon-name">
+                            {{ user.pokemon_name or current_pokemon.name }}
+                        </div>
+                    {% else %}
+                        <p>No starter Pokémon selected yet.</p>
+                    {% endif %}
                 </div>
-            </div>
-            <div class="evolution-progress">
-                <div class="evolution-dot" data-stage="0"></div>
-                <div class="evolution-dot" data-stage="1"></div>
-                <div class="evolution-dot" data-stage="2"></div>
             </div>
             <p>Add words to help your Pokémon evolve!</p>
         </div>
-        
-        <form class="word-form" id="wordForm">
-            <input type="text" placeholder="Word" id="wordInput" required />
-            <input type="text" placeholder="Meaning" id="meaningInput" required />
-            <textarea placeholder="Example Sentence" id="exampleInput" required></textarea>
-            
-            <button type="submit" class="btn-primary" id="addWordBtn">Add Word</button>
-        </form>
-    </div>
+
+
+       
+        <!-- Connect inputs to Flask-WTF AddWordForm -->
+        <form class="word-form" id="wordForm" method="POST" action="{{ url_for('add_word') }}">
+    {{ form.hidden_tag() }}
+   
+    <input type="text" placeholder="Word" id="wordInput" name="word" required />
+   
+    <textarea placeholder="Definition" id="meaningInput" name="definition" rows="3" required></textarea>
+   
+    <textarea placeholder="Example Sentence" id="exampleInput" name="sentence" rows="3" required></textarea>
+   
+    <!-- Part of Speech / Category -->
+    <select id="categoryInput" name="category" class="word-input" required>
+        <option value="">Select Category</option>
+        <option value="noun">Noun</option>
+        <option value="verb">Verb</option>
+        <option value="adjective">Adjective</option>
+        <option value="adverb">Adverb</option>
+    </select>
+   
+    <button type="submit" class="btn-primary" id="addWordBtn">Add Word</button>
+</form>
+</div>
+
+
+
 
     <!-- FOOTER -->
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+
     <script>
-        // DOM Elements
-        const wordForm = document.getElementById('wordForm');
-        const addWordBtn = document.getElementById('addWordBtn');
-        const currentPokemon = document.getElementById('currentPokemon');
-        const evolutionDots = document.querySelectorAll('.evolution-dot');
+    // DOM Elements
+    const wordForm = document.getElementById('wordForm');
+    const currentPokemon = document.getElementById('currentPokemon');
+    const evolutionDots = document.querySelectorAll('.evolution-dot');
 
-        // State variables
-        let currentWordCount = 0;
-        const totalWordsNeeded = 5;
-        let userWords = [];
-        let pokemonStage = 0; // 0: Pichu, 1: Pikachu, 2: Raichu
-        let totalWordsAdded = 0;
-        
-        // Pokémon evolution data
-        const pokemonEvolutions = [
-            {
-                name: "Pichu",
-                sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png"
-            },
-            {
-                name: "Pikachu",
-                sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
-            },
-            {
-                name: "Raichu",
-                sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png"
-            }
-        ];
 
-        // Initialize
-        updatePokemon();
+    // State variables
+    let currentWordCount = 0;
+    const totalWordsNeeded = 5;
+    let userWords = [];
+    let pokemonStage = 0; // 0: Pichu, 1: Pikachu, 2: Raichu
+    let totalWordsAdded = 0;
 
-        // Event Listeners
-        wordForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Get form values
-            const word = document.getElementById('wordInput').value;
-            const meaning = document.getElementById('meaningInput').value;
-            const example = document.getElementById('exampleInput').value;
-            
-            // Validate inputs
-            if (!word.trim() || !meaning.trim() || !example.trim()) {
-                alert("Please fill in all fields!");
-                return;
-            }
-            
-            // Add to user's words
-            userWords.push({ word, meaning, example });
-            totalWordsAdded++;
-            
-            // Clear form
-            wordForm.reset();
-            
-            // Update progress
-            currentWordCount++;
-            
-            // Evolve Pokémon based on word count
-            if (totalWordsAdded >= 10) {
-                evolvePokemon(2);
-            } else if (totalWordsAdded >= 5) {
-                evolvePokemon(1);
-            }
-            
-            // Check if we've added all words
-            if (currentWordCount >= totalWordsNeeded) {
-                // Show success message
-                setTimeout(() => {
-                    alert("🎉 Great! You've added all 5 words!");
-                    // You can redirect to practice or dashboard here
-                    // window.location.href = "practice.html";
-                }, 300);
-            }
-            
-            // Focus on word input for next entry
-            document.getElementById('wordInput').focus();
-        });
-        
-        function evolvePokemon(newStage) {
-            if (newStage > pokemonStage) {
-                pokemonStage = newStage;
-                
-                // Add evolution animation
-                currentPokemon.classList.add('evolving');
-                
-                // Update Pokémon after animation
-                setTimeout(() => {
-                    updatePokemon();
-                    currentPokemon.classList.remove('evolving');
-                    
-                    // Show evolution message
-                    if (newStage === 1) {
-                        alert("✨ Your Pokémon is evolving! Pichu evolved into Pikachu!");
-                    } else if (newStage === 2) {
-                        alert("✨ Amazing! Your Pokémon has evolved into Raichu!");
-                    }
-                }, 1000);
-            }
+
+    // Pokémon evolution data
+    const pokemonEvolutions = [
+        { name: "Pichu", sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" },
+        { name: "Pikachu", sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
+        { name: "Raichu", sprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png" }
+    ];
+
+
+    // Initialize
+    updatePokemon();
+
+
+    // Fetch meaning from DictionaryAPI
+    async function fetchWordData(word) {
+    try {
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+        if (!response.ok) throw new Error("Word not found");
+        const data = await response.json();
+
+
+        const entry = data[0];
+        const meaningBlock = entry.meanings?.[0];
+        const definitionBlock = meaningBlock?.definitions?.[0];
+
+
+        const definition = definitionBlock?.definition || "No definition found";
+        let partOfSpeech = meaningBlock?.partOfSpeech || "";
+
+
+        // Normalize to lowercase so it matches <select> options
+        partOfSpeech = partOfSpeech.toLowerCase();
+
+
+        // Auto‑fill only definition + category
+        document.getElementById("meaningInput").value = definition;
+
+
+        const categorySelect = document.getElementById("categoryInput");
+        if ([...categorySelect.options].some(opt => opt.value === partOfSpeech)) {
+            categorySelect.value = partOfSpeech;
+        } else {
+            categorySelect.value = "";
         }
-        
-        function updatePokemon() {
-            const pokemonData = pokemonEvolutions[pokemonStage];
-            
-            const pokemonImg = currentPokemon.querySelector('.pokemon-sprite');
-            const pokemonName = currentPokemon.querySelector('.pokemon-name');
-            
-            if (pokemonImg) pokemonImg.src = pokemonData.sprite;
-            if (pokemonName) pokemonName.textContent = pokemonData.name;
-            
-            // Update evolution progress dots
-            evolutionDots.forEach(dot => {
-                const stage = parseInt(dot.getAttribute('data-stage'));
-                dot.classList.remove('active', 'completed');
-                
-                if (stage === pokemonStage) {
-                    dot.classList.add('active');
-                } else if (stage < pokemonStage) {
-                    dot.classList.add('completed');
+    } catch (error) {
+        console.error(error);
+        document.getElementById("meaningInput").value = "Definition not found. Please enter manually.";
+        document.getElementById("categoryInput").value = "";
+    }
+}
+
+
+
+
+    // Input listener: fetch definition while typing (after 3+ chars)
+    document.getElementById("wordInput").addEventListener("input", async function() {
+        const word = this.value.trim();
+        if (word.length > 2) {
+            await fetchWordData(word);
+        }
+    });
+
+
+    // Submit handler (frontend evolution + backend POST)
+    wordForm.addEventListener("submit", function(e) {
+        // Let Flask handle DB save via POST
+        // But still run frontend evolution logic after submission
+        const word = document.getElementById("wordInput").value.trim();
+        const meaning = document.getElementById("meaningInput").value.trim();
+        const example = document.getElementById("exampleInput").value.trim();
+
+
+        if (!word || !meaning || !example) {
+            alert("Please fill in all fields!");
+            e.preventDefault(); // block submit if invalid
+            return;
+        }
+
+
+        // Add to user's words (frontend gamification only)
+        userWords.push({ word, meaning, example });
+        totalWordsAdded++;
+        currentWordCount++;
+
+
+        // Evolve Pokémon based on word count
+        if (totalWordsAdded >= 10) {
+            evolvePokemon(2);
+        } else if (totalWordsAdded >= 5) {
+            evolvePokemon(1);
+        }
+
+
+        // Success message after 5 words
+        if (currentWordCount >= totalWordsNeeded) {
+            setTimeout(() => {
+                alert("🎉 Great! You've added all 5 words!");
+            }, 300);
+        }
+    });
+
+
+    // Pokémon evolution functions
+    function evolvePokemon(newStage) {
+        if (newStage > pokemonStage) {
+            pokemonStage = newStage;
+            currentPokemon.classList.add('evolving');
+            setTimeout(() => {
+                updatePokemon();
+                currentPokemon.classList.remove('evolving');
+                if (newStage === 1) {
+                    alert("✨ Your Pokémon is evolving! Pichu evolved into Pikachu!");
+                } else if (newStage === 2) {
+                    alert("✨ Amazing! Your Pokémon has evolved into Raichu!");
                 }
-            });
+            }, 1000);
         }
-    </script>
+    }
 
-{%endblock%}
+
+    function updatePokemon() {
+        const pokemonData = pokemonEvolutions[pokemonStage];
+        const pokemonImg = currentPokemon.querySelector('.pokemon-sprite');
+        const pokemonName = currentPokemon.querySelector('.pokemon-name');
+        if (pokemonImg) pokemonImg.src = pokemonData.sprite;
+        if (pokemonName) pokemonName.textContent = pokemonData.name;
+
+
+        evolutionDots.forEach(dot => {
+            const stage = parseInt(dot.getAttribute('data-stage'));
+            dot.classList.remove('active', 'completed');
+            if (stage === pokemonStage) dot.classList.add('active');
+            else if (stage < pokemonStage) dot.classList.add('completed');
+        });
+    }
+    </script>
+{% endblock %}
