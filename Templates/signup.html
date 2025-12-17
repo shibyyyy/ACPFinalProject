@@ -6,6 +6,17 @@
 <div class="signup-container">
     <h1>Sign Up</h1>
     <p>Create your trainer account and start collecting words like Pokémon!</p>
+    
+    <!-- ADD THIS SECTION -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 
     <form class="signup-form" method="POST">
         {{ form.hidden_tag() }}

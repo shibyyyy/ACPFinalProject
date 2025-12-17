@@ -1,596 +1,269 @@
 {%extends 'base.html'%}
 
+
 {%block title%}
     <title>VocabuLearner - Review</title>
 {%endblock%}
 
+
 {%block content%}
     {%block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
-    
-    {%block header%}
-        
-    {%endblock%}
+   
     <div class="review-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <h1>Review Words</h1>
-            <div class="welcome-stats">
-                <div class="stat-item">
-                    <span class="label">Words to Review</span>
-                    <span class="value">12 Words</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Daily Goal</span>
-                    <span class="value">10 Words</span>
-                </div>
-                <div class="stat-item">
-                    <span class="label">Current Streak</span>
-                    <span class="value"><span class="fire-icon">🔥</span> 3 Days</span>
-                </div>
-            </div>
+            <h1>Review Vocabulary</h1>
         </div>
+
 
         <!-- Activity Selection -->
         <div class="activity-selection">
-            <div class="activity-card" data-activity="flashcards" onclick="window.location.href='/flashcard'">
+            <div class="activity-card" onclick="openFlashcardModal()">
                 <div class="icon">📇</div>
                 <h3>Flashcards</h3>
                 <p class="description">Flip cards to reveal definitions and examples</p>
             </div>
-            <div class="activity-card" data-activity="quiz" onclick="window.location.href='/multichoi'">
+            <div class="activity-card" onclick="openMCQModal()">
                 <div class="icon">❓</div>
                 <h3>Multiple Choice</h3>
                 <p class="description">Test your knowledge with multiple choice questions</p>
             </div>
-            <div class="activity-card" data-activity="matching" onclick="window.location.href='/matchingtype'">
+            <div class="activity-card" onclick="openMatchingModal()">
                 <div class="icon">🔀</div>
                 <h3>Matching Game</h3>
                 <p class="description">Match words with their correct definitions</p>
             </div>
         </div>
 
-        <!-- Quiz Session -->
-        <div class="review-session" id="quizSession">
-            <div class="session-header">
-                <h2 class="session-title">Multiple Choice Quiz</h2>
-                <div class="session-stats">
-                    <span>📝 <span id="quizProgress">1/10</span></span>
-                    <span>✅ <span id="quizCorrect">0</span> Correct</span>
+
+        <!-- Simple Preview of Words (Optional) -->
+        {% if words_count > 0 %}
+        <div class="words-preview">
+            <h3>Sample Words for Review</h3>
+            <div class="preview-words">
+                {% for word in words[:3] %}
+                <div class="preview-word">
+                    <div class="word-name">{{ word.word }}</div>
+                    <div class="word-meaning">{{ word.definition[:50] }}{% if word.definition|length > 50 %}...{% endif %}</div>
                 </div>
-            </div>
-            <div class="quiz-container">
-                <div class="quiz-question" id="quizQuestion">What does "ephemeral" mean?</div>
-                <div class="quiz-options" id="quizOptions">
-                    <!-- Options will be populated by JavaScript -->
-                </div>
-            </div>
-            <div class="session-controls">
-                <button class="btn-primary" id="quizNext" disabled>Next Question</button>
+                {% endfor %}
+                {% if words_count > 3 %}
+                <div class="more-words">... and {{ words_count - 3 }} more words</div>
+                {% endif %}
             </div>
         </div>
+        {% endif %}
+    </div>
 
-        <!-- Matching Game Session -->
-        <div class="review-session" id="matchingSession">
-            <div class="session-header">
-                <h2 class="session-title">Matching Game</h2>
-                <div class="session-stats">
-                    <span>⏱️ <span id="matchingTimer">60s</span></span>
-                    <span>🔗 <span id="matchingMatches">0/6</span> Matched</span>
-                </div>
-            </div>
-            <div class="matching-container" id="matchingContainer">
-                <!-- Matching items will be populated by JavaScript -->
-            </div>
-            <div class="session-controls">
-                <button class="btn-primary" id="matchingReset">Reset Game</button>
-            </div>
-        </div>
 
-        <!-- Results Screen -->
-        <div class="results-screen" id="resultsScreen">
-            <h2 class="results-title">Session Complete!</h2>
-            <div class="results-stats">
-                <div class="result-stat">
-                    <div class="label">Words Reviewed</div>
-                    <div class="value" id="resultWords">12</div>
-                </div>
-                <div class="result-stat">
-                    <div class="label">Correct Answers</div>
-                    <div class="value" id="resultCorrect">10</div>
-                </div>
-                <div class="result-stat">
-                    <div class="label">Accuracy</div>
-                    <div class="value" id="resultAccuracy">83%</div>
-                </div>
-                <div class="result-stat">
-                    <div class="label">Time Spent</div>
-                    <div class="value" id="resultTime">5:30</div>
-                </div>
-            </div>
-            <div class="xp-earned" id="xpEarned">+150 XP Earned!</div>
-            <div class="results-message" id="resultsMessage">Great job! You're making excellent progress on your vocabulary journey.</div>
-            <div class="session-controls">
-                <button class="btn-secondary" id="resultsReview">Review Mistakes</button>
-                <button class="btn-primary" id="resultsNewSession">New Session</button>
+    <!-- Flashcard Modal -->
+    <div class="modal" id="flashcardModal">
+        <div class="modal-content">
+            <h2>📇 Flashcards</h2>
+            <p>Flip cards to reveal definitions. Click "I Know" or "Don't Know" to track your progress.</p>
+            <div class="modal-buttons">
+                <button onclick="closeModal('flashcardModal')" class="btn-back">Back</button>
+                <button onclick="startFlashcards()" class="btn-start">Start Flashcards</button>
             </div>
         </div>
     </div>
+
+
+    <!-- Multiple Choice Modal -->
+    <div class="modal" id="mcqModal">
+        <div class="modal-content">
+            <h2>❓ Multiple Choice</h2>
+            <p>Test your knowledge with multiple choice questions. Choose the correct definition from 4 options.</p>
+            <div class="modal-buttons">
+                <button onclick="closeModal('mcqModal')" class="btn-back">Back</button>
+                <button onclick="startMCQ()" class="btn-start">Start Quiz</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Matching Game Modal -->
+    <div class="modal" id="matchingModal">
+        <div class="modal-content">
+            <h2>🔀 Matching Game</h2>
+            <p>Match words with their definitions. Find all pairs to complete the game.</p>
+            <div class="modal-buttons">
+                <button onclick="closeModal('matchingModal')" class="btn-back">Back</button>
+                <button onclick="startMatching()" class="btn-start">Start Game</button>
+            </div>
+        </div>
+    </div>
+
 
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+
     <script>
-        // Sample word data for review
-        const reviewWords = [
-            {
-                word: "Ephemeral",
-                type: "adjective",
-                definition: "Lasting for a very short time; transient.",
-                example: "The ephemeral beauty of cherry blossoms is celebrated in Japanese culture."
-            },
-            {
-                word: "Ubiquitous",
-                type: "adjective",
-                definition: "Present, appearing, or found everywhere.",
-                example: "Smartphones have become ubiquitous in modern society."
-            },
-            {
-                word: "Serendipity",
-                type: "noun",
-                definition: "The occurrence of events by chance in a happy or beneficial way.",
-                example: "Finding that rare book at the flea market was pure serendipity."
-            },
-            {
-                word: "Eloquent",
-                type: "adjective",
-                definition: "Fluent or persuasive in speaking or writing.",
-                example: "Her eloquent speech moved the entire audience."
-            },
-            {
-                word: "Resilient",
-                type: "adjective",
-                definition: "Able to withstand or recover quickly from difficult conditions.",
-                example: "Children are often more resilient than adults give them credit for."
-            },
-            {
-                word: "Pragmatic",
-                type: "adjective",
-                definition: "Dealing with things sensibly and realistically.",
-                example: "Her pragmatic approach to problem-solving saved the company time and money."
-            },
-            {
-                word: "Ambiguous",
-                type: "adjective",
-                definition: "Open to more than one interpretation; not having one obvious meaning.",
-                example: "The instructions were ambiguous, so we had to ask for clarification."
-            },
-            {
-                word: "Benevolent",
-                type: "adjective",
-                definition: "Well meaning and kindly.",
-                example: "The benevolent donor contributed millions to the charity."
-            },
-            {
-                word: "Clandestine",
-                type: "adjective",
-                definition: "Kept secret or done secretively.",
-                example: "They held clandestine meetings to plan the surprise party."
-            },
-            {
-                word: "Diligent",
-                type: "adjective",
-                definition: "Having or showing care and conscientiousness in one's work or duties.",
-                example: "She was a diligent student who always completed her assignments on time."
-            },
-            {
-                word: "Epiphany",
-                type: "noun",
-                definition: "A moment of sudden revelation or insight.",
-                example: "He had an epiphany while showering and finally solved the problem."
-            },
-            {
-                word: "Fastidious",
-                type: "adjective",
-                definition: "Very attentive to and concerned about accuracy and detail.",
-                example: "The fastidious editor checked every comma and period in the manuscript."
-            }
-        ];
-
-        // Current activity state
-        let currentActivity = null;
-        let currentWordIndex = 0;
-        let masteredWords = 0;
-        let correctAnswers = 0;
-        let startTime = null;
-        let timerInterval = null;
-
-        // DOM Elements
-        const activityCards = document.querySelectorAll('.activity-card');
-        const reviewSessions = document.querySelectorAll('.review-session');
-        const resultsScreen = document.getElementById('resultsScreen');
-
-        // Initialize activity selection
-        activityCards.forEach(card => {
-            card.addEventListener('click', function() {
-                // Remove active class from all cards
-                activityCards.forEach(c => c.classList.remove('active'));
-                // Add active class to clicked card
-                this.classList.add('active');
-                
-                // Set current activity
-                currentActivity = this.getAttribute('data-activity');
-                
-                // Hide all review sessions and results
-                reviewSessions.forEach(session => session.classList.remove('active'));
-                resultsScreen.classList.remove('active');
-                
-                // Show selected activity
-                document.getElementById(`${currentActivity}Session`).classList.add('active');
-                
-                // Reset session state
-                resetSessionState();
-                
-                // Start the selected activity
-                startActivity(currentActivity);
-            });
-        });
-
-        // Start the selected activity
-        function startActivity(activity) {
-            currentWordIndex = 0;
-            masteredWords = 0;
-            correctAnswers = 0;
-            startTime = new Date();
-            
-            switch(activity) {
-                case 'flashcards':
-                    startFlashcardSession();
-                    break;
-                case 'quiz':
-                    startQuizSession();
-                    break;
-                case 'matching':
-                    startMatchingSession();
-                    break;
-            }
+        // Open modals
+        function openFlashcardModal() {
+            document.getElementById('flashcardModal').style.display = 'block';
         }
-
-        // Reset session state
-        function resetSessionState() {
-            currentWordIndex = 0;
-            masteredWords = 0;
-            correctAnswers = 0;
-            clearInterval(timerInterval);
+        
+        function openMCQModal() {
+            document.getElementById('mcqModal').style.display = 'block';
         }
-
-        // Flashcard Session
-        function startFlashcardSession() {
-            updateFlashcard();
-            
-            // Add event listeners for flashcard controls
-            document.getElementById('flashcard').addEventListener('click', function() {
-                this.classList.toggle('flipped');
-            });
-            
-            document.getElementById('flashcardAgain').addEventListener('click', function() {
-                // Word stays in current position
-                nextFlashcard();
-            });
-            
-            document.getElementById('flashcardHard').addEventListener('click', function() {
-                // Word moves back one position
-                nextFlashcard();
-            });
-            
-            document.getElementById('flashcardGood').addEventListener('click', function() {
-                masteredWords++;
-                document.getElementById('flashcardMastered').textContent = masteredWords;
-                nextFlashcard();
-            });
-            
-            document.getElementById('flashcardEasy').addEventListener('click', function() {
-                masteredWords++;
-                document.getElementById('flashcardMastered').textContent = masteredWords;
-                nextFlashcard();
-            });
+        
+        function openMatchingModal() {
+            document.getElementById('matchingModal').style.display = 'block';
         }
-
-        function updateFlashcard() {
-            const word = reviewWords[currentWordIndex];
-            document.getElementById('flashcardWord').textContent = word.word;
-            document.getElementById('flashcardType').textContent = word.type;
-            document.getElementById('flashcardDefinition').textContent = word.definition;
-            document.getElementById('flashcardExample').textContent = `"${word.example}"`;
-            document.getElementById('flashcardProgress').textContent = `${currentWordIndex + 1}/${reviewWords.length}`;
-            
-            // Reset card to front
-            document.getElementById('flashcard').classList.remove('flipped');
+        
+        // Close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
-
-        function nextFlashcard() {
-            currentWordIndex++;
-            if (currentWordIndex >= reviewWords.length) {
-                endSession();
-            } else {
-                updateFlashcard();
-            }
+        
+        // Start activities
+        function startFlashcards() {
+            window.location.href = '/flashcard';
         }
-
-        // Quiz Session
-        function startQuizSession() {
-            updateQuizQuestion();
-            
-            document.getElementById('quizNext').addEventListener('click', function() {
-                currentWordIndex++;
-                if (currentWordIndex >= 10) { // Limit to 10 questions for demo
-                    endSession();
-                } else {
-                    updateQuizQuestion();
+        
+        function startMCQ() {
+            window.location.href = '/multichoi';
+        }
+        
+        function startMatching() {
+            window.location.href = '/matchingtype';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
                 }
             });
-        }
-
-        function updateQuizQuestion() {
-            const word = reviewWords[currentWordIndex];
-            document.getElementById('quizQuestion').textContent = `What does "${word.word}" mean?`;
-            document.getElementById('quizProgress').textContent = `${currentWordIndex + 1}/10`;
-            
-            // Generate options (one correct, three incorrect)
-            const options = [word.definition];
-            
-            // Add incorrect options from other words
-            while (options.length < 4) {
-                const randomIndex = Math.floor(Math.random() * reviewWords.length);
-                if (randomIndex !== currentWordIndex && !options.includes(reviewWords[randomIndex].definition)) {
-                    options.push(reviewWords[randomIndex].definition);
-                }
-            }
-            
-            // Shuffle options
-            shuffleArray(options);
-            
-            // Update DOM
-            const optionsContainer = document.getElementById('quizOptions');
-            optionsContainer.innerHTML = '';
-            
-            options.forEach(option => {
-                const optionElement = document.createElement('button');
-                optionElement.className = 'quiz-option';
-                optionElement.textContent = option;
-                optionElement.addEventListener('click', function() {
-                    // Disable all options
-                    document.querySelectorAll('.quiz-option').forEach(opt => {
-                        opt.disabled = true;
-                    });
-                    
-                    // Check if correct
-                    if (option === word.definition) {
-                        this.classList.add('correct');
-                        correctAnswers++;
-                        document.getElementById('quizCorrect').textContent = correctAnswers;
-                    } else {
-                        this.classList.add('incorrect');
-                        // Highlight correct answer
-                        document.querySelectorAll('.quiz-option').forEach(opt => {
-                            if (opt.textContent === word.definition) {
-                                opt.classList.add('correct');
-                            }
-                        });
-                    }
-                    
-                    // Enable next button
-                    document.getElementById('quizNext').disabled = false;
-                });
-                
-                optionsContainer.appendChild(optionElement);
-            });
-            
-            // Disable next button until answer is selected
-            document.getElementById('quizNext').disabled = true;
-        }
-
-        // Matching Game Session
-        function startMatchingSession() {
-            setupMatchingGame();
-            
-            // Start timer
-            let timeLeft = 60;
-            document.getElementById('matchingTimer').textContent = `${timeLeft}s`;
-            
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('matchingTimer').textContent = `${timeLeft}s`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    endSession();
-                }
-            }, 1000);
-            
-            document.getElementById('matchingReset').addEventListener('click', function() {
-                clearInterval(timerInterval);
-                startMatchingSession();
-            });
-        }
-
-        function setupMatchingGame() {
-            // Use first 6 words for matching game
-            const gameWords = reviewWords.slice(0, 6);
-            const words = gameWords.map(word => word.word);
-            const definitions = gameWords.map(word => word.definition);
-            
-            // Shuffle both arrays
-            shuffleArray(words);
-            shuffleArray(definitions);
-            
-            // Update DOM
-            const matchingContainer = document.getElementById('matchingContainer');
-            matchingContainer.innerHTML = '';
-            
-            // Create word column
-            const wordColumn = document.createElement('div');
-            wordColumn.className = 'matching-column';
-            
-            words.forEach(word => {
-                const wordElement = document.createElement('div');
-                wordElement.className = 'matching-item';
-                wordElement.textContent = word;
-                wordElement.setAttribute('data-word', word);
-                wordElement.addEventListener('click', handleMatchingSelection);
-                wordColumn.appendChild(wordElement);
-            });
-            
-            // Create definition column
-            const definitionColumn = document.createElement('div');
-            definitionColumn.className = 'matching-column';
-            
-            definitions.forEach(definition => {
-                const definitionElement = document.createElement('div');
-                definitionElement.className = 'matching-item';
-                definitionElement.textContent = definition;
-                definitionElement.setAttribute('data-definition', definition);
-                definitionElement.addEventListener('click', handleMatchingSelection);
-                definitionColumn.appendChild(definitionElement);
-            });
-            
-            matchingContainer.appendChild(wordColumn);
-            matchingContainer.appendChild(definitionColumn);
-            
-            // Reset matches counter
-            document.getElementById('matchingMatches').textContent = '0/6';
-        }
-
-        let selectedWord = null;
-        let selectedDefinition = null;
-
-        function handleMatchingSelection(event) {
-            const element = event.currentTarget;
-            
-            if (element.classList.contains('matched')) return;
-            
-            if (element.hasAttribute('data-word')) {
-                // Word selected
-                if (selectedWord) {
-                    selectedWord.classList.remove('selected');
-                }
-                selectedWord = element;
-                element.classList.add('selected');
-            } else if (element.hasAttribute('data-definition')) {
-                // Definition selected
-                if (selectedDefinition) {
-                    selectedDefinition.classList.remove('selected');
-                }
-                selectedDefinition = element;
-                element.classList.add('selected');
-            }
-            
-            // Check if we have both a word and definition selected
-            if (selectedWord && selectedDefinition) {
-                // Find the correct definition for the selected word
-                const word = selectedWord.getAttribute('data-word');
-                const wordObj = reviewWords.find(w => w.word === word);
-                
-                if (wordObj.definition === selectedDefinition.getAttribute('data-definition')) {
-                    // Correct match
-                    selectedWord.classList.add('matched');
-                    selectedDefinition.classList.add('matched');
-                    
-                    // Update matches counter
-                    const currentMatches = parseInt(document.getElementById('matchingMatches').textContent.split('/')[0]) + 1;
-                    document.getElementById('matchingMatches').textContent = `${currentMatches}/6`;
-                    
-                    // Check if all matches are complete
-                    if (currentMatches === 6) {
-                        clearInterval(timerInterval);
-                        setTimeout(() => endSession(), 1000);
-                    }
-                } else {
-                    // Incorrect match - flash red briefly
-                    selectedWord.classList.add('incorrect');
-                    selectedDefinition.classList.add('incorrect');
-                    setTimeout(() => {
-                        selectedWord.classList.remove('incorrect');
-                        selectedDefinition.classList.remove('incorrect');
-                    }, 500);
-                }
-                
-                // Reset selection
-                selectedWord.classList.remove('selected');
-                selectedDefinition.classList.remove('selected');
-                selectedWord = null;
-                selectedDefinition = null;
-            }
-        }
-
-        // End session and show results
-        function endSession() {
-            // Hide current session
-            reviewSessions.forEach(session => session.classList.remove('active'));
-            
-            // Calculate session stats
-            const endTime = new Date();
-            const timeSpent = Math.round((endTime - startTime) / 1000);
-            const minutes = Math.floor(timeSpent / 60);
-            const seconds = timeSpent % 60;
-            const timeString = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            const accuracy = Math.round((correctAnswers / (currentWordIndex + 1)) * 100);
-            const xpEarned = (correctAnswers * 10) + (masteredWords * 5) + 50;
-            
-            // Update results screen
-            document.getElementById('resultWords').textContent = currentWordIndex + 1;
-            document.getElementById('resultCorrect').textContent = correctAnswers;
-            document.getElementById('resultAccuracy').textContent = `${accuracy}%`;
-            document.getElementById('resultTime').textContent = timeString;
-            document.getElementById('xpEarned').textContent = `+${xpEarned} XP Earned!`;
-            
-            // Set results message based on performance
-            let message = '';
-            if (accuracy >= 90) {
-                message = "Outstanding! You've mastered these words with flying colors!";
-            } else if (accuracy >= 70) {
-                message = "Great job! You're making excellent progress on your vocabulary journey.";
-            } else if (accuracy >= 50) {
-                message = "Good effort! Keep practicing to improve your vocabulary skills.";
-            } else {
-                message = "Don't give up! Review the words and try again to strengthen your memory.";
-            }
-            document.getElementById('resultsMessage').textContent = message;
-            
-            // Show results screen
-            resultsScreen.classList.add('active');
-            
-            // Add event listeners for results screen buttons
-            document.getElementById('resultsReview').addEventListener('click', function() {
-                // In a real app, this would show words that were answered incorrectly
-                alert('Review feature would show words you struggled with in this session.');
-            });
-            
-            document.getElementById('resultsNewSession').addEventListener('click', function() {
-                // Return to activity selection
-                resultsScreen.classList.remove('active');
-                activityCards.forEach(card => card.classList.remove('active'));
-                currentActivity = null;
-            });
-        }
-
-        // Utility function to shuffle array
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
         }
     </script>
+
+
+    <style>
+        /* Modal Styles - Simple addition */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 15% auto;
+            padding: 25px;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .modal-content h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .modal-content p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .btn-back {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: none;
+            border-radius: 5px;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .btn-start {
+            padding: 10px 20px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .btn-start:hover {
+            background: #45a049;
+        }
+        
+        .btn-back:hover {
+            background: #e0e0e0;
+        }
+        
+        /* Existing styles kept the same */
+        .words-preview {
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .words-preview h3 {
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .preview-words {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .preview-word {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 5px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .word-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .word-meaning {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .more-words {
+            text-align: center;
+            color: #888;
+            font-style: italic;
+            margin-top: 10px;
+        }
+    </style>
 {%endblock%}

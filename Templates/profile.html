@@ -1,6 +1,7 @@
 {%extends 'base.html'%}
 {%block title%}<title>Profile - VocabuLearner</title>{% endblock%}
 
+
 {%block content%}
     {%block logo_link %}
             <a href="{{ url_for('dashboard') }}" class="logo-link">
@@ -16,12 +17,9 @@
     <div class="header-actions">
         <button class="logout-btn" onclick="confirmLogout()">Logout</button>
     </div>
-
-
     {%endblock%}
-    
+   
     <div class="profile-container">
-        <!-- Profile Header -->
         <div class="profile-header-section">
             <div class="profile-avatar-container">
                 <div class="profile-avatar" id="profileAvatar">
@@ -30,81 +28,113 @@
                     {% else %}
                         <div class="avatar-icon">👤</div>
                     {% endif %}
-                    <!-- Hidden file input -->
                     <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
                 </div>
                 <button class="change-avatar-btn" onclick="document.getElementById('avatarUpload').click()">✎</button>
             </div>
-            
+           
             <h1 class="profile-title" id="profileName">{{ user.name }}</h1>
             <p class="profile-subtitle">Vocabulary Trainer since <span id="joinDate">{{ user.date_created.strftime('%B %Y') }}</span></p>
-            
+           
             <div class="profile-level-badge" id="levelBadge">
                 {{ user.total_points }} XP • Streak: {{ user.current_streak }} days
             </div>
         </div>
 
-        <!-- Quick Stats -->
         <div class="profile-stats-grid">
             <div class="stat-card">
-                <h3>📚 WORDS MASTERED</h3>
+                <div class="stat-icon">📚</div>
                 <div class="stat-value" id="totalWords">{{ words_learned }}</div>
-                <div class="stat-label">Total words learned</div>
-                <div class="stat-progress">
-                    <div class="stat-progress-fill" id="wordsProgressFill"></div>
-                </div>
+                <div class="stat-label">WORDS STORED</div>
+                <div class="stat-subtitle">Total vocabulary</div>
             </div>
-            
+           
             <div class="stat-card">
-                <h3>🔥 STREAK</h3>
+                <div class="stat-icon">🔥</div>
                 <div class="stat-value" id="streakDays">{{ user.current_streak }}</div>
-                <div class="stat-label">Days in a row</div>
-                <div class="stat-progress">
-                    <div class="stat-progress-fill" id="streakProgressFill"></div>
-                </div>
+                <div class="stat-label">STREAK</div>
+                <div class="stat-subtitle">Days active</div>
             </div>
-            
+           
             <div class="stat-card">
-                <h3>⭐ POINTS</h3>
+                <div class="stat-icon">⭐</div>
                 <div class="stat-value">{{ user.total_points }}</div>
-                <div class="stat-label">Pokémon EXP earned</div>
-                <div class="stat-progress">
-                    <div class="stat-progress-fill" id="pointsProgressFill"></div>
-                </div>
+                <div class="stat-label">POINTS</div>
+                <div class="stat-subtitle">Pokémon EXP</div>
             </div>
         </div>
 
-        <!-- Profile Sections -->
         <div class="profile-sections">
-            <!-- Personal Information -->
             <div class="profile-section">
                 <h2 data-icon="👤">PERSONAL INFORMATION</h2>
-                
+               
                 <div class="info-item">
-                    <div>
+                    <div class="info-content">
                         <div class="info-label">USERNAME</div>
-                        <div class="info-value" id="username">{{ user.name }}</div>
+                        <div class="info-display" id="usernameDisplay">
+                            <span class="info-value">{{ user.name }}</span>
+                            <button class="inline-edit-btn" onclick="enableEdit('username')">✎</button>
+                        </div>
+                        <div class="info-edit" id="usernameEdit" style="display: none;">
+                            <form id="usernameForm" onsubmit="saveEdit('username'); return false;">
+                                <input type="text" id="usernameInput" value="{{ user.name }}" class="edit-input">
+                                <div class="edit-actions">
+                                    <button type="submit" class="save-btn">✓ Save</button>
+                                    <button type="button" class="cancel-btn" onclick="cancelEdit('username')">✗ Cancel</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <button class="edit-btn" onclick="editField('username')">✎</button>
                 </div>
-                
+               
                 <div class="info-item">
-                    <div>
+                    <div class="info-content">
                         <div class="info-label">EMAIL</div>
-                        <div class="info-value" id="email">{{ user.email }}</div>
+                        <div class="info-display" id="emailDisplay">
+                            <span class="info-value">{{ user.email }}</span>
+                            <button class="inline-edit-btn" onclick="initiateEmailChange()">✎</button>
+                        </div>
+                        <div class="info-edit" id="emailChangeRequest" style="display: none;">
+                            <div class="verification-step">
+                                <div class="step-title">Step 1: Enter new email</div>
+                                <form id="emailChangeForm" onsubmit="requestEmailChange(); return false;">
+                                    <input type="email" id="newEmailInput" placeholder="New email address" class="edit-input">
+                                    <div class="edit-actions">
+                                        <button type="submit" class="save-btn">✓ Send Verification</button>
+                                        <button type="button" class="cancel-btn" onclick="cancelEmailChange()">✗ Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="info-edit" id="emailVerification" style="display: none;">
+                            <div class="verification-step">
+                                <div class="step-title">Step 2: Verify email</div>
+                                <p class="verification-instructions">
+                                    A 6-digit verification code has been sent to <span id="pendingEmail"></span>.
+                                    Enter the code below to confirm your email change.
+                                </p>
+                                <form id="emailVerifyForm" onsubmit="verifyEmailChange(); return false;">
+                                    <input type="text" id="verificationCodeInput" placeholder="Enter 6-digit code" class="edit-input" maxlength="6" pattern="[0-9]{6}">
+                                    <div class="edit-actions">
+                                        <button type="submit" class="save-btn">✓ Verify & Update</button>
+                                        <button type="button" class="cancel-btn" onclick="cancelEmailChange()">✗ Cancel</button>
+                                        <button type="button" class="resend-btn" onclick="resendVerificationCode()">↻ Resend Code</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <button class="edit-btn" onclick="editField('email')">✎</button>
                 </div>
-                
+               
                 <div class="info-item">
-                    <div>
+                    <div class="info-content">
                         <div class="info-label">ACCOUNT CREATED</div>
                         <div class="info-value" id="accountCreated">{{ user.date_created.strftime('%B %d, %Y') }}</div>
                     </div>
                 </div>
-                
+               
                 <div class="info-item">
-                    <div>
+                    <div class="info-content">
                         <div class="info-label">LAST LOGIN</div>
                         <div class="info-value" id="lastLogin">
                             {% if user.last_login %}
@@ -117,74 +147,112 @@
                 </div>
             </div>
 
-            <!-- Learning Partner -->
-            <div class="profile-section">
+                <div class="profile-section">
                 <h2 data-icon="⚡">LEARNING PARTNER</h2>
-                
+               
                 <div class="partner-section">
                     <div class="partner-card">
                         {% if pokemon %}
-                            <img src="{{ pokemon.url if pokemon.url else 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' }}" 
-                                alt="{{ pokemon.name }}" 
+                            <img src="{{ pokemon.url if pokemon.url else 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png' }}"
+                                alt="{{ pokemon.name }}"
                                 class="partner-image"
                                 id="partnerImage">
-                            <div class="partner-name" id="partnerName">
-                                {{ pokemon_display_name }}
+                            
+                            <!-- Display mode for Pokémon name -->
+                            <div class="partner-name-display" id="partnerNameDisplay">
+                                <span class="partner-name-value" id="partnerNameValue">{{ pokemon_display_name }}</span>
+                                <button class="inline-edit-btn" onclick="enablePartnerEdit()">✎</button>
                             </div>
-                            <div class="partner-type" id="partnerType">{{ pokemon.rarity.upper() if pokemon.rarity else 'COMMON' }}</div>
+                            
+                            <!-- Edit mode for Pokémon name -->
+                            <div class="partner-name-edit" id="partnerNameEdit" style="display: none;">
+                                <form id="partnerNameForm" onsubmit="savePartnerEdit(); return false;">
+                                    <input type="text" id="partnerNameInput" value="{{ pokemon_display_name }}" class="edit-input">
+                                    <div class="edit-actions">
+                                        <button type="submit" class="save-btn">✓ Save</button>
+                                        <button type="button" class="cancel-btn" onclick="cancelPartnerEdit()">✗ Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div class="partner-type" id="partnerType">{{ pokemon.name.upper() if pokemon.name else 'POKEMON' }}</div>
                         {% else %}
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" 
-                                alt="Pikachu" 
+                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"
+                                alt="Pikachu"
                                 class="partner-image"
                                 id="partnerImage">
                             <div class="partner-name" id="partnerName">No Pokémon Yet</div>
                             <div class="partner-type" id="partnerType">EARN POINTS TO UNLOCK</div>
                         {% endif %}
-                        
-                        <!-- Move button OUTSIDE the if block so it always shows -->
-                        <button class="change-name-btn" onclick="changePartnerName()" id="changeNameBtn">
-                            Change Partner Name
-                        </button>
                     </div>
                 </div>
-                
-                <div style="margin-top: 20px; font-size: 9px; color: #fff; text-align: center; opacity: 0.8;">
+               
+                <div style="margin-top: 20px; font-size: 12px; color: #fff; text-align: center; opacity: 0.8;">
                     Your Pokémon partner accompanies you on your vocabulary journey!
                 </div>
             </div>
 
-            <!-- Achievements -->
-            <div class="profile-section" style="grid-column: span 2;">
+                        <div class="profile-section" style="grid-column: span 2;">
                 <h2 data-icon="🏆">ACHIEVEMENTS</h2>
-                
-                <!-- Pokémon Achievements Grid -->
+               
                 <div class="pokemon-achievements-grid">
                     {% for achievement in all_achievements %}
                         {% set user_achievement = none %}
+                        {% set user_progress = 0 %}
                         {% for ua in user_achievements %}
                             {% if ua.achievement_id == achievement.achievement_id %}
                                 {% set user_achievement = ua %}
+                                {% set user_progress = ua.progress if ua.progress else 0 %}
                             {% endif %}
                         {% endfor %}
-                        
+                       
                         {% set pokemon_data = achievement_pokemon.get(achievement.achievement_id) %}
-                        
-                        <div class="pokemon-badge {% if not user_achievement %}locked{% endif %}">
+                        {% set is_unlocked = user_achievement and user_progress >= achievement.requirement %}
+                        {% set progress_percentage = (user_progress / achievement.requirement * 100) if achievement.requirement > 0 else 100 %}
+                        {% set progress_percentage = progress_percentage if progress_percentage <= 100 else 100 %}
+                       
+                        <div class="pokemon-badge {% if not is_unlocked %}locked{% endif %}">
                             <div class="pokemon-icon">
                                 {% if pokemon_data and pokemon_data.url %}
-                                    <img src="{{ pokemon_data.url }}" alt="{{ pokemon_data.name }}">
+                                    <img src="{{ pokemon_data.url }}" alt="{{ pokemon_data.name }}" {% if not is_unlocked %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
                                 {% else %}
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Unknown">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Unknown" {% if not is_unlocked %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
+                                {% endif %}
+                                {% if not is_unlocked %}
+                                    <div class="lock-overlay">🔒</div>
                                 {% endif %}
                             </div>
                             <div class="pokemon-name">{{ achievement.name }}</div>
                             <div class="pokemon-desc">{{ achievement.description }}</div>
-                            <div class="pokemon-progress">
-                                {% if user_achievement %}
-                                    Unlocked!
-                                {% else %}
-                                    Locked
+                            
+                            <!-- Progress Bar Section -->
+                            <div class="achievement-progress-container">
+                                <div class="progress-label">
+                                    <span class="progress-text">
+                                        {% if is_unlocked %}
+                                            ✅ COMPLETED
+                                        {% else %}
+                                            {{ user_progress }}/{{ achievement.requirement }}
+                                        {% endif %}
+                                    </span>
+                                    {% if not is_unlocked %}
+                                        <span class="progress-percent">{{ progress_percentage|int }}%</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if not is_unlocked %}
+                                <div class="progress-bar-bg">
+                                    <div class="progress-bar-fill" style="width: {{ progress_percentage }}%;"></div>
+                                </div>
                                 {% endif %}
+                                
+                                <div class="pokemon-reward">
+                                    {% if is_unlocked %}
+                                        <span class="reward-badge">🏆 +{{ achievement.points_reward }} XP</span>
+                                    {% else %}
+                                        <span class="reward-text">Reward: {{ achievement.points_reward }} XP</span>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     {% endfor %}
@@ -192,15 +260,8 @@
             </div>
         </div>
 
-        <!-- Profile Actions -->
         <div class="profile-actions">
-            <button class="action-btn save" onclick="saveProfile()">
-                💾 UPDATE PROFILE
-            </button>
-            <button class="action-btn export" onclick="exportData()">
-                📤 EXPORT PROFILE DATA
-            </button>
-            <button class="action-btn delete" onclick="deleteAccount()">
+            <button class="action-btn delete" onclick="deleteAccount()" id="deleteAccountBtn">
                 🗑️ DELETE ACCOUNT
             </button>
         </div>
@@ -210,60 +271,236 @@
         <p>© 2025 VocabuLearner • Profile Management</p>
     </footer>
 
-    <script>
-        // Store user data
-        const currentuserId = parseInt("{{ user.user_id }}") || 0;
-        const wordsLearned = parseInt("{{ words_learned }}") || 0;
-        const streakDays = parseInt("{{ user.current_streak }}") || 0;
-        const totalPoints = parseInt("{{ user.total_points }}") || 0;
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Calculate progress values
-            const wordsProgress = Math.min(wordsLearned, 100);
-            const streakProgress = Math.min(streakDays, 10) * 10;
-            const pointsProgress = Math.min(totalPoints % 1000, 100);
+        <style>
+        .info-value, .info-value-dark {
+            color: #ffd700 !important;
+            text-shadow: 1px 1px 0 #000 !important;
+            font-size: 20px !important;
+        }
+        
+        .info-label {
+            color: #fff !important;
+            text-shadow: 1px 1px 0 #000 !important;
+        }
+        
+        .info-item .info-value {
+            color: #ffd700 !important;
+            text-shadow: 1px 1px 0 #000 !important;
+        }
+        
+        .edit-input {
+            width: 100%;
+            padding: 10px 15px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            border: 3px solid #000;
+            background: rgba(255, 255, 255, 0.9);
+            color: #000 !important;
+            margin-bottom: 10px;
+            box-shadow: 3px 3px 0 #000;
+        }
+        
+        .info-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        
+        .inline-edit-btn {
+            background: #4169e1;
+            color: #fff;
+            border: 2px solid #000;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            box-shadow: 2px 2px 0 #000;
+        }
+        
+        .inline-edit-btn:hover {
+            transform: scale(1.1);
+            background: #3159d1;
+            box-shadow: 1px 1px 0 #000;
+        }
+        
+        .edit-input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 3px 3px 0 #ffd700;
+        }
+        
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .save-btn, .cancel-btn {
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 0 #000;
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .save-btn {
+            background: #228b22;
+            color: white;
+        }
+        
+        .save-btn:hover {
+            background: #1e7b1e;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 #000;
+        }
+        
+        .cancel-btn {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .cancel-btn:hover {
+            background: #ff3333;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 #000;
+        }
+        
+        /* ACHIEVEMENT PROGRESS BAR STYLES */
+        .achievement-progress-container {
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+        }
+        
+        .progress-text {
+            color: #ffd700;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        .progress-percent {
+            color: #4CAF50;
+            font-weight: bold;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #000;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            box-shadow: inset 2px 2px 0 rgba(0,0,0,0.3);
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.5s ease;
+            border-right: 2px solid #2E7D32;
+            box-shadow: 2px 0 0 rgba(255,255,255,0.3);
+        }
+        
+        .pokemon-reward {
+            text-align: center;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+        }
+        
+        .reward-badge {
+            color: #FFD700;
+            text-shadow: 1px 1px 0 #000;
+            background: rgba(139, 69, 19, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid #8B4513;
+            display: inline-block;
+        }
+        
+        .reward-text {
+            color: #aaa;
+            text-shadow: 1px 1px 0 #000;
+        }
+        
+        .pokemon-icon {
+            position: relative;
+        }
+        
+        .lock-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 30px;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 2px 2px 0 #000;
+            z-index: 2;
+        }
+        
+        .pokemon-badge.locked .pokemon-name {
+            color: #aaa;
+        }
+        
+        .pokemon-badge.locked .pokemon-desc {
+            color: #888;
+        }
+        
+        @media (max-width: 768px) {
+            .edit-input {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
             
-            // Set progress bar widths
-            document.getElementById('wordsProgressFill').style.width = wordsProgress + '%';
-            document.getElementById('streakProgressFill').style.width = streakProgress + '%';
-            document.getElementById('pointsProgressFill').style.width = pointsProgress + '%';
-        });
-
-        function editField(field) {
-            const fieldElement = document.getElementById(field);
-            const currentValue = fieldElement.textContent;
+            .save-btn, .cancel-btn {
+                padding: 6px 10px;
+                font-size: 8px;
+                min-width: 70px;
+            }
             
-            let promptMessage = field === 'name' ? 'Enter new username:' : 'Enter new email address:';
-            const newValue = prompt(promptMessage, currentValue);
+            .inline-edit-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 11px;
+            }
             
-            if (newValue !== null && newValue.trim() !== '') {
-                fieldElement.textContent = newValue;
-                if (field === 'name') {
-                    document.getElementById('profileName').textContent = newValue;
-                }
-                
-                fetch('/api/update_profile', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        field: field === 'username' ? 'name' : field, // Convert 'username' to 'name'
-                        value: newValue
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    showNotification(data.message || 'Updated successfully!');
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error updating');
-                });
+            .info-value, .info-value-dark {
+                font-size: 20px !important;
+            }
+            
+            .progress-label {
+                font-size: 7px;
+            }
+            
+            .pokemon-reward {
+                font-size: 7px;
             }
         }
+    </style>
 
-        function changePartnerName() {
-            // Check if user has a Pokémon
-            const partnerNameElement = document.getElementById('partnerName');
+    <script>
+        function enablePartnerEdit() {
+            const partnerNameElement = document.getElementById('partnerNameValue');
             if (!partnerNameElement) {
                 showNotification('You need to unlock a Pokémon first!');
                 return;
@@ -271,107 +508,521 @@
             
             const currentName = partnerNameElement.textContent;
             
-            // Check if it's "No Pokémon Yet" message
             if (currentName === "No Pokémon Yet" || currentName === "No Pokémon") {
                 showNotification('You need to unlock a Pokémon before you can rename it!');
                 return;
             }
             
-            const newName = prompt('Enter new name for your Pokémon partner:', currentName);
+            const displayElement = document.getElementById('partnerNameDisplay');
+            const editElement = document.getElementById('partnerNameEdit');
             
-            if (newName !== null && newName.trim() !== '') {
-                fetch('/api/update_pokemon_name', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({pokemon_name: newName})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update UI immediately
-                        partnerNameElement.textContent = newName;
-                        showNotification(`Partner name changed to: ${newName} ⚡`);
-                    } else {
-                        showNotification('Error: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error updating partner name');
-                });
+            if (displayElement && editElement) {
+                displayElement.style.display = 'none';
+                editElement.style.display = 'block';
+                
+                const inputElement = document.getElementById('partnerNameInput');
+                if (inputElement) {
+                    inputElement.focus();
+                    inputElement.select();
+                }
             }
         }
 
-        function saveProfile() {
-            const profileData = {
-                name: document.getElementById('username').textContent,
-                email: document.getElementById('email').textContent
-            };
+        function cancelPartnerEdit() {
+            const displayElement = document.getElementById('partnerNameDisplay');
+            const editElement = document.getElementById('partnerNameEdit');
             
-            fetch('/api/save_profile', {
+            if (displayElement && editElement) {
+                editElement.style.display = 'none';
+                displayElement.style.display = 'flex';
+            }
+        }
+
+        function savePartnerEdit() {
+            const inputElement = document.getElementById('partnerNameInput');
+            const newName = inputElement ? inputElement.value.trim() : '';
+            const displayValue = document.getElementById('partnerNameValue');
+            
+            if (!newName) {
+                showNotification('Pokémon name cannot be empty!');
+                return;
+            }
+            
+            if (newName.length > 20) {
+                showNotification('Pokémon name cannot be more than 20 characters!');
+                return;
+            }
+            
+            const originalName = displayValue ? displayValue.textContent : '';
+            
+            if (displayValue) {
+                displayValue.textContent = newName;
+            }
+            
+            fetch('/api/update_pokemon_name', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(profileData)
+                body: JSON.stringify({pokemon_name: newName})
             })
             .then(response => response.json())
             .then(data => {
-                showNotification(data.message || 'Profile saved! ✅');
+                if (data.success) {
+                    showNotification(`Partner name changed to: ${newName} ⚡`);
+                    cancelPartnerEdit();
+                } else {
+                    showNotification('Error: ' + data.error);
+                    if (displayValue && originalName) {
+                        displayValue.textContent = originalName;
+                    }
+                    cancelPartnerEdit();
+                }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showNotification('Error saving profile');
+                showNotification('Error updating partner name');
+                if (displayValue && originalName) {
+                    displayValue.textContent = originalName;
+                }
+                cancelPartnerEdit();
             });
         }
 
-        function exportData() {
-            fetch('/api/export_data')
-                .then(response => response.json())
-                .then(data => {
-                    const dataStr = JSON.stringify(data, null, 2);
-                    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-                    const fileName = `vocabulearner-profile-${data.name || 'user'}.json`;
-                    
-                    const link = document.createElement('a');
-                    link.setAttribute('href', dataUri);
-                    link.setAttribute('download', fileName);
-                    link.click();
-                    
-                    showNotification('Profile data exported! 📥');
+        const currentuserId = parseInt("{{ user.user_id }}") || 0;
+        const wordsLearned = parseInt("{{ words_learned }}") || 0;
+        const streakDays = parseInt("{{ user.current_streak }}") || 0;
+        const totalPoints = parseInt("{{ user.total_points }}") || 0;
+        
+        let pendingNewEmail = '';
+        let verificationCode = '';
+        let verificationAttempts = 0;
+        const MAX_VERIFICATION_ATTEMPTS = 3;
+
+        document.addEventListener('DOMContentLoaded', function() {});
+
+        // Username editing functions
+        function enableEdit(field) {
+            const displayElement = document.getElementById(field + 'Display');
+            const editElement = document.getElementById(field + 'Edit');
+            
+            displayElement.style.display = 'none';
+            editElement.style.display = 'block';
+            
+            const inputElement = document.getElementById(field + 'Input');
+            inputElement.focus();
+            inputElement.select();
+        }
+
+        function cancelEdit(field) {
+            const displayElement = document.getElementById(field + 'Display');
+            const editElement = document.getElementById(field + 'Edit');
+            
+            editElement.style.display = 'none';
+            displayElement.style.display = 'flex';
+        }
+
+        function saveEdit(field) {
+            const inputElement = document.getElementById(field + 'Input');
+            const newValue = inputElement.value.trim();
+            const displayValue = document.querySelector(`#${field}Display .info-value`);
+            
+            if (!newValue) {
+                showNotification(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be empty!`);
+                return;
+            }
+            
+            if (field === 'username' && !isValidUsername(newValue)) {
+                showNotification('Username can only contain letters, numbers, and spaces!');
+                return;
+            }
+            
+            displayValue.textContent = newValue;
+            
+            if (field === 'username') {
+                document.getElementById('profileName').textContent = newValue;
+            }
+            
+            fetch('/api/update_profile', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    field: field === 'username' ? 'name' : field,
+                    value: newValue
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('Error exporting data');
-                });
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.message || 'Updated successfully!');
+                cancelEdit(field);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error updating. Please try again.');
+                const originalValue = inputElement.defaultValue;
+                displayValue.textContent = originalValue;
+                if (field === 'username') {
+                    document.getElementById('profileName').textContent = originalValue;
+                }
+                cancelEdit(field);
+            });
+        }
+
+        function isValidUsername(username) {
+            const usernameRegex = /^[a-zA-Z0-9\s\-_]+$/;
+            return usernameRegex.test(username) && username.length >= 2 && username.length <= 50;
+        }
+
+        // UPDATED EMAIL VERIFICATION FUNCTIONS
+        function initiateEmailChange() {
+            const displayElement = document.getElementById('emailDisplay');
+            const requestElement = document.getElementById('emailChangeRequest');
+            
+            displayElement.style.display = 'none';
+            requestElement.style.display = 'block';
+            document.getElementById('newEmailInput').focus();
+        }
+
+        function cancelEmailChange() {
+            const displayElement = document.getElementById('emailDisplay');
+            const requestElement = document.getElementById('emailChangeRequest');
+            const verificationElement = document.getElementById('emailVerification');
+            
+            requestElement.style.display = 'none';
+            verificationElement.style.display = 'none';
+            displayElement.style.display = 'flex';
+            
+            pendingNewEmail = '';
+            verificationCode = '';
+            verificationAttempts = 0;
+            document.getElementById('newEmailInput').value = '';
+            document.getElementById('verificationCodeInput').value = '';
+        }
+
+        function verifyEmailChange() {
+            const enteredCode = document.getElementById('verificationCodeInput').value.trim();
+            
+            if (!enteredCode || enteredCode.length !== 6) {
+                showNotification('Please enter the 6-digit verification code!');
+                return;
+            }
+            
+            if (verificationAttempts >= MAX_VERIFICATION_ATTEMPTS) {
+                showNotification('Too many failed attempts. Please restart the email change process.');
+                cancelEmailChange();
+                return;
+            }
+            
+            showNotification('Verifying code...');
+            
+            // Send ONLY the verification code, NOT the email
+            fetch('/api/verify_email_change', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    verification_code: enteredCode  // Only send the code
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector('#emailDisplay .info-value').textContent = pendingNewEmail;
+                    showNotification('Email updated successfully!');
+                    cancelEmailChange();
+                    verificationAttempts = 0;
+                    
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    verificationAttempts++;
+                    const remainingAttempts = MAX_VERIFICATION_ATTEMPTS - verificationAttempts;
+                    
+                    if (remainingAttempts > 0) {
+                        showNotification(`Incorrect code! ${remainingAttempts} attempt(s) remaining.`);
+                        document.getElementById('verificationCodeInput').value = '';
+                        document.getElementById('verificationCodeInput').focus();
+                    } else {
+                        showNotification('Too many failed attempts. Email change cancelled.');
+                        cancelEmailChange();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error verifying code. Please try again.');
+            });
+        }
+
+        // Remove the verificationCode variable usage from requestEmailChange:
+        function requestEmailChange() {
+            const newEmail = document.getElementById('newEmailInput').value.trim();
+            
+            if (!newEmail) {
+                showNotification('Please enter a new email address!');
+                return;
+            }
+            
+            if (!isValidEmail(newEmail)) {
+                showNotification('Please enter a valid email address!');
+                return;
+            }
+            
+            if (newEmail === "{{ user.email }}") {
+                showNotification('This is already your current email address!');
+                return;
+            }
+            
+            pendingNewEmail = newEmail;
+            showNotification('Sending verification code...');
+            
+            // Disable button
+            const submitBtn = document.querySelector('#emailChangeForm .save-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+            
+            fetch('/api/request_email_change', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ new_email: newEmail })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Re-enable button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                
+                if (data.success) {
+                    showNotification(data.message || 'Verification email sent!');
+                    
+                    document.getElementById('emailChangeRequest').style.display = 'none';
+                    document.getElementById('emailVerification').style.display = 'block';
+                    document.getElementById('pendingEmail').textContent = newEmail;
+                    
+                    // Update instruction message
+                    const instructionElement = document.querySelector('.verification-instructions');
+                    if (instructionElement) {
+                        instructionElement.innerHTML = `A 6-digit verification code has been sent to <strong>${newEmail}</strong>.<br>
+                        Enter the code below to confirm your email change.`;
+                    }
+                    
+                    document.getElementById('verificationCodeInput').focus();
+                    
+                } else {
+                    showNotification('Error: ' + (data.error || 'Failed to send verification code'));
+                    cancelEmailChange();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                showNotification('Network error. Please try again.');
+                cancelEmailChange();
+            });
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        let deleteAttempts = 0;
+        const MAX_ATTEMPTS = 3;
+        let deleteConfirmationCode = '';
+
+        function generateConfirmationCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
         }
 
         function deleteAccount() {
-            if (confirm('⚠️ WARNING: This will delete all your data!\n\nAre you sure?')) {
-                if (confirm('This cannot be undone. Type "DELETE" to confirm:')) {
-                    const confirmation = prompt('Type "DELETE" to confirm:');
-                    
-                    if (confirmation === 'DELETE') {
-                        fetch('/api/delete_account', {method: 'DELETE'})
-                        .then(response => response.json())
-                        .then(data => {
-                            showNotification(data.message || 'Account deleted. Redirecting...');
-                            setTimeout(() => { window.location.href = "/"; }, 2000);
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            showNotification('Error deleting account');
-                        });
-                    } else {
-                        showNotification('Cancelled.');
-                    }
-                }
+            if (deleteAttempts >= MAX_ATTEMPTS) {
+                showNotification('Too many failed attempts. Account deletion blocked for 24 hours.');
+                document.getElementById('deleteAccountBtn').disabled = true;
+                document.getElementById('deleteAccountBtn').style.opacity = '0.5';
+                document.getElementById('deleteAccountBtn').style.cursor = 'not-allowed';
+                return;
             }
+
+            // Step 1: Initial warning
+            if (!confirm('⚠️⚠️⚠️ CRITICAL WARNING ⚠️⚠️⚠️\n\n' +
+                'ACCOUNT DELETION IS PERMANENT!\n\n' +
+                'This will delete:\n' +
+                '• All your vocabulary words\n' +
+                '• Your Pokémon partner\n' +
+                '• Your achievements and progress\n' +
+                '• Your account data\n\n' +
+                'This action CANNOT be undone!\n\n' +
+                'Are you ABSOLUTELY sure you want to continue?')) {
+                showNotification('Account deletion cancelled.');
+                return;
+            }
+
+            // Step 2: Confirmation code
+            deleteConfirmationCode = generateConfirmationCode();
+            const codeInput = prompt(
+                'STEP 2: CONFIRMATION CODE\n\n' +
+                'To confirm deletion, please enter this code:\n\n' +
+                '🔒 CONFIRMATION CODE: ' + deleteConfirmationCode + '\n\n' +
+                'Type the code exactly as shown above:',
+                ''
+            );
+
+            if (codeInput !== deleteConfirmationCode) {
+                deleteAttempts++;
+                const remainingAttempts = MAX_ATTEMPTS - deleteAttempts;
+                showNotification(`Incorrect code! ${remainingAttempts} attempt(s) remaining before account deletion is blocked.`);
+                return;
+            }
+
+            // Step 3: Final phrase
+            const finalPhrase = "I understand this is permanent";
+            const typedPhrase = prompt(
+                'STEP 3: FINAL CONFIRMATION\n\n' +
+                'This is your LAST chance to cancel.\n\n' +
+                'Type the following EXACT phrase to delete your account:\n\n' +
+                '📝 "' + finalPhrase + '"\n\n' +
+                'Type the phrase exactly as shown:',
+                ''
+            );
+
+            if (typedPhrase !== finalPhrase) {
+                deleteAttempts++;
+                const remainingAttempts = MAX_ATTEMPTS - deleteAttempts;
+                showNotification(`Incorrect phrase! ${remainingAttempts} attempt(s) remaining before account deletion is blocked.`);
+                return;
+            }
+
+            // Step 4: Security question
+            const partnerNameValue = document.getElementById('partnerNameValue');
+            const partnerName = document.getElementById('partnerName');
+            const currentPartnerName = partnerNameValue ? partnerNameValue.textContent : (partnerName ? partnerName.textContent : "No Pokémon Yet");
+            
+            const securityAnswer = prompt(
+                'STEP 4: SECURITY CHECK\n\n' +
+                'For your protection, please answer:\n' +
+                'What is your current Pokémon partner name?\n' +
+                '(Current: "' + currentPartnerName + '")',
+                ''
+            );
+
+            // Accept variations
+            const validAnswers = [currentPartnerName];
+            if (currentPartnerName !== "No Pokémon Yet" && currentPartnerName !== "No Pokémon") {
+                validAnswers.push("No Pokémon Yet");
+                validAnswers.push("No Pokémon");
+            }
+            
+            if (!validAnswers.includes(securityAnswer)) {
+                deleteAttempts++;
+                const remainingAttempts = MAX_ATTEMPTS - deleteAttempts;
+                showNotification(`Security check failed! ${remainingAttempts} attempt(s) remaining before account deletion is blocked.`);
+                return;
+            }
+
+            // Step 5: Final warning
+            if (!confirm('🚨 FINAL WARNING 🚨\n\n' +
+                'You are about to PERMANENTLY DELETE your account.\n\n' +
+                'This will:\n' +
+                '1. Delete ALL your data immediately\n' +
+                '2. Remove your Pokémon partner forever\n' +
+                '3. Erase ALL your progress\n' +
+                '4. CANNOT be recovered\n\n' +
+                'Click OK to DELETE or Cancel to keep your account.')) {
+                showNotification('Account deletion cancelled at the final step.');
+                return;
+            }
+
+            // Show loading state
+            const deleteBtn = document.getElementById('deleteAccountBtn');
+            const originalText = deleteBtn.textContent;
+            const originalHTML = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<span style="font-size: 10px;">🚀 DELETING...</span>';
+            deleteBtn.disabled = true;
+
+            // Send delete request
+            console.log('Attempting to delete account...');
+            
+            fetch('/api/delete_account', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                
+                // Try to parse JSON, but handle non-JSON responses
+                return response.text().then(text => {
+                    console.log('Raw response:', text);
+                    
+                    try {
+                        return {
+                            data: JSON.parse(text),
+                            status: response.status
+                        };
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', e);
+                        return {
+                            data: {success: false, error: 'Invalid server response'},
+                            status: response.status
+                        };
+                    }
+                });
+            })
+            .then(result => {
+                const { data, status } = result;
+                
+                if (status === 200 && data.success) {
+                    showNotification('✅ Account deleted successfully! Redirecting...');
+                    
+                    // Clear local storage
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    
+                    // Redirect to home page after a delay
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 2000);
+                    
+                } else {
+                    let errorMsg = data.error || 'Failed to delete account';
+                    
+                    // Provide specific messages for common errors
+                    if (status === 401) {
+                        errorMsg = 'Session expired. Please login again.';
+                    } else if (status === 404) {
+                        errorMsg = 'User not found. Already deleted?';
+                    } else if (status === 500) {
+                        errorMsg = 'Server error. Please try again later.';
+                    }
+                    
+                    showNotification('❌ Error: ' + errorMsg);
+                    
+                    // Restore button
+                    deleteBtn.innerHTML = originalHTML;
+                    deleteBtn.disabled = false;
+                    
+                    // Increment attempts on failure
+                    deleteAttempts++;
+                }
+            })
+            .catch(error => {
+                console.error('Network error:', error);
+                showNotification('❌ Network error. Please check your connection and try again.');
+                
+                // Restore button
+                deleteBtn.innerHTML = originalHTML;
+                deleteBtn.disabled = false;
+                
+                deleteAttempts++;
+            });
         }
 
         function showNotification(message) {
             const notification = document.createElement('div');
             notification.textContent = message;
-            
-            // Set styles individually to avoid CSS error
+           
             notification.style.position = 'fixed';
             notification.style.top = '100px';
             notification.style.right = '20px';
@@ -386,10 +1037,9 @@
             notification.style.animation = 'slideIn 0.3s ease';
             notification.style.maxWidth = '300px';
             notification.style.textAlign = 'center';
-            
+           
             document.body.appendChild(notification);
-            
-            // Add animation styles
+           
             if (!document.querySelector('#notification-styles')) {
                 const style = document.createElement('style');
                 style.id = 'notification-styles';
@@ -401,11 +1051,10 @@
                     @keyframes slideOut {
                         from { transform: translateX(0); opacity: 1; }
                         to { transform: translateX(100%); opacity: 0; }
-                    }
                 `;
                 document.head.appendChild(style);
             }
-            
+           
             setTimeout(() => {
                 notification.style.animation = 'slideOut 0.3s ease';
                 setTimeout(() => {
@@ -416,31 +1065,25 @@
             }, 3000);
         }
 
-        // Handle avatar upload
         document.getElementById('avatarUpload').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            // Check file size (limit to 2MB)
+           
             if (file.size > 2 * 1024 * 1024) {
                 showNotification('File too large! Max 2MB');
                 return;
             }
-            
-            // Check file type
+           
             if (!file.type.startsWith('image/')) {
                 showNotification('Please select an image file');
                 return;
             }
-            
-            // Preview image immediately
+           
             const reader = new FileReader();
             reader.onload = function(e) {
                 const avatarDiv = document.querySelector('.profile-avatar');
-                // Replace avatar content with image
                 avatarDiv.innerHTML = `<img src="${e.target.result}" alt="Profile Avatar" class="avatar-img">`;
-                
-                // Upload to server
+               
                 uploadAvatar(file);
             };
             reader.readAsDataURL(file);
@@ -449,7 +1092,7 @@
         function uploadAvatar(file) {
             const formData = new FormData();
             formData.append('avatar', file);
-            
+           
             fetch('/api/upload_avatar', {
                 method: 'POST',
                 body: formData
@@ -458,7 +1101,6 @@
             .then(data => {
                 if (data.success) {
                     showNotification('Avatar updated successfully!');
-                    // Update the image src with the server URL if provided
                     if (data.avatar_url) {
                         const img = document.querySelector('.profile-avatar img');
                         if (img) {
@@ -467,7 +1109,6 @@
                     }
                 } else {
                     showNotification(data.error || 'Error uploading avatar');
-                    // Revert to default avatar
                     revertToDefaultAvatar();
                 }
             })
@@ -485,9 +1126,13 @@
 
         function confirmLogout() {
             if (confirm('Are you sure you want to logout?')) {
-                window.location.href = "{{ url_for('logout') }}";
+                // Clear any local data if needed
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Redirect to logout endpoint
+                window.location.href = "/logout";
             }
         }
-
     </script>
 {%endblock%}

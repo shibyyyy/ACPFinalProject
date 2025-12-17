@@ -2,14 +2,15 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, TextAreaField, SelectField, IntegerField, BooleanField
 from wtforms.validators import DataRequired, NumberRange, Length, Email
 
+
 class LoginForm(FlaskForm):
     email = StringField(
-        'Username', 
+        'Username',
         validators=[DataRequired()],
         render_kw={"placeholder": "Enter your email"}
         )
     password = PasswordField(
-        'Password', 
+        'Password',
         validators=[DataRequired()],
         render_kw={"placeholder": "Enter your password"}
         )
@@ -17,7 +18,7 @@ class LoginForm(FlaskForm):
         'Login',
         render_kw={"class": "btn-primary"}
         )
-    
+   
 class SignupForm(FlaskForm):
     username = StringField(
         validators=[DataRequired(),Length(min=4, max=25, message="Invalid username.")],
@@ -44,6 +45,27 @@ class SignupForm(FlaskForm):
         render_kw={"class": "btn-primary"}
         )
 
+class ForgotPasswordForm(FlaskForm):
+    email = StringField(
+        'Email',
+        validators=[DataRequired(), Email(message="Invalid email address.")],
+        render_kw={"placeholder": "Enter your email"}
+    )
+    password = PasswordField(
+        'New Password',
+        validators=[DataRequired(), Length(min=8, message="Password must be at least 8 characters long.")],
+        render_kw={"placeholder": "New Password"}
+    )
+    confirm_password = PasswordField(
+        'Confirm Password',
+        validators=[DataRequired(), Length(min=8, message="Password must be at least 8 characters long.")],
+        render_kw={"placeholder": "Confirm Password"}
+    )
+    submit = SubmitField(
+        'Reset Password',
+        render_kw={"class": "btn-primary"}
+    )
+
 class AddWordForm(FlaskForm):
     word = StringField(
         validators=[DataRequired()],
@@ -53,6 +75,11 @@ class AddWordForm(FlaskForm):
         validators=[DataRequired()],
         render_kw={"rows" : 3, "placeholder": "Definition"}
     )
+    category = SelectField(
+        'Part of Speech',
+        choices=[('noun', 'Noun'), ('verb', 'Verb'), ('adjective', 'Adjective'), ('adverb', 'Adverb')],
+        validators=[DataRequired()]
+    )
     sentence = TextAreaField(
         validators=[DataRequired()],
         render_kw={"rows" : 3, "placeholder": "Example Sentence"}
@@ -61,3 +88,4 @@ class AddWordForm(FlaskForm):
         'Add Word',
         render_kw={"class": "btn-primary"}
     )
+

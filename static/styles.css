@@ -1222,8 +1222,35 @@
             margin: 0;
         }
 
+        /* Modern Minimal Scrollbar */
         .notification-list {
-            padding: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Hide scrollbar by default, show on hover */
+        .notification-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .notification-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+        }
+
+        .notification-list::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        /* Make it even more subtle */
+        .notification-list {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
         }
 
         .notification-item {
@@ -2758,7 +2785,7 @@
             flex-direction: column;
             gap: 20px;
         }
-        
+
         .word-form input, .word-form textarea {
             padding: 15px;
             font-size: 12px;
@@ -2767,11 +2794,11 @@
             outline: none;
             resize: none;
         }
-        
+
         .word-form textarea {
             height: 100px;
         }
-        
+
         .btn-primary {
             background: #ff4444;
             color: #fff;
@@ -2790,86 +2817,447 @@
             transform: translate(3px,3px); 
             box-shadow: 3px 3px 0 #000; 
         }
-        
+
         .btn-primary:active { 
             transform: translate(6px,6px); 
             box-shadow: 0 0 0 #000; 
         }
 
-        /* POKEMON EVOLUTION AREA */
+        /* POKEMON EVOLUTION AREA - Compact Implementation */
         .pokemon-evolution {
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(255,255,255,0.2);
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
             border: 4px solid #000;
             border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-        
-        .pokemon-container {
-            position: relative;
-            height: 120px;
-            margin: 20px 0;
-        }
-        
-        .pokemon {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 0.5s ease;
-        }
-        
-        .pokemon-name {
-            font-size: 14px;
+
+        .section-title {
+            text-align: center;
+            font-size: 16px;
             color: #ffd700;
             text-shadow: 2px 2px 0 #000;
+            margin-bottom: 15px;
+            font-family: 'Press Start 2P', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pokemon-container {
+            margin: 10px 0;
+        }
+
+        .pokemon-card {
+            background: rgba(0,0,0,0.3);
+            border: 3px solid #000;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .pokemon-card:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+        }
+
+        .pokemon-main {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .pokemon-image-container {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .pokemon-sprite-large {
+            width: 90px;
+            height: 90px;
+            image-rendering: pixelated;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            transition: all 0.3s ease;
+        }
+
+        .pokemon-sprite-large:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.5));
+        }
+
+        .pokemon-details {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .pokemon-name-large {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 8px;
+            font-family: 'Press Start 2P', monospace;
+            text-transform: capitalize;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 100%;
+        }
+
+        /* Compact Stats Row - FIXED FOR POKEMON NAME */
+        .pokemon-stats-compact {
+            background: rgba(0,0,0,0.4);
+            border: 2px solid #000;
+            border-radius: 6px;
+            padding: 8px 10px;
+        }
+
+        .stats-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 5px;
+            font-family: 'Press Start 2P', monospace;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
+
+        .stat-pair {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stat-value {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            background: linear-gradient(135deg, rgba(255,68,68,0.7), rgba(255,215,0,0.7));
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid #000;
+            text-align: center;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 40px;
+            flex-shrink: 0;
+        }
+
+        .stat-separator {
+            color: #ffd700;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 3px;
+            flex-shrink: 0;
+        }
+
+        /* Evolution Progress - Compact - FIXED NO SHIMMER */
+        .evolution-progress {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #000;
+            border-radius: 8px;
+            padding: 12px;
             margin-top: 10px;
         }
-        
-        .evolution-progress {
+
+        .progress-header {
             display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
         }
-        
-        .evolution-dot {
-            width: 12px;
-            height: 12px;
+
+        .progress-title {
+            font-size: 12px;
+            color: #ffd700;
+            text-shadow: 1px 1px 0 #000;
+            margin: 0;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .progress-count {
+            font-size: 11px;
+            color: #fff;
+            background: linear-gradient(135deg, #ff4444, #ff8800);
+            padding: 4px 10px;
+            border-radius: 4px;
             border: 2px solid #000;
-            background: #fff;
-            border-radius: 50%;
+            font-family: 'Press Start 2P', monospace;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        
-        .evolution-dot.active {
-            background: #ffd700;
+
+        .progress-bar {
+            height: 16px;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #000;
+            border-radius: 0;
+            overflow: hidden;
+            margin-bottom: 8px;
+            position: relative;
         }
-        
-        .evolution-dot.completed {
-            background: #76c442;
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd700, #ffed4e);
+            transition: width 0.5s ease;
+            position: relative;
         }
-        
+
+        /* REMOVED THE SHIMMER ANIMATION */
+        /* @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        } */
+
+        .progress-remaining {
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            margin: 0;
+            text-align: center;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* No Pokémon State */
+        .no-pokemon {
+            text-align: center;
+            padding: 25px 20px;
+            background: rgba(0,0,0,0.2);
+            border: 2px dashed #000;
+            border-radius: 8px;
+        }
+
+        .pokeball-placeholder {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #ff4444;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        .no-pokemon-text {
+            font-size: 12px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            margin-bottom: 15px;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .selection-prompt {
+            font-size: 10px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            text-align: center;
+            margin-top: 10px;
+            font-family: 'Press Start 2P', monospace;
+            padding: 5px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+
+        .btn-select-pokemon {
+            display: inline-block;
+            background: linear-gradient(135deg, #4169e1, #3159d1);
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        .btn-select-pokemon:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: linear-gradient(135deg, #3159d1, #2149c1);
+        }
+
         /* POKEMON SPRITES */
         .pokemon-sprite {
             image-rendering: pixelated;
             width: 80px;
             height: 80px;
         }
-        
+
         /* EVOLUTION ANIMATION */
         @keyframes evolve {
             0% { transform: translateX(-50%) scale(1); opacity: 1; }
             50% { transform: translateX(-50%) scale(1.5); opacity: 0.7; }
             100% { transform: translateX(-50%) scale(1); opacity: 1; }
         }
-        
+
         .evolving {
             animation: evolve 1s ease-in-out;
         }
-        
+
+        /* Pulse animation for word submission */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .animate-pulse {
+            animation: pulse 1s ease-in-out;
+        }
+
         .hidden {
             display: none;
         }
 
+        /* Animation for bounce */
+        @keyframes bounce {
+            0%, 100% { 
+                transform: translateY(0) rotate(0deg); 
+            }
+            25% { 
+                transform: translateY(-5px) rotate(-5deg); 
+            }
+            75% { 
+                transform: translateY(-5px) rotate(5deg); 
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .pokemon-main {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .pokemon-image-container {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .pokemon-sprite-large {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .pokemon-name-large {
+                font-size: 14px;
+                text-align: center;
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            .pokemon-stats-compact {
+                padding: 8px;
+            }
+            
+            .stats-row {
+                gap: 5px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .stat-pair {
+                flex: 1 0 auto;
+                justify-content: center;
+            }
+            
+            .stat-value {
+                font-size: 11px;
+                padding: 3px 6px;
+                min-width: 35px;
+            }
+            
+            .stat-label {
+                font-size: 8px;
+            }
+            
+            .progress-header {
+                flex-direction: column;
+                gap: 5px;
+                text-align: center;
+            }
+            
+            .progress-title,
+            .progress-count {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pokemon-evolution {
+                padding: 10px;
+                margin: 15px 0;
+            }
+            
+            .section-title {
+                font-size: 14px;
+            }
+            
+            .pokemon-card {
+                padding: 10px;
+            }
+            
+            .pokemon-image-container {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .pokemon-sprite-large {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .stats-row {
+                gap: 3px;
+            }
+            
+            .stat-label {
+                font-size: 7px;
+            }
+            
+            .stat-value {
+                font-size: 10px;
+                padding: 2px 4px;
+                min-width: 30px;
+            }
+            
+            .word-form input, 
+            .word-form textarea {
+                padding: 12px;
+                font-size: 11px;
+            }
+            
+            .btn-primary {
+                padding: 15px;
+                font-size: 12px;
+            }
+        }
         
         /* PRACTICE SESSION */
         .practice-card {
@@ -3528,7 +3916,7 @@
             margin-top: 10px;
         }
 
-        /* Profile Stats Grid */
+        /* Profile Stats Grid - UPDATED WITHOUT PROGRESS BARS */
         .profile-stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -3543,60 +3931,57 @@
             padding: 25px;
             box-shadow: 8px 8px 0 #000;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
-        .stat-card h3 {
-            font-size: 14px;
-            color: #ffd700;
-            text-shadow: 3px 3px 0 #000;
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+            border-color: #ffd700;
+        }
+
+        .stat-icon {
+            font-size: 32px;
             margin-bottom: 15px;
+            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
         }
 
         .stat-value {
-            font-size: 36px;
-            color: #fff;
-            text-shadow: 4px 4px 0 #000;
-            margin-bottom: 10px;
-            font-weight: bold;
+            font-size: 42px;
+            font-weight: 800;
+            font-family: 'Press Start 2P', monospace;
+            color: #ffd700;
+            text-shadow: 
+                2px 2px 0 #000,
+                4px 4px 0 rgba(0, 0, 0, 0.2);
+            margin: 10px 0;
+            letter-spacing: 1px;
         }
 
         .stat-label {
-            font-size: 10px;
+            font-size: 14px;
+            font-weight: 700;
             color: #fff;
-            text-shadow: 2px 2px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 8px 0 5px;
+            text-shadow: 1px 1px 0 #000;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .stat-subtitle {
+            font-size: 11px;
+            color: #ffed4e;
             opacity: 0.9;
+            margin-top: 5px;
+            text-shadow: 1px 1px 0 #000;
+            font-family: 'Press Start 2P', monospace;
         }
 
-        .stat-progress {
-            height: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 3px solid #000;
-            margin-top: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-
+        /* REMOVED PROGRESS BARS */
+        .stat-progress,
         .stat-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #228b22, #32cd32);
-            width: 75%;
-            position: relative;
-        }
-
-        .stat-progress-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            display: none !important;
         }
 
         /* Profile Sections */
@@ -3632,112 +4017,257 @@
             font-size: 20px;
         }
 
-        /* Info Items */
+        /* Info Items - IMPROVED TEXT VISIBILITY */
         .info-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding: 15px;
+            padding: 20px;
             background: rgba(0, 0, 0, 0.2);
             border: 3px solid #000;
             transition: all 0.3s;
+            border-radius: 8px;
         }
 
         .info-item:hover {
             background: rgba(255, 215, 0, 0.1);
             transform: translateX(5px);
+            border-color: #ffd700;
+            box-shadow: 0 6px 15px rgba(255, 215, 0, 0.2);
+        }
+
+        .info-content {
+            flex: 1;
         }
 
         .info-label {
-            font-size: 10px;
+            font-size: 14px; /* Increased from 10px */
             color: #fff;
-            text-shadow: 2px 2px 0 #000;
+            text-transform: uppercase;
+            letter-spacing: 1.5px; /* Increased spacing */
+            margin-bottom: 8px; /* Increased spacing */
+            text-shadow: 2px 2px 0 #000; /* Stronger shadow */
+            font-weight: 700;
+            font-family: 'Press Start 2P', monospace;
         }
 
         .info-value {
-            font-size: 12px;
+            font-size: 20px; /* Increased from 12px */
+            font-weight: 700; /* Bolder */
+            color: #fff;
+            text-shadow: 
+                2px 2px 0 #000,
+                4px 4px 0 rgba(0, 0, 0, 0.2); /* Double shadow for depth */
+            word-break: break-word;
+            line-height: 1.4;
+            padding: 5px 0;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* Style specific values */
+        .info-value#email {
+            color: #ffed4e;
+            font-size: 18px;
+        }
+
+        .info-value#username {
             color: #ffd700;
-            text-shadow: 2px 2px 0 #000;
-            text-align: right;
+            font-size: 22px; /* Even larger for username */
+            font-weight: 800;
+            text-transform: capitalize;
+        }
+
+        .info-value#accountCreated,
+        .info-value#lastLogin {
+            color: #ffed4e;
+            font-size: 18px;
+            letter-spacing: 0.5px;
         }
 
         .edit-btn {
             background: #4169e1;
             color: #fff;
             border: 2px solid #000;
-            width: 30px;
-            height: 30px;
+            width: 35px; /* Slightly larger */
+            height: 35px; /* Slightly larger */
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px; /* Increased from 12px */
             transition: all 0.2s;
             flex-shrink: 0;
+            box-shadow: 3px 3px 0 #000;
+            border-radius: 4px;
         }
 
         .edit-btn:hover {
-            transform: scale(1.1);
+            transform: translate(2px, 2px) scale(1.1);
             background: #3159d1;
+            box-shadow: 1px 1px 0 #000;
         }
 
         /* Partner Section */
         .partner-section {
             text-align: center;
             margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border: 3px solid #000;
+            border-radius: 15px;
         }
 
         .partner-card {
-            background: rgba(255, 255, 255, 0.9);
-            border: 4px solid #000;
-            border-radius: 20px;
-            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 5px solid #000;
+            border-radius: 25px;
+            padding: 35px 30px;
             display: inline-block;
-            box-shadow: 8px 8px 0 #000;
+            box-shadow: 10px 10px 0 #000;
             transition: all 0.3s;
             cursor: pointer;
+            min-width: 280px;
+            max-width: 400px;
+            width: 100%;
         }
 
         .partner-card:hover {
             transform: scale(1.05);
-            box-shadow: 12px 12px 0 #000;
+            box-shadow: 15px 15px 0 #000;
+            border-color: #ffd700;
         }
 
         .partner-image {
-            width: 120px;
-            height: 120px;
+            width: 150px; /* Increased from 120px */
+            height: 150px; /* Increased from 120px */
             image-rendering: pixelated;
-            margin-bottom: 15px;
+            margin-bottom: 20px; /* Increased from 15px */
+            filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
         }
 
         .partner-name {
-            font-size: 18px;
+            font-size: 24px; /* Increased from 18px */
             color: #000;
             text-shadow: 2px 2px 0 #fff;
-            margin-bottom: 5px;
+            margin-bottom: 8px; /* Increased from 5px */
             font-weight: bold;
+            font-family: 'Press Start 2P', monospace;
+            letter-spacing: 1px;
+        }
+        
+        /* Partner Name Inline Edit Styles */
+        .partner-name-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .partner-name-value {
+            font-size: 20px;
+            color: #ffd700 !important;
+            text-shadow: 2px 2px 0 #000 !important;
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        .partner-name-edit {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .partner-name-edit form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .partner-name-edit .edit-input {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 0;
+        }
+
+        .partner-name-edit .edit-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
         }
 
         .partner-type {
-            font-size: 10px;
-            color: #666;
+            font-size: 12px; /* Increased from 10px */
+            color: #4169e1;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
+            letter-spacing: 1.5px; /* Increased from 1px */
+            margin-bottom: 20px; /* Increased from 15px */
+            font-weight: 600;
+            font-family: 'Press Start 2P', monospace;
+            padding: 5px 15px;
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #000;
+            border-radius: 20px;
+            display: inline-block;
         }
 
         .change-name-btn {
             background: #228b22;
             color: #fff;
             border: 3px solid #000;
-            padding: 10px 20px;
-            font-size: 10px;
+            padding: 12px 25px; /* Increased padding */
+            font-size: 11px; /* Slightly larger */
             cursor: pointer;
             text-transform: uppercase;
             font-family: 'Press Start 2P', monospace;
             transition: all 0.2s;
-            box-shadow: 4px 4px 0 #000;
+            box-shadow: 5px 5px 0 #000; /* Larger shadow */
+            margin-top: 10px;
+            border-radius: 8px;
+        }
+
+        .change-name-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 3px 3px 0 #000;
+            background: #1e7b1e;
+        }
+
+        /* Responsive adjustments for enlarged partner section */
+        @media (max-width: 768px) {
+            .partner-section {
+                padding: 15px;
+            }
+            
+            .partner-card {
+                padding: 25px 20px;
+                min-width: 250px;
+            }
+            
+            .partner-image {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .partner-name {
+                font-size: 20px;
+            }
+            
+            .partner-type {
+                font-size: 10px;
+                padding: 4px 12px;
+            }
+            
+            .change-name-btn {
+                padding: 10px 20px;
+                font-size: 10px;
+            }
         }
 
         .change-name-btn:hover {
@@ -3792,6 +4322,108 @@
 
         .action-btn.delete:hover {
             background: #ff3333;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .profile-container {
+                margin-top: 80px;
+                padding: 10px;
+            }
+            
+            .profile-header-section {
+                padding: 20px;
+            }
+            
+            .profile-avatar {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .avatar-icon {
+                font-size: 60px;
+                line-height: 120px;
+            }
+            
+            .change-avatar-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            
+            .profile-title {
+                font-size: 24px;
+            }
+            
+            .profile-stats-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .stat-card {
+                padding: 20px 15px;
+            }
+            
+            .stat-value {
+                font-size: 36px;
+            }
+            
+            .stat-label {
+                font-size: 12px;
+            }
+            
+            .profile-sections {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .profile-section {
+                padding: 20px;
+            }
+            
+            .info-item {
+                padding: 15px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .info-label {
+                font-size: 12px;
+            }
+            
+            .info-value {
+                font-size: 16px;
+            }
+            
+            .info-value#username {
+                font-size: 18px;
+            }
+            
+            .info-value#email,
+            .info-value#accountCreated,
+            .info-value#lastLogin {
+                font-size: 14px;
+            }
+            
+            .edit-btn {
+                align-self: flex-end;
+                width: 30px;
+                height: 30px;
+                font-size: 12px;
+            }
+            
+            .profile-actions {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .action-btn {
+                min-width: 250px;
+                width: 100%;
+                max-width: 300px;
+            }
         }
 
         /* Particles */
@@ -5066,15 +5698,15 @@
                 font-size: 16px;
             }
         }
-            /* Leaderboard Specific Styles */
-         .leaderboard-container { margin-top: 120px; max-width: 900px; margin-left: auto; margin-right: auto; padding: 20px; position: relative; z-index: 10; margin-bottom: 100px; }
-
+        
+        /* Leaderboard Specific Styles */
+        .leaderboard-container { margin-top: 120px; max-width: 900px; margin-left: auto; margin-right: auto; padding: 20px; position: relative; z-index: 10; margin-bottom: 100px; }
         .back-btn { background: #4169e1; color: #fff; border: 4px solid #000; padding: 12px 20px; font-size: 10px; box-shadow: 6px 6px 0 #000; cursor: pointer; font-family: 'Press Start 2P', monospace; margin-bottom: 20px; transition: all 0.2s; }
         .back-btn:hover { transform: translate(3px,3px); box-shadow: 3px 3px 0 #000; }
 
         .page-title { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 30px; margin-bottom: 30px; box-shadow: 8px 8px 0 #000; text-align: center; }
         .page-title h1 { font-size: 32px; color: #ffd700; text-shadow: 4px 4px 0 #000; margin-bottom: 10px; }
-        .page-title p { font-size: 11px; color: #fff; text-shadow: 2px 2px 0 #000; }
+        .page-title p { font-size: 11px; color: #ffffff; text-shadow: 2px 2px 0 #000, 0 0 5px rgba(255, 255, 255, 0.8); font-weight: 600; background: rgba(0, 0, 0, 0.3); padding: 8px 15px; border-radius: 20px; display: inline-block; border: 2px solid #ffd700; }
 
         .filter-tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
         .tab-btn { background: rgba(255,255,255,0.15); color: #fff; border: 4px solid #000; padding: 12px 20px; font-size: 10px; box-shadow: 6px 6px 0 #000; cursor: pointer; font-family: 'Press Start 2P', monospace; transition: all 0.2s; text-shadow: 2px 2px 0 #000; }
@@ -5082,14 +5714,196 @@
         .tab-btn.active { background: #ffd700; color: #000; text-shadow: none; }
 
         .top-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
-        .podium { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 25px; box-shadow: 8px 8px 0 #000; text-align: center; position: relative; }
+        .podium { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 20px; box-shadow: 8px 8px 0 #000; text-align: center; position: relative; }
         .podium.first { order: 2; background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,255,255,0.15)); border-color: #ffd700; transform: scale(1.1); }
         .podium.second { order: 1; }
         .podium.third { order: 3; }
         .podium .rank { font-size: 48px; margin-bottom: 10px; }
-        .podium .username { font-size: 12px; color: #ffd700; text-shadow: 2px 2px 0 #000; margin-bottom: 10px; }
+        .podium .username { font-size: 12px; color: #ffd700; text-shadow: 2px 2px 0 #000; margin-bottom: 5px; }
         .podium .score { font-size: 16px; color: #fff; text-shadow: 2px 2px 0 #000; }
         .podium .label { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
+
+        /* Invisible profile links for podium */
+        .profile-link-invisible {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .profile-link-invisible:hover {
+            text-decoration: none;
+        }
+
+        /* Make leaderboard items clickable without looking like links */
+        .leaderboard-item.clickable {
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .leaderboard-item.clickable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.clickable.you:hover {
+            background-color: rgba(67, 97, 238, 0.15);
+        }
+
+        /* Remove any link styling */
+        .leaderboard-item a,
+        .leaderboard-item a:hover,
+        .leaderboard-item a:visited,
+        .leaderboard-item a:active {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Profile Picture Styles for Podium */
+        .podium-user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Make all clickable items have proper hover effects */
+        .podium.clickable,
+        .leaderboard-item.clickable {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* Podium hover effects */
+        .podium.second.clickable:hover {
+            background-color: rgba(192, 192, 192, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .podium.first.clickable:hover {
+            background-color: rgba(255, 215, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .podium.third.clickable:hover {
+            background-color: rgba(205, 127, 50, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Leaderboard list hover effects */
+        .leaderboard-item.clickable:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateX(5px);
+        }
+
+        .leaderboard-item.clickable.you:hover {
+            background-color: rgba(67, 97, 238, 0.15);
+        }
+
+        /* For empty podium slots (not clickable) */
+        .podium:not(.clickable) {
+            cursor: default;
+        }
+
+        /* Remove any link styling from username/avatar inside clickable areas */
+        .podium .username,
+        .leaderboard-item .item-username {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .podium .podium-avatar,
+        .leaderboard-item .item-avatar {
+            text-decoration: none;
+        }
+
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #fff;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+
+        .podium.first .podium-avatar {
+            width: 70px;
+            height: 70px;
+            border: 4px solid #ffd700;
+        }
+
+        .podium.second .podium-avatar {
+            border: 3px solid #c0c0c0;
+        }
+
+        .podium.third .podium-avatar {
+            border: 3px solid #cd7f32;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-default {
+            font-size: 24px;
+            color: #666;
+        }
+
+        .podium.first .avatar-default {
+            font-size: 28px;
+        }
+
+        .podium-details {
+            text-align: center;
+        }
+
+        .podium .username {
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 5px;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 215, 0, 0.5);
+        }
+
+        .podium.first .username {
+            font-size: 14px;
+            font-weight: 800;
+            border: 2px solid #ffd700;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        /* Make points more visible */
+        .podium .score {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 0 #000, 0 0 10px rgba(255,235,59,0.5);
+        }
+
+        .podium.first .score {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #000, 0 0 15px rgba(255,215,0,0.7);
+        }
+
+        .podium .label {
+            font-size: 9px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            font-weight: 600;
+        }
 
         .leaderboard-list { background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); border: 4px solid #000; padding: 20px; box-shadow: 8px 8px 0 #000; }
         .leaderboard-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border: 3px solid #000; transition: all 0.2s; }
@@ -5097,18 +5911,88 @@
         .leaderboard-item.you { background: rgba(255,215,0,0.2); border-color: #ffd700; box-shadow: 0 0 15px rgba(255,215,0,0.3); }
         .item-left { display: flex; align-items: center; gap: 15px; }
         .item-rank { font-size: 16px; color: #ffd700; text-shadow: 2px 2px 0 #000; min-width: 40px; }
-        .item-username { font-size: 11px; color: #fff; text-shadow: 2px 2px 0 #000; }
-        .item-badge { font-size: 8px; background: #ff4444; color: #fff; padding: 4px 8px; border: 2px solid #000; margin-left: 10px; }
-        .item-right { display: flex; flex-direction: column; align-items: flex-end; }
-        .item-score { font-size: 14px; color: #ffd700; text-shadow: 2px 2px 0 #000; }
-        .item-words { font-size: 8px; color: #ccc; text-shadow: 1px 1px 0 #000; }
 
-         .user-rank-info {
+        /* Profile Picture Styles for Leaderboard List */
+        .item-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.9);
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .leaderboard-item.you .item-avatar {
+            border-color: #ffd700;
+        }
+
+        .item-username { 
+            font-size: 12px; 
+            color: #ffffff; 
+            text-shadow: 2px 2px 0 #000;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .item-badge { 
+            font-size: 8px; 
+            background: #ff4444; 
+            color: #fff; 
+            padding: 4px 8px; 
+            border: 2px solid #000; 
+            margin-left: 10px;
+            font-weight: 700;
+        }
+        .item-right { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end;
+            gap: 3px;
+        }
+
+        /* Make points more visible in list */
+        .item-score { 
+            font-size: 16px;
+            color: #ffeb3b;
+            text-shadow: 2px 2px 0 #000, 0 0 8px rgba(255,235,59,0.4);
+            font-weight: 800;
+        }
+
+        /* Make word count more visible */
+        .item-words { 
+            font-size: 9px;
+            color: #4fc3f7;
+            text-shadow: 1px 1px 0 #000;
+            font-weight: 600;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .user-rank-info {
             background: #f0f9ff;
             padding: 10px 15px;
             border-radius: 8px;
             margin-top: 15px;
             border: 2px solid #4CAF50;
             font-size: 16px;
+            color: #000;
+            text-shadow: none;
+            font-weight: 600;
         }
 
+        /* Make user rank info numbers stand out more */
+        .user-rank-info strong {
+            color: #ff5722;
+            font-weight: 800;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+
+        

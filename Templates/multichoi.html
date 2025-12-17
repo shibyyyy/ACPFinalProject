@@ -1,20 +1,26 @@
 {%extends 'base.html'%}
 {%block title%}<title>Multiple Choice - VocabuLearner</title>{% endblock%}
 
+
 {%block content%}
     {%block logo_link %}
-            <a href="{{ url_for('dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
+        <a href="{{ url_for('dashboard') }}" class="logo-link">
+            <div class="logo-icon">
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+                <div class="pokeball-mini"></div>
+            </div>
+            VocabuLearner
+        </a>
     {% endblock %}
     {%block header%}{%endblock%}
 
     <main class="quiz-container">
+        <!-- Back Button Moved Here - Above Quiz Header -->
+        <div class="back-button-container" style="margin: 20px 0 20px 20px;">
+            <button class="back-button" onclick="window.location.href='/review'">← Back to Review</button>
+        </div>
+
         <!-- Quiz Header -->
         <div class="quiz-header">
             <div class="quiz-title">Vocabulary Master Challenge</div>
@@ -34,27 +40,30 @@
             </div>
         </div>
 
+
         <!-- Progress Bar -->
         <div class="progress-container2">
             <div class="progress-label">
                 <span>Question Progress</span>
-                <span id="progress-percent">30%</span>
+                <span id="progress-percent">10%</span>
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
         </div>
 
+
         <!-- Question Container -->
         <div class="question-container">
             <div class="question-header">
                 <div class="question-number">Question #<span id="question-num">1</span></div>
-                <div class="difficulty" id="difficulty">Medium</div>
+                <!-- Removed difficulty display -->
             </div>
-            
+           
             <div class="question-text" id="question-text">
-                What is the meaning of the word "Ubiquitous"?
+                Loading question...
             </div>
+
 
             <!-- Timer -->
             <div class="timer-container">
@@ -62,25 +71,28 @@
                 <div class="timer-display" id="timer">00:15</div>
             </div>
 
+
             <!-- Options -->
             <div class="options-grid" id="options-grid">
-                <!-- Options will be populated by JavaScript -->
+                <div class="loading-text">Loading options...</div>
             </div>
+
 
             <!-- Explanation -->
             <div class="explanation-box" id="explanation-box">
                 <div class="explanation-title">💡 Explanation</div>
                 <div class="explanation-text" id="explanation-text">
-                    "Ubiquitous" comes from Latin "ubique" meaning "everywhere". It's often used in technology contexts to describe things that are everywhere, like smartphones or social media.
+                    Loading explanation...
                 </div>
             </div>
+
 
             <!-- Controls -->
             <div class="quiz-controls">
                 <button class="control-btn" id="prev-btn" onclick="previousQuestion()" disabled>
                     ← Previous
                 </button>
-                
+               
                 <div class="streak-display">
                     <div class="streak-icon">🔥</div>
                     <div class="streak-info">
@@ -88,7 +100,7 @@
                         <p>Get 5 correct in a row for bonus points!</p>
                     </div>
                 </div>
-                
+               
                 <button class="control-btn secondary" id="next-btn" onclick="nextQuestion()" disabled>
                     Next Question →
                 </button>
@@ -96,33 +108,31 @@
         </div>
     </main>
 
-    <!-- Score Popup -->
-    <div class="score-popup" id="score-popup">
-        <div class="score-title">Quiz Complete!</div>
-        <div class="score-result">Score: <span id="final-score">0</span></div>
-        
-        <div class="score-stats">
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-correct">0</div>
-                <div class="score-stat-label">Correct Answers</div>
+    <!-- EXP Popup Modal -->
+    <div class="modal exp-modal" id="expPopup">
+        <div class="modal-content">
+            <div class="exp-popup-content">
+                <div class="exp-icon">✨</div>
+                <h2>EXP Earned!</h2>
+                <div class="exp-amount" id="expAmount">+0 EXP</div>
+                <p class="exp-message">Your vocabulary knowledge has been rewarded!</p>
+                <div class="exp-details">
+                    <div class="exp-detail">
+                        <span class="label">Correct Answers:</span>
+                        <span class="value" id="popupScore">0</span>
+                    </div>
+                    <div class="exp-detail">
+                        <span class="label">Accuracy:</span>
+                        <span class="value" id="popupAccuracy">0%</span>
+                    </div>
+                    <div class="exp-detail">
+                        <span class="label">Time:</span>
+                        <span class="value" id="popupTime">0s</span>
+                    </div>
+                </div>
+                <button class="btn-confirm" id="btn-close-popup">Awesome! Continue</button>
+                <button class="btn-confirm back-to-review-popup" onclick="window.location.href='/review'" style="background: #666; margin-top: 10px;">Back to Review Menu</button>
             </div>
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-accuracy">0%</div>
-                <div class="score-stat-label">Accuracy</div>
-            </div>
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-streak">0</div>
-                <div class="score-stat-label">Best Streak</div>
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 20px; justify-content: center;">
-            <button class="control-btn" onclick="restartQuiz()">
-                🔄 Play Again
-            </button>
-            <button class="control-btn secondary" onclick="closePopup()">
-                Back to Menu
-            </button>
         </div>
     </div>
 
@@ -131,72 +141,10 @@
         <p style="margin-top: 10px; font-size: 8px;">Multiple Choice Quiz - Test your vocabulary knowledge!</p>
     </footer>
 
-    <script>
-        // Quiz Data
-        const quizQuestions = [
-            {
-                question: "What is the meaning of the word 'Ubiquitous'?",
-                options: [
-                    "Present everywhere",
-                    "Extremely rare",
-                    "Beautifully crafted",
-                    "Temporarily available"
-                ],
-                correct: 0,
-                explanation: "'Ubiquitous' comes from Latin 'ubique' meaning 'everywhere'. It's often used in technology contexts to describe things that are everywhere, like smartphones or social media.",
-                difficulty: "Medium"
-            },
-            {
-                question: "Which word means 'to make less severe'?",
-                options: [
-                    "Mitigate",
-                    "Exacerbate",
-                    "Complicate",
-                    "Intensify"
-                ],
-                correct: 0,
-                explanation: "'Mitigate' means to make something less severe, serious, or painful. For example: 'The medicine helped to mitigate the pain.'",
-                difficulty: "Easy"
-            },
-            {
-                question: "What does 'Serendipity' mean?",
-                options: [
-                    "The occurrence of events by chance in a happy way",
-                    "A planned sequence of events",
-                    "A feeling of sadness",
-                    "An organized system"
-                ],
-                correct: 0,
-                explanation: "'Serendipity' is the occurrence of events by chance in a happy or beneficial way. It comes from the Persian fairy tale 'The Three Princes of Serendip'.",
-                difficulty: "Hard"
-            },
-            {
-                question: "Which word describes someone showing great attention to detail?",
-                options: [
-                    "Meticulous",
-                    "Careless",
-                    "Hasty",
-                    "Superficial"
-                ],
-                correct: 0,
-                explanation: "'Meticulous' means showing great attention to detail; very careful and precise. Example: 'She was meticulous in her research.'",
-                difficulty: "Medium"
-            },
-            {
-                question: "What is the definition of 'Eloquent'?",
-                options: [
-                    "Fluent or persuasive in speaking or writing",
-                    "Quiet and reserved",
-                    "Confusing and unclear",
-                    "Simple and plain"
-                ],
-                correct: 0,
-                explanation: "'Eloquent' means having or showing the ability to use language clearly and effectively. An eloquent speaker can express ideas powerfully.",
-                difficulty: "Easy"
-            }
-        ];
 
-        // Game State
+    <script>
+        // ============ GAME STATE ============
+        let quizQuestions = [];
         let currentQuestionIndex = 0;
         let score = 0;
         let streak = 0;
@@ -205,11 +153,12 @@
         let timer = 15;
         let timerInterval = null;
         let bestStreak = 0;
+        let startTime;
+        let totalExpEarned = 0;
 
         // DOM Elements
         const questionText = document.getElementById('question-text');
         const questionNum = document.getElementById('question-num');
-        const difficulty = document.getElementById('difficulty');
         const optionsGrid = document.getElementById('options-grid');
         const explanationBox = document.getElementById('explanation-box');
         const explanationText = document.getElementById('explanation-text');
@@ -221,13 +170,125 @@
         const timerDisplay = document.getElementById('timer');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
-        const scorePopup = document.getElementById('score-popup');
+        const expPopup = document.getElementById('expPopup');
+        const expAmount = document.getElementById('expAmount');
+        const popupScore = document.getElementById('popupScore');
+        const popupAccuracy = document.getElementById('popupAccuracy');
+        const popupTime = document.getElementById('popupTime');
+        const btnClosePopup = document.getElementById('btn-close-popup');
+
+        function loadVocabulary() {
+            let wordsData = {{ words|tojson|safe }};
+            
+            console.log("Loaded words from database:", wordsData); // Debug log
+            
+            if (wordsData && wordsData.length > 0) {
+                quizQuestions = generateQuizQuestions(wordsData);
+                if (quizQuestions.length > 0) {
+                    startTime = new Date();
+                    initQuiz();
+                } else {
+                    showNoWordsMessage();
+                }
+            } else {
+                showNoWordsMessage();
+            }
+        }
+
+        loadVocabulary();
+
+        function showNoWordsMessage() {
+            questionText.textContent = "No Words Available";
+            optionsGrid.innerHTML = '<div class="error-message">You haven\'t added any words to review yet. Go to \'Add New Word\' to start building your vocabulary!</div>';
+            explanationText.textContent = "Please add words first.";
+            explanationBox.classList.add('show');
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+        }
+
+        function showErrorMessage(message) {
+            questionText.textContent = "Error";
+            optionsGrid.innerHTML = '<div class="error-message">' + message + '</div>';
+            explanationText.textContent = "Please try again later.";
+            explanationBox.classList.add('show');
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
+        }
+
+        // Function to generate quiz questions from database words
+        function generateQuizQuestions(words) {
+            const questions = [];
+            
+            // Shuffle words first
+            const shuffledWords = [...words];
+            for (let i = shuffledWords.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledWords[i], shuffledWords[j]] = [shuffledWords[j], shuffledWords[i]];
+            }
+            
+            // Use first 10 words (or all if less than 10)
+            const wordCount = Math.min(shuffledWords.length, 10);
+            const selectedWords = shuffledWords.slice(0, wordCount);
+            
+            selectedWords.forEach((wordObj, index) => {
+                const question = {
+                    question: `What is the meaning of the word "${wordObj.word}"?`,
+                    options: [],
+                    correct: 0,
+                    explanation: `"${wordObj.word}" means: ${wordObj.definition}. Example: "${wordObj.example_sentence}"`
+                };
+                
+                // Add correct definition as first option
+                question.options.push(wordObj.definition);
+                
+                // Add 3 incorrect options from other words
+                let incorrectCount = 0;
+                while (incorrectCount < 3) {
+                    const randomIndex = Math.floor(Math.random() * words.length);
+                    const randomWord = words[randomIndex];
+                    
+                    // Make sure it's a different word and definition is not already in options
+                    if (randomWord.word !== wordObj.word &&
+                        !question.options.includes(randomWord.definition)) {
+                        question.options.push(randomWord.definition);
+                        incorrectCount++;
+                    }
+                }
+                
+                // Shuffle the options (so correct answer isn't always first)
+                shuffleArray(question.options);
+                
+                // Find new position of correct answer after shuffling
+                question.correct = question.options.indexOf(wordObj.definition);
+                
+                questions.push(question);
+            });
+            
+            return questions;
+        }
+        
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
         // Initialize Quiz
         function initQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            streak = 0;
+            bestStreak = 0;
+            selectedOption = null;
+            isAnswered = false;
+            totalExpEarned = 0;
+            
             loadQuestion();
             updateStats();
             startTimer();
+            expPopup.classList.remove('active');
         }
 
         // Load Question
@@ -244,10 +305,6 @@
             // Update question info
             questionText.textContent = question.question;
             questionNum.textContent = currentQuestionIndex + 1;
-            difficulty.textContent = question.difficulty;
-            difficulty.style.background = 
-                question.difficulty === 'Easy' ? '#4CAF50' : 
-                question.difficulty === 'Medium' ? '#FF9800' : '#ff4444';
             
             // Clear and create options
             optionsGrid.innerHTML = '';
@@ -411,36 +468,203 @@
         }
 
         // Show Results
-        function showResults() {
-            const accuracy = Math.round((score / (quizQuestions.length * 10)) * 100);
+        async function showResults() {
+            const totalQuestions = quizQuestions.length;
+            const correctAnswers = Math.floor(score / 10);
+            const accuracy = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+            const endTime = new Date();
+            const elapsedSeconds = Math.floor((endTime - startTime) / 1000);
             
-            document.getElementById('final-score').textContent = score;
-            document.getElementById('final-correct').textContent = Math.floor(score / 10);
-            document.getElementById('final-accuracy').textContent = `${accuracy}%`;
-            document.getElementById('final-streak').textContent = bestStreak;
+            // Calculate EXP earned (15 EXP per correct answer + bonus for accuracy and speed)
+            totalExpEarned = correctAnswers * 15;
+            if (accuracy >= 80) totalExpEarned += 25; // Bonus for high accuracy
+            if (elapsedSeconds < 60) totalExpEarned += 15; // Bonus for speed
+            if (bestStreak >= 5) totalExpEarned += 20; // Bonus for streaks
             
-            scorePopup.classList.add('show');
+            // Update EXP popup
+            popupScore.textContent = correctAnswers;
+            popupAccuracy.textContent = `${accuracy}%`;
+            popupTime.textContent = `${elapsedSeconds}s`;
+            expAmount.textContent = `+${totalExpEarned} EXP`;
+            
+            // Send EXP to server to update user account
+            await updateUserExp(totalExpEarned, correctAnswers, accuracy, elapsedSeconds);
+            
+            // Show EXP popup after a short delay
+            setTimeout(() => {
+                expPopup.classList.add('active');
+            }, 1000);
+        }
+
+        // Update user EXP on server
+        async function updateUserExp(expAmount, correctAnswers, accuracy, timeSeconds) {
+            try {
+                const response = await fetch('/api/add_review_exp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        exp_earned: expAmount,
+                        score: correctAnswers,
+                        accuracy: accuracy,
+                        time_seconds: timeSeconds,
+                        game_type: 'multiple_choice'
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to update user EXP:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating user EXP:', error);
+            }
         }
 
         // Restart Quiz
         function restartQuiz() {
-            currentQuestionIndex = 0;
-            score = 0;
-            streak = 0;
-            bestStreak = 0;
-            selectedOption = null;
-            isAnswered = false;
-            
-            scorePopup.classList.remove('show');
+            expPopup.classList.remove('active');
             initQuiz();
         }
 
-        function closePopup() {
-            scorePopup.classList.remove('show');
-            alert('Returning to challenges menu...');
+        // Go Back to Menu
+        function goBackToMenu() {
+            window.location.href = '/review';
         }
 
-        window.onload = initQuiz;
-    </script>
+        // Close EXP popup
+        btnClosePopup.addEventListener('click', function() {
+            expPopup.classList.remove('active');
+            // Optional: shuffle questions and restart
+            restartQuiz();
+        });
 
+
+        // Style for EXP popup (similar to flashcards)
+        const style = document.createElement('style');
+        style.textContent = `
+            .exp-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+            .exp-modal.active {
+                display: flex;
+            }
+            .exp-popup-content {
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                animation: popupSlide 0.5s ease;
+                border: 4px solid #4CAF50;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            }
+            @keyframes popupSlide {
+                from { transform: translateY(-50px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            .exp-icon {
+                font-size: 60px;
+                margin-bottom: 20px;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+            .exp-amount {
+                font-size: 36px;
+                font-weight: bold;
+                color: #4CAF50;
+                margin: 20px 0;
+                text-shadow: 2px 2px 0 #ddd;
+            }
+            .exp-message {
+                color: #666;
+                margin-bottom: 25px;
+                font-size: 16px;
+            }
+            .exp-details {
+                background: #f9f9f9;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: left;
+            }
+            .exp-detail {
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+                padding: 5px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .exp-detail:last-child {
+                border-bottom: none;
+            }
+            .exp-detail .label {
+                color: #666;
+            }
+            .exp-detail .value {
+                font-weight: bold;
+                color: #333;
+            }
+            .btn-confirm {
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                font-size: 18px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-weight: bold;
+                width: 100%;
+                margin-top: 20px;
+            }
+            .btn-confirm:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            }
+            /* Back button styles */
+            .back-button-container {
+                margin: 20px 0 10px 20px;
+            }
+            .back-button {
+                background: #f5f5f5;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                color: #333;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .back-button:hover {
+                background: #e0e0e0;
+                transform: translateY(-2px);
+            }
+            .back-to-review-popup {
+                background: #666;
+            }
+            .back-to-review-popup:hover {
+                background: #555;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 {%endblock%}

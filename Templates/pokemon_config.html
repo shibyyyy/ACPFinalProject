@@ -1,0 +1,937 @@
+{%extends "base.html"%}
+{%block title%}
+    <title>Pokémon Configuration - VocabuLearner Admin</title>
+{%endblock%}
+
+{%block content%}
+{%block logo_link %}
+            <a href="{{ url_for('admin_dashboard') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+    {% endblock %}
+    {%block header%}
+        <div class="header-actions">
+            <button class="back-btn" onclick="goToDashboard()">Back to Dashboard</button>
+            <button class="logout-btn" onclick="showLogoutConfirm()">Logout</button>
+        </div>
+    {%endblock%}
+    <style>
+        /* Pokémon Configuration Styles */
+        .management-container { 
+            margin-top: 120px; 
+            max-width: 1400px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            padding: 20px; 
+            position: relative; 
+            z-index: 10; 
+        }
+
+        /* Page Header */
+        .page-header { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+            text-align: center;
+        }
+        .page-header h1 { 
+            font-size: 24px; 
+            color: #ffd700; 
+            text-shadow: 4px 4px 0 #000; 
+            margin-bottom: 15px; 
+        }
+        .page-header p { 
+            font-size: 12px; 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000; 
+            margin-bottom: 20px; 
+        }
+
+        /* Current Pokémon Display */
+        .current-pokemon { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+        }
+        .current-pokemon h2 { 
+            font-size: 18px; 
+            color: #ffd700; 
+            text-shadow: 3px 3px 0 #000; 
+            margin-bottom: 20px; 
+            text-align: center; 
+        }
+        .pokemon-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        .pokemon-item { 
+            background: rgba(0,0,0,0.2); 
+            border: 3px solid #000; 
+            padding: 20px; 
+            transition: all 0.3s; 
+        }
+        .pokemon-item:hover { 
+            transform: translateY(-5px); 
+            background: rgba(0,0,0,0.3); 
+        }
+        .pokemon-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        .pokemon-icon { 
+            width: 70px; 
+            height: 70px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            flex-shrink: 0;
+        }
+        .pokemon-icon img { 
+            width: 60px; 
+            height: 60px; 
+            object-fit: contain; 
+        }
+        .pokemon-info {
+            flex: 1;
+        }
+        .pokemon-name { 
+            font-size: 14px; 
+            color: #ffd700; 
+            text-shadow: 2px 2px 0 #000; 
+            margin-bottom: 5px; 
+        }
+        .pokemon-id { 
+            font-size: 10px; 
+            color: #fff; 
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        .pokemon-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 8px;
+            color: #fff;
+            opacity: 0.8;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .stat-value {
+            font-size: 10px;
+            color: #ffd700;
+            text-shadow: 1px 1px 0 #000;
+            display: block;
+        }
+        .rarity-common { color: #fff; }
+        .rarity-uncommon { color: #4d96ff; }
+        .rarity-rare { color: #76c442; }
+        .rarity-epic { color: #9b59b6; }
+        .rarity-legendary { color: #ffd700; }
+        .pokemon-actions { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 15px; 
+        }
+
+        /* Add Pokémon Button */
+        .add-pokemon-section { 
+            text-align: center; 
+            margin-bottom: 30px; 
+        }
+
+        /* Pokémon Selector Modal */
+        .pokemon-selector-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .pokemon-selector-modal.active {
+            display: flex;
+        }
+        .pokemon-selector-content {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 30px;
+            max-width: 1000px;
+            width: 95%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 12px 12px 0 #000;
+        }
+        .pokemon-selector-content h2 {
+            font-size: 20px;
+            color: #228b22;
+            text-shadow: 3px 3px 0 #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .pokemon-search {
+            margin-bottom: 20px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #000;
+            background: rgba(255,255,255,0.9);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            margin-bottom: 15px;
+        }
+        .selector-pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .pokemon-option {
+            background: rgba(255,255,255,0.9);
+            border: 3px solid #000;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .pokemon-option:hover {
+            transform: scale(1.05);
+            background: rgba(255,215,0,0.3);
+        }
+        .pokemon-option.selected {
+            background: rgba(76, 200, 66, 0.3);
+            border-color: #4cc842;
+        }
+        .pokemon-option-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pokemon-option-icon img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        .pokemon-option-name {
+            font-size: 10px;
+            color: #000;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .pokemon-option-id {
+            font-size: 9px;
+            color: #666;
+        }
+        .pokemon-selector-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        /* Configure Pokémon Form */
+        .configure-form-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2001;
+            justify-content: center;
+            align-items: center;
+        }
+        .configure-form-modal.active {
+            display: flex;
+        }
+        .configure-form-content {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 12px 12px 0 #000;
+        }
+        .configure-form-content h2 {
+            font-size: 20px;
+            color: #228b22;
+            text-shadow: 3px 3px 0 #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 10px;
+            color: #000;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #000;
+            background: rgba(255,255,255,0.9);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+        }
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #000;
+            background: rgba(255,255,255,0.9);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        /* Modal Styles */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 2000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .modal.active { 
+            display: flex; 
+        }
+        .modal-content { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 40px; 
+            max-width: 500px; 
+            width: 90%; 
+            box-shadow: 12px 12px 0 #000; 
+            text-align: center; 
+        }
+        .modal-content h2 { 
+            font-size: 20px; 
+            color: #228b22; 
+            text-shadow: 3px 3px 0 #ffd700; 
+            margin-bottom: 20px; 
+        }
+        .modal-content p { 
+            font-size: 12px; 
+            color: #000; 
+            margin-bottom: 20px; 
+            line-height: 1.6; 
+        }
+        .modal-actions { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            margin-top: 20px; 
+        }
+        .btn-confirm { 
+            background: #76c442; 
+            color: #fff; 
+            border: 4px solid #000; 
+            padding: 12px 25px; 
+            font-size: 12px; 
+            box-shadow: 6px 6px 0 #000; 
+            cursor: pointer; 
+            font-family: 'Press Start 2P', monospace; 
+        }
+        .btn-cancel { 
+            background: #ff4444; 
+            color: #fff; 
+            border: 4px solid #000; 
+            padding: 12px 25px; 
+            font-size: 12px; 
+            box-shadow: 6px 6px 0 #000; 
+            cursor: pointer; 
+            font-family: 'Press Start 2P', monospace; 
+        }
+        .btn-confirm:hover, .btn-cancel:hover { 
+            transform: translate(3px, 3px); 
+            box-shadow: 3px 3px 0 #000; 
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .pokemon-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .selector-pokemon-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+
+    <div class="management-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>Pokémon Configuration</h1>
+            <p>Manage available Pokémon with database fields</p>
+        </div>
+
+        <!-- Current Pokémon Display -->
+        <div class="current-pokemon">
+            <h2>Configured Pokémon</h2>
+            <p style="text-align: center; font-size: 10px; color: #fff; margin-bottom: 20px;">Pokémon stored in the database with their configuration</p>
+            
+            <div class="pokemon-grid" id="currentPokemonGrid">
+                <!-- Pokémon will be loaded here -->
+            </div>
+            
+            <div class="add-pokemon-section">
+                <button class="action-btn green" onclick="showPokemonSelector()">+ Add New Pokémon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pokémon Selector Modal -->
+    <div class="pokemon-selector-modal" id="pokemonSelectorModal">
+        <div class="pokemon-selector-content">
+            <h2>Select Pokémon to Add</h2>
+            
+            <div class="pokemon-search">
+                <input type="text" class="search-input" placeholder="Search Pokémon by name..." id="pokemonSearch" onkeyup="searchPokemon()">
+            </div>
+            
+            <div class="selector-pokemon-grid" id="pokemonGrid">
+                <!-- Pokémon will be loaded here by JavaScript -->
+            </div>
+            
+            <div class="pokemon-selector-actions">
+                <button class="btn-confirm" onclick="openConfigureForm()">Configure Selected</button>
+                <button class="btn-cancel" onclick="closePokemonSelector()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configure Pokémon Form Modal -->
+    <div class="configure-form-modal" id="configureFormModal">
+        <div class="configure-form-content">
+            <h2 id="configureFormTitle">Configure Pokémon</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Pokémon Name</label>
+                <input type="text" class="form-input" id="configureName" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Pokémon ID</label>
+                <input type="text" class="form-input" id="configureId" readonly>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Image URL</label>
+                <input type="text" class="form-input" id="configureUrl" placeholder="Enter image URL">
+            </div>
+            
+            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="form-group">
+                    <label class="form-label">Min Points Required</label>
+                    <input type="number" class="form-input" id="configureMinPoints" placeholder="0" min="0">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Family ID</label>
+                    <input type="number" class="form-input" id="configureFamilyId" placeholder="1" min="1" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Rarity</label>
+                <select class="form-select" id="configureRarity">
+                    <option value="common">Common</option>
+                    <option value="uncommon">Uncommon</option>
+                    <option value="rare">Rare</option>
+                    <option value="epic">Epic</option>
+                    <option value="legendary">Legendary</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-confirm" id="configureSubmitBtn" onclick="addPokemon()">Add Pokémon</button>
+                <button class="btn-cancel" onclick="closeConfigureForm()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="deletePokemonModal">
+        <div class="modal-content">
+            <h2>Delete Pokémon</h2>
+            <p>Are you sure you want to delete <span id="deletePokemonName"></span> from the database?</p>
+            <div class="modal-actions">
+                <button class="btn-confirm red" onclick="confirmDeletePokemon()">Delete</button>
+                <button class="btn-cancel" onclick="closeModal('deletePokemonModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to logout?</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="performLogout()">Yes, Logout</button>
+                <button class="btn-cancel" onclick="closeModal('logoutModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 VocabuLearner - Pokémon Configuration v1.0</p>
+    </footer>
+
+    <script>
+        // Navigation Functions
+        function goToDashboard() {
+            window.location.href = "{{ url_for('admin_dashboard') }}";
+        }
+
+        function showLogoutConfirm() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
+
+        function performLogout() {
+            alert('Logging out...');
+            // In real app: window.location.href = 'login.html';
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Pokémon Data based on your database model
+        const pokemonList = [
+            { id: 1, name: "Bulbasaur", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" },
+            { id: 4, name: "Charmander", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" },
+            { id: 7, name: "Squirtle", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" },
+            { id: 25, name: "Pikachu", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
+            { id: 133, name: "Eevee", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" },
+            { id: 152, name: "Chikorita", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png" },
+            { id: 155, name: "Cyndaquil", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/155.png" },
+            { id: 158, name: "Totodile", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/158.png" },
+            { id: 252, name: "Treecko", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/252.png" },
+            { id: 255, name: "Torchic", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png" },
+            { id: 258, name: "Mudkip", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png" },
+            { id: 387, name: "Turtwig", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/387.png" },
+            { id: 390, name: "Chimchar", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png" },
+            { id: 393, name: "Piplup", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/393.png" },
+            { id: 495, name: "Snivy", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/495.png" },
+            { id: 498, name: "Tepig", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/498.png" },
+            { id: 501, name: "Oshawott", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/501.png" },
+            { id: 650, name: "Chespin", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/650.png" },
+            { id: 653, name: "Fennekin", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/653.png" },
+            { id: 656, name: "Froakie", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/656.png" },
+            { id: 722, name: "Rowlet", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/722.png" },
+            { id: 725, name: "Litten", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/725.png" },
+            { id: 728, name: "Popplio", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/728.png" },
+            { id: 810, name: "Grookey", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/810.png" },
+            { id: 813, name: "Scorbunny", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/813.png" },
+            { id: 816, name: "Sobble", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/816.png" },
+            { id: 906, name: "Sprigatito", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png" },
+            { id: 909, name: "Fuecoco", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/909.png" },
+            { id: 912, name: "Quaxly", url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/912.png" }
+        ];
+
+        // Current Pokémon in database (initially loaded)
+        let currentPokemon = [
+            { 
+                pokemon_id: 4, 
+                name: "Charmander", 
+                url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png", 
+                min_points_required: 0, 
+                rarity: "common", 
+                family_id: 1 
+            },
+            { 
+                pokemon_id: 7, 
+                name: "Squirtle", 
+                url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png", 
+                min_points_required: 0, 
+                rarity: "common", 
+                family_id: 2 
+            },
+            { 
+                pokemon_id: 1, 
+                name: "Bulbasaur", 
+                url: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png", 
+                min_points_required: 0, 
+                rarity: "common", 
+                family_id: 3 
+            }
+        ];
+
+        let selectedPokemon = null;
+        let pokemonToDelete = null;
+        let isEditing = false;
+        let editingPokemonId = null;
+
+        // Load current Pokémon on page load
+        window.onload = function() {
+            loadCurrentPokemon();
+        };
+
+        function loadCurrentPokemon() {
+            const grid = document.getElementById('currentPokemonGrid');
+            grid.innerHTML = '';
+
+            currentPokemon.forEach(pokemon => {
+                const pokemonItem = document.createElement('div');
+                pokemonItem.className = 'pokemon-item';
+                
+                // Get rarity class
+                const rarityClass = `rarity-${pokemon.rarity}`;
+                
+                pokemonItem.innerHTML = `
+                    <div class="pokemon-header">
+                        <div class="pokemon-icon">
+                            <img src="${pokemon.url}" alt="${pokemon.name}">
+                        </div>
+                        <div class="pokemon-info">
+                            <div class="pokemon-name">${pokemon.name}</div>
+                            <div class="pokemon-id">ID: ${pokemon.pokemon_id}</div>
+                            <div class="${rarityClass}" style="font-size: 9px; text-transform: uppercase;">
+                                ${pokemon.rarity}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pokemon-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Min Points</span>
+                            <span class="stat-value">${pokemon.min_points_required}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Family ID</span>
+                            <span class="stat-value">${pokemon.family_id}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="pokemon-actions">
+                        <button class="action-btn" onclick="editPokemon(${pokemon.pokemon_id})">Edit</button>
+                        <button class="action-btn red" onclick="deletePokemon(${pokemon.pokemon_id}, '${pokemon.name}')">Delete</button>
+                    </div>
+                `;
+                
+                grid.appendChild(pokemonItem);
+            });
+        }
+
+        // Pokémon Selector Functions
+        function showPokemonSelector() {
+            const modal = document.getElementById('pokemonSelectorModal');
+            const grid = document.getElementById('pokemonGrid');
+            
+            // Clear previous selections
+            grid.innerHTML = '';
+            selectedPokemon = null;
+            isEditing = false;
+            document.getElementById('pokemonSearch').value = '';
+            
+            // Load Pokémon options
+            pokemonList.forEach(pokemon => {
+                // Check if Pokémon is already in database
+                const isInDatabase = currentPokemon.some(dbPokemon => dbPokemon.pokemon_id === pokemon.id);
+                
+                const pokemonOption = document.createElement('div');
+                pokemonOption.className = `pokemon-option ${isInDatabase ? 'current' : ''}`;
+                pokemonOption.dataset.id = pokemon.id;
+                pokemonOption.dataset.name = pokemon.name;
+                pokemonOption.dataset.url = pokemon.url;
+                
+                if (!isInDatabase) {
+                    pokemonOption.onclick = function() {
+                        selectPokemon(this);
+                    };
+                }
+                
+                pokemonOption.innerHTML = `
+                    <div class="pokemon-option-icon">
+                        <img src="${pokemon.url}" alt="${pokemon.name}">
+                    </div>
+                    <div class="pokemon-option-name">${pokemon.name}</div>
+                    <div class="pokemon-option-id">#${pokemon.id}</div>
+                    ${isInDatabase ? '<div style="font-size:8px;color:#2980b9;margin-top:5px;">IN DATABASE</div>' : ''}
+                `;
+                
+                grid.appendChild(pokemonOption);
+            });
+            
+            modal.classList.add('active');
+        }
+
+        function closePokemonSelector() {
+            document.getElementById('pokemonSelectorModal').classList.remove('active');
+        }
+
+        function selectPokemon(element) {
+            // Remove selection from all options
+            document.querySelectorAll('.pokemon-option').forEach(option => {
+                if (!option.classList.contains('current')) {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            // Add selection to clicked option
+            element.classList.add('selected');
+            
+            // Store selected Pokémon
+            selectedPokemon = {
+                id: element.dataset.id,
+                name: element.dataset.name,
+                url: element.dataset.url
+            };
+        }
+
+        function searchPokemon() {
+            const searchTerm = document.getElementById('pokemonSearch').value.toLowerCase();
+            const pokemonOptions = document.querySelectorAll('.pokemon-option');
+            
+            pokemonOptions.forEach(option => {
+                const name = option.querySelector('.pokemon-option-name').textContent.toLowerCase();
+                const id = option.querySelector('.pokemon-option-id').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || id.includes(searchTerm)) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            });
+        }
+
+        function openConfigureForm() {
+            if (selectedPokemon) {
+                // Check if already in database
+                const isAlreadyInDb = currentPokemon.some(pokemon => pokemon.pokemon_id === parseInt(selectedPokemon.id));
+                
+                if (isAlreadyInDb) {
+                    alert('This Pokémon is already in the database!');
+                    return;
+                }
+                
+                // Fill form with selected Pokémon data
+                document.getElementById('configureName').value = selectedPokemon.name;
+                document.getElementById('configureId').value = selectedPokemon.id;
+                document.getElementById('configureUrl').value = selectedPokemon.url;
+                document.getElementById('configureMinPoints').value = 0;
+                document.getElementById('configureFamilyId').value = '';
+                document.getElementById('configureRarity').value = 'common';
+                
+                // Set form title and button
+                document.getElementById('configureFormTitle').textContent = 'Add Pokémon to Database';
+                document.getElementById('configureSubmitBtn').textContent = 'Add Pokémon';
+                document.getElementById('configureSubmitBtn').onclick = addPokemon;
+                
+                // Close selector and open configure form
+                closePokemonSelector();
+                document.getElementById('configureFormModal').classList.add('active');
+            } else {
+                alert('Please select a Pokémon first!');
+            }
+        }
+
+        function closeConfigureForm() {
+            document.getElementById('configureFormModal').classList.remove('active');
+            // Reset form
+            isEditing = false;
+            editingPokemonId = null;
+        }
+
+        function addPokemon() {
+            const name = document.getElementById('configureName').value;
+            const id = document.getElementById('configureId').value;
+            const url = document.getElementById('configureUrl').value;
+            const minPoints = document.getElementById('configureMinPoints').value;
+            const familyId = document.getElementById('configureFamilyId').value;
+            const rarity = document.getElementById('configureRarity').value;
+            
+            // Validation
+            if (!name || !id || !url || !familyId) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+            
+            if (minPoints < 0) {
+                alert('Minimum points cannot be negative!');
+                return;
+            }
+            
+            if (familyId < 1) {
+                alert('Family ID must be at least 1!');
+                return;
+            }
+            
+            // Add to current Pokémon
+            currentPokemon.push({
+                pokemon_id: parseInt(id),
+                name: name,
+                url: url,
+                min_points_required: parseInt(minPoints),
+                rarity: rarity,
+                family_id: parseInt(familyId)
+            });
+            
+            // Reload current Pokémon display
+            loadCurrentPokemon();
+            
+            // Close form
+            closeConfigureForm();
+            
+            alert(`${name} has been added to the database!`);
+        }
+
+        function editPokemon(pokemonId) {
+            const pokemon = currentPokemon.find(p => p.pokemon_id === pokemonId);
+            
+            if (pokemon) {
+                // Set editing mode
+                isEditing = true;
+                editingPokemonId = pokemonId;
+                
+                // Fill form with Pokémon data
+                document.getElementById('configureName').value = pokemon.name;
+                document.getElementById('configureId').value = pokemon.pokemon_id;
+                document.getElementById('configureUrl').value = pokemon.url;
+                document.getElementById('configureMinPoints').value = pokemon.min_points_required;
+                document.getElementById('configureFamilyId').value = pokemon.family_id;
+                document.getElementById('configureRarity').value = pokemon.rarity;
+                
+                // Set form title and button
+                document.getElementById('configureFormTitle').textContent = 'Edit Pokémon Configuration';
+                document.getElementById('configureSubmitBtn').textContent = 'Save Changes';
+                document.getElementById('configureSubmitBtn').onclick = savePokemonEdit;
+                
+                // Open configure form (skip selector)
+                document.getElementById('configureFormModal').classList.add('active');
+            }
+        }
+
+        function savePokemonEdit() {
+            const name = document.getElementById('configureName').value;
+            const url = document.getElementById('configureUrl').value;
+            const minPoints = document.getElementById('configureMinPoints').value;
+            const familyId = document.getElementById('configureFamilyId').value;
+            const rarity = document.getElementById('configureRarity').value;
+            
+            // Validation
+            if (!name || !url || !familyId) {
+                alert('Please fill in all required fields!');
+                return;
+            }
+            
+            if (minPoints < 0) {
+                alert('Minimum points cannot be negative!');
+                return;
+            }
+            
+            if (familyId < 1) {
+                alert('Family ID must be at least 1!');
+                return;
+            }
+            
+            // Update Pokémon data
+            const pokemonIndex = currentPokemon.findIndex(p => p.pokemon_id === editingPokemonId);
+            if (pokemonIndex !== -1) {
+                currentPokemon[pokemonIndex].name = name;
+                currentPokemon[pokemonIndex].url = url;
+                currentPokemon[pokemonIndex].min_points_required = parseInt(minPoints);
+                currentPokemon[pokemonIndex].family_id = parseInt(familyId);
+                currentPokemon[pokemonIndex].rarity = rarity;
+                
+                // Reload display
+                loadCurrentPokemon();
+                
+                // Close form
+                closeConfigureForm();
+                
+                alert(`${name} has been updated!`);
+            }
+        }
+
+        function deletePokemon(pokemonId, pokemonName) {
+            pokemonToDelete = pokemonId;
+            document.getElementById('deletePokemonName').textContent = pokemonName;
+            document.getElementById('deletePokemonModal').classList.add('active');
+        }
+
+        function confirmDeletePokemon() {
+            if (pokemonToDelete) {
+                // Remove from current Pokémon
+                currentPokemon = currentPokemon.filter(p => p.pokemon_id !== pokemonToDelete);
+                
+                // Reload display
+                loadCurrentPokemon();
+                
+                // Close modal
+                closeModal('deletePokemonModal');
+                
+                alert('Pokémon deleted from database!');
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+    </script>
+{%endblock%}

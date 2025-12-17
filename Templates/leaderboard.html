@@ -13,15 +13,15 @@
             VocabuLearner
         </a>
     {% endblock %}
-    
+   
     {% block header %}{% endblock %}
-    
+   
     <div class="leaderboard-container">
         <div class="page-title">
             <h1>Leaderboard</h1>
             <p>Compete with trainers around the world</p>
             <div class="user-rank-info">
-                Your Rank: <strong>#{{ user_rank }}</strong> | 
+                Your Rank: <strong>#{{ user_rank }}</strong> |
                 Your Points: <strong>{{ current_user.total_points }}</strong> |
                 Your Words: <strong>{{ current_user_word_count }}</strong>
             </div>
@@ -30,69 +30,138 @@
         <!-- Top 3 Podium - ALWAYS SHOW ALL 3 PODIUMS -->
         <div class="top-three">
             <!-- Second Place -->
-            <div class="podium second">
+            <div class="podium second {% if podium_users|length >= 2 %}clickable{% endif %}" 
+                 {% if podium_users|length >= 2 %}data-profile-url="{{ url_for('view_profile', user_id=podium_users[1].user_id) }}"{% endif %}>
                 <div class="rank">🥈</div>
                 {% if podium_users|length >= 2 %}
-                <div class="username">{{ podium_users[1].username }}</div>
-                <div class="score">{{ podium_users[1].score }}</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        {% if podium_users[1].profile_picture %}
+                        <img src="{{ podium_users[1].profile_picture }}" alt="{{ podium_users[1].username }}" class="avatar-img">
+                        {% else %}
+                        <div class="avatar-default">👤</div>
+                        {% endif %}
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">{{ podium_users[1].username }}</div>
+                        <div class="score">{{ podium_users[1].score }}</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% else %}
-                <div class="username">--</div>
-                <div class="score">0</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        <div class="avatar-default">👤</div>
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">- - -</div>
+                        <div class="score">0</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
-            
+           
             <!-- First Place -->
-            <div class="podium first">
+            <div class="podium first {% if podium_users|length >= 1 %}clickable{% endif %}" 
+                 {% if podium_users|length >= 1 %}data-profile-url="{{ url_for('view_profile', user_id=podium_users[0].user_id) }}"{% endif %}>
                 <div class="rank">🥇</div>
                 {% if podium_users|length >= 1 %}
-                <div class="username">{{ podium_users[0].username }}</div>
-                <div class="score">{{ podium_users[0].score }}</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        {% if podium_users[0].profile_picture %}
+                        <img src="{{ podium_users[0].profile_picture }}" alt="{{ podium_users[0].username }}" class="avatar-img">
+                        {% else %}
+                        <div class="avatar-default">👑</div>
+                        {% endif %}
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">{{ podium_users[0].username }}</div>
+                        <div class="score">{{ podium_users[0].score }}</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% else %}
-                <div class="username">--</div>
-                <div class="score">0</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        <div class="avatar-default">👑</div>
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">- - -</div>
+                        <div class="score">0</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
-            
+           
             <!-- Third Place -->
-            <div class="podium third">
+            <div class="podium third {% if podium_users|length >= 3 %}clickable{% endif %}" 
+                 {% if podium_users|length >= 3 %}data-profile-url="{{ url_for('view_profile', user_id=podium_users[2].user_id) }}"{% endif %}>
                 <div class="rank">🥉</div>
                 {% if podium_users|length >= 3 %}
-                <div class="username">{{ podium_users[2].username }}</div>
-                <div class="score">{{ podium_users[2].score }}</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        {% if podium_users[2].profile_picture %}
+                        <img src="{{ podium_users[2].profile_picture }}" alt="{{ podium_users[2].username }}" class="avatar-img">
+                        {% else %}
+                        <div class="avatar-default">👤</div>
+                        {% endif %}
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">{{ podium_users[2].username }}</div>
+                        <div class="score">{{ podium_users[2].score }}</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% else %}
-                <div class="username">--</div>
-                <div class="score">0</div>
-                <div class="label">points</div>
+                <div class="podium-user-info">
+                    <div class="podium-avatar">
+                        <div class="avatar-default">👤</div>
+                    </div>
+                    <div class="podium-details">
+                        <div class="username">- - -</div>
+                        <div class="score">0</div>
+                        <div class="label">points</div>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Rest of Leaderboard -->
+        <!-- Rest of Leaderboard - SHOW ALL USERS -->
         <div class="leaderboard-list">
-            {% for entry in leaderboard_data %}
-                {% if entry.rank > 3 or entry.is_current_user %}
-                <div class="leaderboard-item {% if entry.is_current_user %}you{% endif %}">
-                    <div class="item-left">
-                        <div class="item-rank">#{{ entry.rank }}</div>
-                        <div class="item-username">
-                            {{ entry.username }}
-                            {% if entry.is_current_user %}
-                            <span class="item-badge">YOU</span>
-                            {% endif %}
+            {% if leaderboard_data %}
+                {% for entry in leaderboard_data %}
+                    <div class="leaderboard-item clickable {% if entry.is_current_user %}you{% endif %}" 
+                         data-profile-url="{{ url_for('view_profile', user_id=entry.user_id) }}">
+                        <div class="item-left">
+                            <div class="item-rank">#{{ entry.rank }}</div>
+                            <div class="item-avatar">
+                                {% if entry.profile_picture %}
+                                <img src="{{ entry.profile_picture }}" alt="{{ entry.username }}" class="avatar-img">
+                                {% else %}
+                                <div class="avatar-default">👤</div>
+                                {% endif %}
+                            </div>
+                            <div class="item-username">
+                                {{ entry.username }}
+                                {% if entry.is_current_user %}
+                                <span class="item-badge">YOU</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="item-right">
+                            <div class="item-score">{{ entry.score }}</div>
+                            <div class="item-words">{{ entry.words }} words</div>
                         </div>
                     </div>
-                    <div class="item-right">
-                        <div class="item-score">{{ entry.score }}</div>
-                        <div class="item-words">{{ entry.words }} words</div>
-                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-data-message">
+                    <p>No users on the leaderboard yet. Be the first to earn points!</p>
                 </div>
-                {% endif %}
-            {% endfor %}
+            {% endif %}
         </div>
     </div>
 
@@ -100,5 +169,25 @@
         <p>© 2025 VocabuLearner</p>
     </footer>
 
-   
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle clicks on ALL clickable items (podium and leaderboard list)
+        document.querySelectorAll('.clickable').forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Don't navigate if clicking on nested interactive elements
+                if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button, a')) {
+                    return;
+                }
+                
+                const url = this.getAttribute('data-profile-url');
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+            
+            // Add hover effect with pointer cursor
+            item.style.cursor = 'pointer';
+        });
+    });
+    </script>
 {% endblock %}

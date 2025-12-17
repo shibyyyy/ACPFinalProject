@@ -1,68 +1,44 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
-{% block title %}<title>Forgot Password</title>{% endblock %}
+{% block title %}<title>Forgot Password - VocabuLearner</title>{% endblock %}
 
 {% block content %}
-{%block header%}
-{% endblock %}
-    <!-- FORGOT PASSWORD BOX -->
-    <div class="forgot-password-container active">
+    {% block header %}{% endblock %}
+    
+    <div class="login-container active">
         <h1>Forgot Password</h1>
-        <p>Enter your email to reset your password.</p>
+        <p>Reset your password to continue your vocabulary journey.</p>
 
-        <form class="forgot-password-form">
-            <input type="email" placeholder="Email" required />
+        <form class="login-form" method="POST" action="{{ url_for('forgotpass') }}">
+            {{ form.hidden_tag() }}
 
-            <button type="button" class="btn-primary" id="reset-password-btn">Reset Password</button>
+            <!-- Email field -->
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <!-- New Password field -->
+            {{ form.password }}
+            {% for error in form.password.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <!-- Confirm Password field -->
+            {{ form.confirm_password }}
+            {% for error in form.confirm_password.errors %}
+                <span class="error">{{ error }}</span>
+            {% endfor %}
+
+            <!-- Submit button -->
+            {{ form.submit }}
 
             <!-- Back to Login link -->
-            <a href="{{url_for('login')}}" class="back-to-login">Back to Login</a>
+            <a href="{{ url_for('login') }}" class="forgot-password">Back to Login</a>
         </form>
     </div>
 
-    <!-- UPDATE ACCOUNT BOX (Hidden by default) -->
-    <div class="update-account-container">
-        <h1>Update Account</h1>
-        <p>Update your account information.</p>
-
-        <form class="update-account-form">
-            <input type="password" placeholder="New Password" required />
-            <input type="password" placeholder="Confirm Password" required />
-
-            <button type="button" class="btn-primary" id="update-account-btn">Update Account</button>
-
-            <!-- Back to Login link -->
-            <a href="login.html" class="back-to-login">Back to Login</a>
-        </form>
-    </div>
-
-    <!-- FOOTER -->
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Get all containers
-            const forgotPasswordContainer = document.querySelector('.forgot-password-container');
-            const updateAccountContainer = document.querySelector('.update-account-container');
-            
-            // Get buttons
-            const resetPasswordBtn = document.getElementById('reset-password-btn');
-            const updateAccountBtn = document.getElementById('update-account-btn');
-            
-            // Reset Password button click
-            resetPasswordBtn.addEventListener('click', function() {
-                forgotPasswordContainer.classList.remove('active');
-                updateAccountContainer.classList.add('active');
-            });
-            
-            // Update Account button click
-            updateAccountBtn.addEventListener('click', function() {
-                alert("Account updated successfully!");
-                // Redirect to login page
-                window.location.href = "login.html";
-            });
-        });
-    </script>
 {% endblock %}

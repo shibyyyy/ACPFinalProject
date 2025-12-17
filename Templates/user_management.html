@@ -1,0 +1,694 @@
+{%extends "base.html"%}
+{%block title%}
+    <title>User Management - VocabuLearner Admin</title>
+{%endblock%}
+
+{%block content%}
+{%block logo_link %}
+            <a href="{{ url_for('admin_dashboard') }}" class="logo-link">
+                <div class="logo-icon">
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                    <div class="pokeball-mini"></div>
+                </div>
+                VocabuLearner
+            </a>
+    {% endblock %}
+    {%block header%}
+        <div class="header-actions">
+            <button class="back-btn" onclick="goToDashboard()">Back to Dashboard</button>
+            <button class="logout-btn" onclick="showLogoutConfirm()">Logout</button>
+        </div>
+    {%endblock%}
+
+    <style>
+        /* User Management Specific Styles */
+        .management-container { 
+            margin-top: 120px; 
+            max-width: 1400px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            padding: 20px; 
+            position: relative; 
+            z-index: 10; 
+        }
+
+        /* Page Header */
+        .page-header { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+            text-align: center;
+        }
+        .page-header h1 { 
+            font-size: 24px; 
+            color: #ffd700; 
+            text-shadow: 4px 4px 0 #000; 
+            margin-bottom: 15px; 
+        }
+        .page-header p { 
+            font-size: 12px; 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000; 
+            margin-bottom: 20px; 
+        }
+
+        /* Search and Filter */
+        .search-filter { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+        }
+        .search-box { 
+            display: flex; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap; 
+        }
+        .search-input { 
+            flex: 1; 
+            min-width: 300px; 
+            padding: 12px; 
+            border: 3px solid #000; 
+            background: rgba(255,255,255,0.9); 
+            font-family: 'Press Start 2P', monospace; 
+            font-size: 10px; 
+            box-shadow: 4px 4px 0 #000; 
+        }
+        .filter-options { 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+            align-items: center;
+        }
+        .filter-select { 
+            padding: 10px; 
+            border: 3px solid #000; 
+            background: rgba(255,255,255,0.9); 
+            font-family: 'Press Start 2P', monospace; 
+            font-size: 10px; 
+            box-shadow: 4px 4px 0 #000; 
+            min-width: 150px; 
+        }
+        .date-filter { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
+        .date-input { 
+            padding: 10px; 
+            border: 3px solid #000; 
+            background: rgba(255,255,255,0.9); 
+            font-family: 'Press Start 2P', monospace; 
+            font-size: 10px; 
+            box-shadow: 4px 4px 0 #000; 
+            min-width: 150px; 
+        }
+        .date-label { 
+            font-size: 10px; 
+            color: #fff; 
+            text-shadow: 2px 2px 0 #000; 
+            margin-right: 5px; 
+        }
+
+        /* Buttons */
+        .back-btn {
+            background: #4169e1;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+        }
+        .back-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #3558c7;
+        }
+
+        .action-btn {
+            background: #4169e1;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 12px;
+            font-size: 8px;
+            box-shadow: 3px 3px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+        
+        .action-btn.red {
+            background: #ff4444;
+        }
+
+        .logout-btn {
+            background: #ff4444;
+            color: #fff;
+            border: 3px solid #000;
+            padding: 8px 15px;
+            font-size: 10px;
+            box-shadow: 4px 4px 0 #000;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', monospace;
+            transition: all 0.2s;
+        }
+        .logout-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0 #000;
+            background: #ff3333;
+        }
+
+        /* Users Table */
+        .users-table-container { 
+            background: rgba(255,255,255,0.15); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 25px; 
+            margin-bottom: 30px; 
+            box-shadow: 8px 8px 0 #000; 
+            overflow-x: auto; 
+        }
+        .users-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+        }
+        .users-table th { 
+            background: rgba(0,0,0,0.3); 
+            padding: 15px; 
+            text-align: left; 
+            font-size: 12px; 
+            color: #ffd700; 
+            text-shadow: 2px 2px 0 #000; 
+            border-bottom: 3px solid #000; 
+        }
+        .users-table td { 
+            padding: 15px; 
+            font-size: 10px; 
+            color: #fff; 
+            text-shadow: 1px 1px 0 #000; 
+            border-bottom: 2px solid rgba(0,0,0,0.3); 
+        }
+        .users-table tr:hover { 
+            background: rgba(255,255,255,0.1); 
+        }
+        
+        .user-status { 
+            padding: 5px 10px; 
+            font-size: 8px; 
+            border: 2px solid #000; 
+            display: inline-block; 
+        }
+        .status-active { 
+            background: #76c442; 
+            color: #fff; 
+        }
+        .status-inactive { 
+            background: #ff4444; 
+            color: #fff; 
+        }
+        .status-pending { 
+            background: #ffd700; 
+            color: #000; 
+        }
+        
+        .user-actions { 
+            display: flex; 
+            gap: 8px; 
+        }
+
+        /* Pagination */
+        .pagination { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            margin-top: 30px; 
+        }
+        .pagination-btn { 
+            background: rgba(255,255,255,0.15); 
+            color: #fff; 
+            border: 3px solid #000; 
+            padding: 10px 15px; 
+            font-size: 10px; 
+            box-shadow: 4px 4px 0 #000; 
+            cursor: pointer; 
+            font-family: 'Press Start 2P', monospace; 
+            transition: all 0.2s; 
+        }
+        .pagination-btn.active { 
+            background: #4169e1; 
+            color: #fff; 
+        }
+        .pagination-btn:hover:not(.disabled) { 
+            transform: translate(2px, 2px); 
+            box-shadow: 2px 2px 0 #000; 
+        }
+        .pagination-btn.disabled { 
+            opacity: 0.5; 
+            cursor: not-allowed; 
+        }
+
+        /* Modal Styles */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.8); 
+            z-index: 2000; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        .modal.active { 
+            display: flex; 
+        }
+        .modal-content { 
+            background: rgba(255,255,255,0.95); 
+            backdrop-filter: blur(10px); 
+            border: 4px solid #000; 
+            padding: 40px; 
+            max-width: 500px; 
+            width: 90%; 
+            box-shadow: 12px 12px 0 #000; 
+            text-align: center; 
+        }
+        .modal-content h2 { 
+            font-size: 20px; 
+            color: #228b22; 
+            text-shadow: 3px 3px 0 #ffd700; 
+            margin-bottom: 20px; 
+        }
+        .modal-content p { 
+            font-size: 12px; 
+            color: #000; 
+            margin-bottom: 20px; 
+            line-height: 1.6; 
+        }
+        .modal-actions { 
+            display: flex; 
+            gap: 10px; 
+            justify-content: center; 
+            margin-top: 20px; 
+        }
+        .btn-confirm { 
+            background: #76c442; 
+            color: #fff; 
+            border: 4px solid #000; 
+            padding: 12px 25px; 
+            font-size: 12px; 
+            box-shadow: 6px 6px 0 #000; 
+            cursor: pointer; 
+            font-family: 'Press Start 2P', monospace; 
+        }
+        .btn-cancel { 
+            background: #ff4444; 
+            color: #fff; 
+            border: 4px solid #000; 
+            padding: 12px 25px; 
+            font-size: 12px; 
+            box-shadow: 6px 6px 0 #000; 
+            cursor: pointer; 
+            font-family: 'Press Start 2P', monospace; 
+        }
+        .btn-confirm:hover, .btn-cancel:hover { 
+            transform: translate(3px, 3px); 
+            box-shadow: 3px 3px 0 #000; 
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 900px) {
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .search-input {
+                min-width: auto;
+            }
+            
+            .filter-options {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-filter {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .users-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+
+    <div class="management-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1>User Management</h1>
+            <p>Manage all user accounts and status</p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-filter">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search users by name or email..." id="searchInput">
+                <button class="action-btn" onclick="searchUsers()">Search</button>
+            </div>
+            <div class="filter-options">
+                <select class="filter-select" id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                
+                <div class="date-filter">
+                    <span class="date-label">From:</span>
+                    <input type="date" class="date-input" id="dateFrom">
+                </div>
+                
+                <div class="date-filter">
+                    <span class="date-label">To:</span>
+                    <input type="date" class="date-input" id="dateTo">
+                </div>
+                
+                <button class="action-btn" onclick="applyFilters()">Apply Filters</button>
+                <button class="action-btn red" onclick="resetFilters()">Reset</button>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table-container">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Joined Date</th>
+                        <th>Words Mastered</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1001</td>
+                        <td>TrainerAsh</td>
+                        <td>ash@pokemon.trainer</td>
+                        <td>2024-01-15</td>
+                        <td>247</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1001)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1001)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1002</td>
+                        <td>MistyWater</td>
+                        <td>misty@cerulean.gym</td>
+                        <td>2024-02-10</td>
+                        <td>189</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1002)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1002)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1003</td>
+                        <td>BrockRock</td>
+                        <td>brock@pewter.gym</td>
+                        <td>2024-02-28</td>
+                        <td>512</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1003)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1003)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1004</td>
+                        <td>GaryOak</td>
+                        <td>gary@research.lab</td>
+                        <td>2024-03-05</td>
+                        <td>324</td>
+                        <td><span class="user-status status-inactive">Inactive</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1004)">View</button>
+                                <button class="action-btn" onclick="activateUser(1004)">Activate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1005</td>
+                        <td>JessieRocket</td>
+                        <td>jessie@teamrocket.org</td>
+                        <td>2024-03-12</td>
+                        <td>45</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1005)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1005)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1006</td>
+                        <td>JamesRocket</td>
+                        <td>james@teamrocket.org</td>
+                        <td>2024-03-12</td>
+                        <td>38</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1006)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1006)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1007</td>
+                        <td>ProfessorOak</td>
+                        <td>oak@pokemon.research</td>
+                        <td>2024-01-01</td>
+                        <td>1,024</td>
+                        <td><span class="user-status status-active">Active</span></td>
+                        <td>
+                            <div class="user-actions">
+                                <button class="action-btn" onclick="viewUser(1007)">View</button>
+                                <button class="action-btn red" onclick="deactivateUser(1007)">Deactivate</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button class="pagination-btn disabled">Previous</button>
+            <button class="pagination-btn active">1</button>
+            <button class="pagination-btn">2</button>
+            <button class="pagination-btn">3</button>
+            <button class="pagination-btn">4</button>
+            <button class="pagination-btn">5</button>
+            <button class="pagination-btn">Next</button>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal" id="viewUserModal">
+        <div class="modal-content">
+            <h2>User Details</h2>
+            <p><strong>Username:</strong> TrainerAsh</p>
+            <p><strong>Email:</strong> ash@pokemon.trainer</p>
+            <p><strong>Joined Date:</strong> 2024-01-15</p>
+            <p><strong>Words Mastered:</strong> 247</p>
+            <p><strong>Daily Streak:</strong> 14 days</p>
+            <p><strong>Status:</strong> Active</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('viewUserModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate Confirmation Modal -->
+    <div class="modal" id="deactivateModal">
+        <div class="modal-content">
+            <h2>Confirm Deactivation</h2>
+            <p>Are you sure you want to deactivate this user? They will not be able to access their account.</p>
+            <div class="modal-actions">
+                <button class="btn-confirm red" onclick="confirmDeactivate()">Deactivate</button>
+                <button class="btn-cancel" onclick="closeModal('deactivateModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activate Confirmation Modal -->
+    <div class="modal" id="activateModal">
+        <div class="modal-content">
+            <h2>Confirm Activation</h2>
+            <p>Are you sure you want to activate this user? They will be able to access their account again.</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="confirmActivate()">Activate</button>
+                <button class="btn-cancel" onclick="closeModal('activateModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div class="modal" id="logoutModal">
+        <div class="modal-content">
+            <h2>Confirm Logout</h2>
+            <p>Are you sure you want to logout?</p>
+            <div class="modal-actions">
+                <button class="btn-confirm" onclick="performLogout()">Yes, Logout</button>
+                <button class="btn-cancel" onclick="closeModal('logoutModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation Functions
+        function goToDashboard() {
+            window.location.href = "{{ url_for('admin_dashboard') }}";
+        }
+
+        function showLogoutConfirm() {
+            document.getElementById('logoutModal').classList.add('active');
+        }
+
+        function performLogout() {
+            window.location.href = "{{ url_for('logout') }}";
+        }
+
+        // Modal Functions
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // User Management Functions
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value;
+            if (searchTerm) {
+                alert('Searching for: ' + searchTerm);
+                // In real implementation, this would filter the table
+            }
+        }
+
+        function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            
+            let filterMessage = `Applying filters:\nStatus: ${status}`;
+            
+            if (dateFrom) {
+                filterMessage += `\nFrom Date: ${dateFrom}`;
+            }
+            
+            if (dateTo) {
+                filterMessage += `\nTo Date: ${dateTo}`;
+            }
+            
+            // In real implementation, this would filter the table
+            console.log('Filters applied:', { status, dateFrom, dateTo });
+        }
+
+        function resetFilters() {
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.getElementById('searchInput').value = '';
+            // In real implementation, this would reset the table
+        }
+
+        function viewUser(userId) {
+            currentUserId = userId;
+            document.getElementById('viewUserModal').classList.add('active');
+        }
+
+        function deactivateUser(userId) {
+            currentUserId = userId;
+            document.getElementById('deactivateModal').classList.add('active');
+        }
+
+        function activateUser(userId) {
+            currentUserId = userId;
+            document.getElementById('activateModal').classList.add('active');
+        }
+
+        function confirmDeactivate() {
+            alert('User ID: ' + currentUserId + ' has been deactivated');
+            closeModal('deactivateModal');
+            // In real implementation, send API request to deactivate user
+        }
+
+        function confirmActivate() {
+            alert('User ID: ' + currentUserId + ' has been activated');
+            closeModal('activateModal');
+            // In real implementation, send API request to activate user
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+            }
+        }
+
+        // Set default date values to current month
+        window.onload = function() {
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            // Format dates as YYYY-MM-DD
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+            
+            document.getElementById('dateFrom').value = formatDate(firstDay);
+            document.getElementById('dateTo').value = formatDate(today);
+        };
+
+        // Global variable for current user ID
+        let currentUserId = null;
+    </script>
+{%endblock%}

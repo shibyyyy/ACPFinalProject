@@ -1,6 +1,7 @@
 {%extends 'base.html'%}
 {%block title%}<title>Multiple Choice - VocabuLearner</title>{% endblock%}
 
+
 {%block content%}
     {%block logo_link %}
             <a href="{{ url_for('dashboard') }}" class="logo-link">
@@ -13,7 +14,13 @@
             </a>
     {% endblock %}
     {%block header%}{%endblock%}
+
 <main class="game-container">
+    <!-- Back Button Added Here -->
+    <div class="back-button-container" style="margin: 20px 0 20px 20px;">
+        <button class="back-button" onclick="window.location.href='/review'">← Back to Review</button>
+    </div>
+
         <!-- Game Header -->
         <div class="game-header">
             <div class="game-title">Word Matching Challenge</div>
@@ -37,6 +44,7 @@
             </div>
         </div>
 
+
         <!-- Game Info -->
         <div class="game-info">
             <div class="instructions">
@@ -48,6 +56,7 @@
             </div>
         </div>
 
+
         <!-- Matching Grid -->
         <div class="matching-grid">
             <!-- Words Column -->
@@ -58,6 +67,7 @@
                 </div>
             </div>
 
+
             <!-- Definitions Column -->
             <div class="definitions-column">
                 <div class="column-title">📖 DEFINITIONS</div>
@@ -67,8 +77,10 @@
             </div>
         </div>
 
+
         <!-- Combo Display -->
         <div class="combo-display" id="combo-display"></div>
+
 
         <!-- Game Controls -->
         <div class="game-controls">
@@ -78,37 +90,35 @@
         </div>
     </main>
 
-    <!-- Score Popup -->
-    <div class="score-popup" id="score-popup">
-        <div class="score-title">Game Complete!</div>
-        <div class="score-result">Score: <span id="final-score">0</span></div>
-        
-        <div class="score-stats">
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-matches">0/6</div>
-                <div class="score-stat-label">Matches</div>
+    <!-- EXP Popup Modal -->
+    <div class="modal exp-modal" id="expPopup">
+        <div class="modal-content">
+            <div class="exp-popup-content">
+                <div class="exp-icon">✨</div>
+                <h2>EXP Earned!</h2>
+                <div class="exp-amount" id="expAmount">+0 EXP</div>
+                <p class="exp-message">Your vocabulary knowledge has been rewarded!</p>
+                <div class="exp-details">
+                    <div class="exp-detail">
+                        <span class="label">Matches Found:</span>
+                        <span class="value" id="popupMatches">0/6</span>
+                    </div>
+                    <div class="exp-detail">
+                        <span class="label">Time Left:</span>
+                        <span class="value" id="popupTime">00:00</span>
+                    </div>
+                    <div class="exp-detail">
+                        <span class="label">Best Combo:</span>
+                        <span class="value" id="popupCombo">0x</span>
+                    </div>
+                    <div class="exp-detail">
+                        <span class="label">Accuracy:</span>
+                        <span class="value" id="popupAccuracy">0%</span>
+                    </div>
+                </div>
+                <button class="btn-confirm" id="btn-close-popup">Awesome! Continue</button>
+                <button class="btn-confirm back-to-review-popup" onclick="window.location.href='/review'" style="background: #666; margin-top: 10px;">Back to Review Menu</button>
             </div>
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-time">00:00</div>
-                <div class="score-stat-label">Time Left</div>
-            </div>
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-combo">0x</div>
-                <div class="score-stat-label">Best Combo</div>
-            </div>
-            <div class="score-stat">
-                <div class="score-stat-value" id="final-accuracy">0%</div>
-                <div class="score-stat-label">Accuracy</div>
-            </div>
-        </div>
-        
-        <div style="display: flex; gap: 20px; justify-content: center;">
-            <button class="control-btn" onclick="restartGame()">
-                🔄 Play Again
-            </button>
-            <button class="control-btn secondary" onclick="closePopup()">
-                Back to Menu
-            </button>
         </div>
     </div>
 
@@ -117,40 +127,18 @@
         <p style="margin-top: 10px; font-size: 8px;">Word Matching Game - Connect words with their meanings!</p>
     </footer>
 
+
     <script>
-        // Game Data
-        const wordPairs = [
-            {
-                word: "Eloquent",
-                definition: "Fluent or persuasive in speaking or writing"
-            },
-            {
-                word: "Resilient",
-                definition: "Able to withstand or recover quickly from difficult conditions"
-            },
-            {
-                word: "Meticulous",
-                definition: "Showing great attention to detail; very careful and precise"
-            },
-            {
-                word: "Pragmatic",
-                definition: "Dealing with things sensibly and realistically"
-            },
-            {
-                word: "Aesthetic",
-                definition: "Concerned with beauty or the appreciation of beauty"
-            },
-            {
-                word: "Empathy",
-                definition: "The ability to understand and share the feelings of another"
-            }
-        ];
+        // Game Data - Load from template
+        const wordPairs = {{ word_pairs|tojson|safe }};
+        
+        console.log("Matching game words from database:", wordPairs);
 
         // Game State
         let gameState = {
             score: 0,
             matches: 0,
-            totalPairs: 6,
+            totalPairs: wordPairs.length || 6,
             currentCombo: 0,
             bestCombo: 0,
             timeLeft: 120, // 2 minutes in seconds
@@ -158,7 +146,9 @@
             selectedDefinition: null,
             matchedPairs: [],
             incorrectAttempts: 0,
-            gameActive: true
+            gameActive: true,
+            startTime: null,
+            totalExpEarned: 0
         };
 
         // DOM Elements
@@ -169,15 +159,35 @@
         const matchesElement = document.getElementById('matches');
         const timeElement = document.getElementById('time');
         const streakElement = document.getElementById('streak');
-        const scorePopup = document.getElementById('score-popup');
+        const expPopup = document.getElementById('expPopup');
+        const expAmount = document.getElementById('expAmount');
+        const popupMatches = document.getElementById('popupMatches');
+        const popupTime = document.getElementById('popupTime');
+        const popupCombo = document.getElementById('popupCombo');
+        const popupAccuracy = document.getElementById('popupAccuracy');
+        const btnClosePopup = document.getElementById('btn-close-popup');
         let timerInterval;
+
+        // Check if we have enough words
+        if (wordPairs.length === 0) {
+            showNoWordsMessage();
+        } else {
+            initGame();
+        }
+
+        function showNoWordsMessage() {
+            wordsContainer.innerHTML = '<div class="error-message">No words available. Please add words to the database first.</div>';
+            definitionsContainer.innerHTML = '<div class="error-message">No definitions available.</div>';
+        }
 
         // Initialize Game
         function initGame() {
+            gameState.startTime = new Date();
             resetGameState();
             setupGameBoard();
             startTimer();
             updateDisplay();
+            expPopup.classList.remove('active');
         }
 
         // Reset Game State
@@ -185,7 +195,7 @@
             gameState = {
                 score: 0,
                 matches: 0,
-                totalPairs: 6,
+                totalPairs: wordPairs.length || 6,
                 currentCombo: 0,
                 bestCombo: 0,
                 timeLeft: 120,
@@ -193,7 +203,9 @@
                 selectedDefinition: null,
                 matchedPairs: [],
                 incorrectAttempts: 0,
-                gameActive: true
+                gameActive: true,
+                startTime: new Date(),
+                totalExpEarned: 0
             };
         }
 
@@ -202,11 +214,11 @@
             // Clear containers
             wordsContainer.innerHTML = '';
             definitionsContainer.innerHTML = '';
-            
+           
             // Shuffle words and definitions separately
             const shuffledWords = [...wordPairs].sort(() => Math.random() - 0.5);
             const shuffledDefinitions = [...wordPairs].sort(() => Math.random() - 0.5);
-            
+           
             // Create word cards
             shuffledWords.forEach((pair, index) => {
                 const wordCard = document.createElement('div');
@@ -218,7 +230,7 @@
                 wordCard.onclick = () => selectCard('word', pair.word, wordCard);
                 wordsContainer.appendChild(wordCard);
             });
-            
+           
             // Create definition cards
             shuffledDefinitions.forEach((pair, index) => {
                 const definitionCard = document.createElement('div');
@@ -235,28 +247,28 @@
         // Select Card
         function selectCard(type, id, element) {
             if (!gameState.gameActive || gameState.matchedPairs.includes(id)) return;
-            
+           
             if (type === 'word') {
                 // Deselect previous word selection
                 if (gameState.selectedWord) {
                     document.querySelector(`.word-card[data-id="${gameState.selectedWord}"]`).classList.remove('selected');
                 }
-                
+               
                 // Select new word
                 gameState.selectedWord = id;
                 element.classList.add('selected');
-                
+               
             } else {
                 // Deselect previous definition selection
                 if (gameState.selectedDefinition) {
                     document.querySelector(`.definition-card[data-id="${gameState.selectedDefinition}"]`).classList.remove('selected');
                 }
-                
+               
                 // Select new definition
                 gameState.selectedDefinition = id;
                 element.classList.add('selected');
             }
-            
+           
             // If we have both selected, check match
             if (gameState.selectedWord && gameState.selectedDefinition) {
                 setTimeout(() => checkMatch(), 300);
@@ -266,10 +278,10 @@
         // Check Match
         function checkMatch() {
             if (!gameState.selectedWord || !gameState.selectedDefinition) return;
-            
+           
             const wordCard = document.querySelector(`.word-card[data-id="${gameState.selectedWord}"]`);
             const definitionCard = document.querySelector(`.definition-card[data-id="${gameState.selectedDefinition}"]`);
-            
+           
             if (gameState.selectedWord === gameState.selectedDefinition) {
                 // Correct match
                 handleCorrectMatch(wordCard, definitionCard);
@@ -277,7 +289,7 @@
                 // Incorrect match
                 handleIncorrectMatch(wordCard, definitionCard);
             }
-            
+           
             // Update display
             updateDisplay();
         }
@@ -289,34 +301,34 @@
             definitionCard.classList.remove('selected');
             wordCard.classList.add('matched');
             definitionCard.classList.add('matched');
-            
+           
             // Add to matched pairs
             gameState.matchedPairs.push(gameState.selectedWord);
-            
+           
             // Update score
             const basePoints = 50;
             const comboBonus = gameState.currentCombo * 10;
             const timeBonus = Math.floor(gameState.timeLeft / 10);
             const totalPoints = basePoints + comboBonus + timeBonus;
-            
+           
             gameState.score += totalPoints;
             gameState.matches++;
             gameState.currentCombo++;
-            
+           
             if (gameState.currentCombo > gameState.bestCombo) {
                 gameState.bestCombo = gameState.currentCombo;
             }
-            
+           
             // Show combo display
             if (gameState.currentCombo > 1) {
                 showCombo(gameState.currentCombo);
             }
-            
+           
             // Check if game is complete
             if (gameState.matches === gameState.totalPairs) {
                 setTimeout(() => endGame(), 500);
             }
-            
+           
             // Reset selections
             gameState.selectedWord = null;
             gameState.selectedDefinition = null;
@@ -326,10 +338,10 @@
         function handleIncorrectMatch(wordCard, definitionCard) {
             gameState.incorrectAttempts++;
             gameState.currentCombo = 0;
-            
+           
             wordCard.classList.add('incorrect');
             definitionCard.classList.add('incorrect');
-            
+           
             // Reset after delay
             setTimeout(() => {
                 wordCard.classList.remove('selected', 'incorrect');
@@ -349,11 +361,11 @@
                 "UNSTOPPABLE!",
                 "LEGENDARY!"
             ];
-            
+           
             const text = comboTexts[Math.min(combo - 2, comboTexts.length - 1)] || "INCREDIBLE!";
             comboDisplay.textContent = `${text} ${combo}x COMBO!`;
             comboDisplay.classList.add('show');
-            
+           
             setTimeout(() => {
                 comboDisplay.classList.remove('show');
             }, 1000);
@@ -363,23 +375,23 @@
         function startTimer() {
             updateTimerDisplay();
             clearInterval(timerInterval);
-            
+           
             timerInterval = setInterval(() => {
                 if (!gameState.gameActive) {
                     clearInterval(timerInterval);
                     return;
                 }
-                
+               
                 gameState.timeLeft--;
                 updateTimerDisplay();
-                
+               
                 if (gameState.timeLeft <= 30) {
                     // Visual warning for low time
                     const timeElement = document.querySelector('.stat-box:nth-child(3) .stat-value');
                     timeElement.style.color = '#ff4444';
                     timeElement.style.animation = 'pulse 1s infinite';
                 }
-                
+               
                 if (gameState.timeLeft <= 0) {
                     clearInterval(timerInterval);
                     endGame();
@@ -401,41 +413,211 @@
         }
 
         // End Game
-        function endGame() {
+        async function endGame() {
             gameState.gameActive = false;
             clearInterval(timerInterval);
-            
+           
             // Calculate accuracy
             const totalAttempts = gameState.matches + gameState.incorrectAttempts;
             const accuracy = totalAttempts > 0 ? Math.round((gameState.matches / totalAttempts) * 100) : 0;
             
-            // Update final score display
-            document.getElementById('final-score').textContent = gameState.score;
-            document.getElementById('final-matches').textContent = `${gameState.matches}/${gameState.totalPairs}`;
-            document.getElementById('final-time').textContent = timeElement.textContent;
-            document.getElementById('final-combo').textContent = `${gameState.bestCombo}x`;
-            document.getElementById('final-accuracy').textContent = `${accuracy}%`;
+            // Calculate time bonus (based on time left)
+            const timeBonus = Math.floor(gameState.timeLeft / 10);
             
-            // Show score popup after delay
+            // Calculate EXP earned (20 EXP per match + bonus for combos and time)
+            gameState.totalExpEarned = gameState.matches * 20;
+            if (accuracy >= 80) gameState.totalExpEarned += 30; // Bonus for high accuracy
+            if (timeBonus > 0) gameState.totalExpEarned += timeBonus * 2; // Bonus for time left
+            if (gameState.bestCombo >= 3) gameState.totalExpEarned += 25; // Bonus for combos
+            
+            // Update EXP popup
+            popupMatches.textContent = `${gameState.matches}/${gameState.totalPairs}`;
+            popupTime.textContent = timeElement.textContent;
+            popupCombo.textContent = `${gameState.bestCombo}x`;
+            popupAccuracy.textContent = `${accuracy}%`;
+            expAmount.textContent = `+${gameState.totalExpEarned} EXP`;
+            
+            // Send EXP to server to update user account
+            await updateUserExp(gameState.totalExpEarned, gameState.matches, accuracy, gameState.timeLeft);
+            
+            // Show EXP popup after a delay
             setTimeout(() => {
-                scorePopup.classList.add('show');
+                expPopup.classList.add('active');
             }, 1000);
+        }
+
+        // Update user EXP on server
+        async function updateUserExp(expAmount, matches, accuracy, timeLeft) {
+            try {
+                const response = await fetch('/api/add_review_exp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        exp_earned: expAmount,
+                        score: matches,
+                        accuracy: accuracy,
+                        time_seconds: 120 - timeLeft, // Total time taken
+                        game_type: 'matching'
+                    })
+                });
+                
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to update user EXP:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating user EXP:', error);
+            }
         }
 
         // Restart Game
         function restartGame() {
-            scorePopup.classList.remove('show');
+            expPopup.classList.remove('active');
             initGame();
         }
 
-        // Close Popup
-        function closePopup() {
-            scorePopup.classList.remove('show');
-            // In a real app, this would navigate back to challenges
-            alert('Returning to challenges menu...');
-        }
+        // Close EXP popup
+        btnClosePopup.addEventListener('click', function() {
+            expPopup.classList.remove('active');
+            restartGame();
+        });
 
-        // Initialize game when page loads
-        window.onload = initGame;
+        // Style for EXP popup
+        const style = document.createElement('style');
+        style.textContent = `
+            .exp-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+            .exp-modal.active {
+                display: flex;
+            }
+            .exp-popup-content {
+                background: white;
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                max-width: 400px;
+                width: 90%;
+                animation: popupSlide 0.5s ease;
+                border: 4px solid #4CAF50;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            }
+            @keyframes popupSlide {
+                from { transform: translateY(-50px); opacity: 0; }
+                to { transform: translateY(0); opacity: 1; }
+            }
+            .exp-icon {
+                font-size: 60px;
+                margin-bottom: 20px;
+                animation: pulse 2s infinite;
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+            .exp-amount {
+                font-size: 36px;
+                font-weight: bold;
+                color: #4CAF50;
+                margin: 20px 0;
+                text-shadow: 2px 2px 0 #ddd;
+            }
+            .exp-message {
+                color: #666;
+                margin-bottom: 25px;
+                font-size: 16px;
+            }
+            .exp-details {
+                background: #f9f9f9;
+                padding: 15px;
+                border-radius: 10px;
+                margin: 20px 0;
+                text-align: left;
+            }
+            .exp-detail {
+                display: flex;
+                justify-content: space-between;
+                margin: 8px 0;
+                padding: 5px 0;
+                border-bottom: 1px solid #eee;
+            }
+            .exp-detail:last-child {
+                border-bottom: none;
+            }
+            .exp-detail .label {
+                color: #666;
+            }
+            .exp-detail .value {
+                font-weight: bold;
+                color: #333;
+            }
+            .btn-confirm {
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                font-size: 18px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-weight: bold;
+                width: 100%;
+                margin-top: 20px;
+            }
+            .btn-confirm:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            }
+            /* Back button styles */
+            .back-button-container {
+                margin: 20px 0 20px 20px;
+            }
+            .back-button {
+                background: #f5f5f5;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+                color: #333;
+                transition: all 0.3s;
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .back-button:hover {
+                background: #e0e0e0;
+                transform: translateY(-2px);
+            }
+            .back-to-review-popup {
+                background: #666;
+            }
+            .back-to-review-popup:hover {
+                background: #555;
+            }
+            /* Error message */
+            .error-message {
+                text-align: center;
+                padding: 20px;
+                color: #ff4444;
+                font-style: italic;
+                background: #fff0f0;
+                border-radius: 5px;
+                margin: 10px;
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 {%endblock%}

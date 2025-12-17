@@ -42,7 +42,7 @@
                 <h3 id="overview-title">Weekly Overview</h3>
                 <div class="weekly-stats">
                     <strong id="overview-stats">
-                        Current Week: {{ weekly_total }} words + {{ evolutions }} Pokémon evolved
+                        Current Week: {{ weekly_total }} words
                     </strong>
                 </div>
 
@@ -53,7 +53,7 @@
                     <div class="chart-grid" id="chart-grid">
                         {% for date, count in weekly_data.items() %}
                             <div class="bar-column">
-                                <div class="bar" style="height: '{{ (count / (weekly_total if weekly_total else 1)) * 90 }}%;'" data-value="{{ count }}">
+                                <div class="bar" style="height: '{{ (count / (weekly_total if weekly_total else 1)) * 90 }} %';" data-value="{{ count }}">
                                     <div class="bar-value">{{ count }}</div>
                                 </div>
                             </div>
@@ -79,15 +79,135 @@
         document.addEventListener('DOMContentLoaded', function() {
             const tabs = document.querySelectorAll('.time-tab');
 
+            // Parse the JSON data from Flask template
+            const dailyData = JSON.parse('{{ daily_data|tojson|safe }}');
+            const weeklyData = JSON.parse('{{ weekly_data|tojson|safe }}');
+            const monthlyData = JSON.parse('{{ monthly_data|tojson|safe }}');
+
+            console.log("Monthly data from server:", monthlyData);
+
+            // Helper function to group hours into 6-hour intervals
+            function groupHoursIntoIntervals(data) {
+                const intervals = {
+                    0: 0,   // 12 AM - 5:59 AM
+                    6: 0,   // 6 AM - 11:59 AM
+                    12: 0,  // 12 PM - 5:59 PM
+                    18: 0   // 6 PM - 11:59 PM
+                };
+                
+                // Group hourly data into 6-hour intervals
+                Object.entries(data).forEach(([hourStr, count]) => {
+                    const hour = parseInt(hourStr);
+                    // Determine which interval this hour belongs to
+                    if (hour >= 0 && hour < 6) {
+                        intervals[0] += count;
+                    } else if (hour >= 6 && hour < 12) {
+                        intervals[6] += count;
+                    } else if (hour >= 12 && hour < 18) {
+                        intervals[12] += count;
+                    } else if (hour >= 18 && hour < 24) {
+                        intervals[18] += count;
+                    }
+                });
+                
+                return intervals;
+            }
+
+            // Helper function to properly format monthly data
+            function processMonthlyData(data) {
+                const monthData = {};
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                
+                // Process each entry in the monthly data
+                Object.entries(data).forEach(([key, count]) => {
+                    // Key might be a week number (like 50, 51, 52, 1, 2, etc.)
+                    // Or it might already be a month identifier
+                    
+                    // Try to extract month from the data
+                    // If key is a number (week number), we need to convert it to month
+                    const weekNum = parseInt(key);
+                    if (!isNaN(weekNum)) {
+                        // This is a week number - approximate which month it belongs to
+                        // Week 1-4: January, Week 5-8: February, etc.
+                        const monthIndex = Math.min(Math.floor((weekNum - 1) / 4.34), 11);
+                        const monthName = monthNames[monthIndex];
+                        
+                        // Get current year
+                        const currentYear = new Date().getFullYear();
+                        const monthKey = `${monthName} ${currentYear}`;
+                        
+                        monthData[monthKey] = (monthData[monthKey] || 0) + count;
+                    } else {
+                        // This might already be a month identifier
+                        monthData[key] = (monthData[key] || 0) + count;
+                    }
+                });
+                
+                return monthData;
+            }
+
+            // Helper function to ensure all time periods are displayed
+            function ensureCompleteData(period, data) {
+                const completeData = {};
+                
+                if (period === 'daily') {
+                    // Group hourly data into 6-hour intervals
+                    const groupedData = groupHoursIntoIntervals(data);
+                    // Display 4 time intervals
+                    const intervals = [0, 6, 12, 18];
+                    intervals.forEach(hour => {
+                        completeData[hour] = groupedData[hour] || 0;
+                    });
+                } else if (period === 'weekly') {
+                    // Display Monday to Sunday
+                    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    // Get current week's Monday
+                    const today = new Date();
+                    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+                    const diff = today.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Get Monday
+                    const monday = new Date(today.setDate(diff));
+                    
+                    // Create 7 days from Monday to Sunday
+                    for (let i = 0; i < 7; i++) {
+                        const date = new Date(monday);
+                        date.setDate(monday.getDate() + i);
+                        const dateStr = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+                        const dayName = days[i];
+                        completeData[dayName] = data[dateStr] || 0;
+                    }
+                } else if (period === 'monthly') {
+                    // First process the monthly data properly
+                    const processedData = processMonthlyData(data);
+                    
+                    // Display last 6 months for better readability
+                    const today = new Date();
+                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    
+                    // Show last 6 months
+                    for (let i = 5; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setMonth(today.getMonth() - i);
+                        const monthIndex = date.getMonth();
+                        const year = date.getFullYear();
+                        const monthLabel = `${monthNames[monthIndex]} ${year}`;
+                        
+                        // Use the processed data if available, otherwise 0
+                        completeData[monthLabel] = processedData[monthLabel] || 0;
+                    }
+                }
+                
+                return completeData;
+            }
 
             tabs.forEach(tab => {
                 tab.addEventListener('click', function() {
                     tabs.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-                    updateChart(this.dataset.period); // ✅ use data-period
+                    updateChart(this.dataset.period);
                 });
             });
-
 
             function updateChart(period) {
                 const chartGrid = document.getElementById('chart-grid');
@@ -95,44 +215,103 @@
                 chartGrid.innerHTML = '';
                 dayLabels.innerHTML = '';
 
+                let rawData = {};
+                let title = '';
+                let overviewTitle = '';
+                let overviewStats = '';
 
-                let data = {};
                 if (period === 'daily') {
-                    data = '{{ daily_data|tojson }}';
-                    document.getElementById('chart-title').textContent = 'Daily Words Learned';
-                    document.getElementById('overview-title').textContent = 'Daily Overview';
-                    document.getElementById('overview-stats').textContent = 'Current Day: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
+                    rawData = dailyData;
+                    title = 'Daily Words Learned (by Time of Day)';
+                    overviewTitle = 'Daily Overview';
                 } else if (period === 'weekly') {
-                    data = '{{ weekly_data|tojson }}';
-                    document.getElementById('chart-title').textContent = 'Weekly Words Learned';
-                    document.getElementById('overview-title').textContent = 'Weekly Overview';
-                    document.getElementById('overview-stats').textContent = 'Current Week: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
+                    rawData = weeklyData;
+                    title = 'Weekly Words Learned';
+                    overviewTitle = 'Weekly Overview';
                 } else if (period === 'monthly') {
-                    data = '{{ monthly_data|tojson }}';
-                    document.getElementById('chart-title').textContent = 'Monthly Words Learned';
-                    document.getElementById('overview-title').textContent = 'Monthly Overview';
-                    document.getElementById('overview-stats').textContent = 'Current Month: ' + Object.values(data).reduce((a,b)=>a+b,0) + ' words';
+                    rawData = monthlyData;
+                    title = 'Monthly Words Learned';
+                    overviewTitle = 'Monthly Overview';
                 }
 
+                // Ensure complete data for the period
+                const data = ensureCompleteData(period, rawData);
+                
+                // Calculate total
+                const total = Object.values(data).reduce((a, b) => a + b, 0);
+                
+                // Update stats
+                if (period === 'daily') {
+                    overviewStats = `Today: ${total} words`;
+                } else if (period === 'weekly') {
+                    overviewStats = `This Week: ${total} words`;
+                } else if (period === 'monthly') {
+                    overviewStats = `Last 6 Months: ${total} words`;
+                }
 
-                const maxValue = Math.max(...Object.values(data), 1);
-                Object.entries(data).forEach(([label, value]) => {
+                // Update the display
+                document.getElementById('chart-title').textContent = title;
+                document.getElementById('overview-title').textContent = overviewTitle;
+                document.getElementById('overview-stats').textContent = overviewStats;
+
+                // Create chart bars
+                const labels = Object.keys(data);
+                const values = Object.values(data);
+                const maxValue = Math.max(...values, 1);
+
+                labels.forEach((label, index) => {
+                    const value = values[index];
+                    
+                    // Create bar column
                     const barCol = document.createElement('div');
                     barCol.className = 'bar-column';
+                    
+                    // Calculate height percentage (minimum 5% so bars are visible even at 0)
+                    const heightPercent = value === 0 ? 5 : (value / maxValue) * 90;
+                    
                     barCol.innerHTML = `
-                        <div class="bar" style="height:${(value/maxValue)*90}%;" data-value="${value}">
+                        <div class="bar" style="height: ${heightPercent}%;" data-value="${value}">
                             <div class="bar-value">${value}</div>
                         </div>`;
                     chartGrid.appendChild(barCol);
 
-
+                    // Create label
                     const dayLabel = document.createElement('div');
                     dayLabel.className = 'day-label';
-                    dayLabel.textContent = label;
+                    
+                    // Format label based on period
+                    if (period === 'daily') {
+                        // For daily data, show 4 time periods with abbreviated labels
+                        const hour = parseInt(label);
+                        let timeLabel = '';
+                        if (hour === 0) timeLabel = '12AM-6AM';
+                        else if (hour === 6) timeLabel = '6AM-12PM';
+                        else if (hour === 12) timeLabel = '12PM-6PM';
+                        else if (hour === 18) timeLabel = '6PM-12AM';
+                        dayLabel.textContent = timeLabel;
+                        
+                        // Add special CSS for daily labels to prevent overlap
+                        dayLabel.style.fontSize = '10px';
+                        dayLabel.style.lineHeight = '1.2';
+                        dayLabel.style.textAlign = 'center';
+                        dayLabel.style.wordWrap = 'break-word';
+                        dayLabel.style.maxWidth = '60px';
+                        
+                    } else if (period === 'weekly') {
+                        // For weekly data, show day names
+                        dayLabel.textContent = label;
+                    } else if (period === 'monthly') {
+                        // For monthly data, show month names
+                        dayLabel.textContent = label;
+                        dayLabel.style.fontSize = '11px';
+                    }
+                    
                     dayLabels.appendChild(dayLabel);
                 });
             }
+
+            // Initialize with weekly view
+            updateChart('weekly');
         });
     </script>
 {% endblock %}
-

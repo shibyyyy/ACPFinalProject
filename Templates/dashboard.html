@@ -56,7 +56,7 @@
     <div class="dashboard-container">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <h1>Hello, Trainer!</h1>
+            <h1>Hello, Trainer {{ current_user.name }}!</h1>
         </div>
 
 
@@ -78,16 +78,25 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><span class="word-main" id="wordOfDay">Ephemeral</span></td>
-                        <td><span class="word-pronunciation" id="wordPronunciation">/ɪˈfɛmərəl/</span></td>
-                        <td><span class="word-type" id="wordType">Adjective</span></td>
-                        <td id="wordMeaning">Lasting for a very short time; transient.</td>
-                        <td><div class="word-example" id="wordExample">"The beauty of cherry blossoms is ephemeral, lasting only a few days each spring."</div></td>
+                        <td><span class="word-main">{{ word_data.word }}</span></td>
+                        <td><span class="word-pronunciation">{{ word_data.pronunciation }}</span></td>
+                        <td><span class="word-type">{{ word_data.type }}</span></td>
+                        <td>{{ word_data.definition }}</td>
+                        <td><div class="word-example">"{{ word_data.example }}"</div></td>
                     </tr>
                 </tbody>
-            </table>
+                </table>
+
             <div class="word-actions">
-                <button class="btn-save-word" onclick="saveWordOfTheDay()">➕ Save to Collection</button>
+                <form action="{{ url_for('add_to_collection', word_id=word_data.word_id) }}" method="post">
+                    {% if word_data.user_has_word %}
+                        <button type="submit" class="btn btn-primary" disabled style="opacity: 0.6; cursor: not-allowed;">
+                            ✓ Already in Collection
+                        </button>
+                    {% else %}
+                        <button type="submit" class="btn btn-primary">➕ Save to Collection</button>
+                    {% endif %}
+                </form>
             </div>
         </div>
 
@@ -101,39 +110,33 @@
 
 
         <!-- Progress Section -->
-        <div class="progress-section">
-            <div class="progress-card">
-                <h2>Your Progress</h2>
-                <div class="progress-stat">
-                    <span class="label">Words Learned This Week</span>
-                    <span class="value">{{ weekly_total }}</span>
+            <div class="progress-section">
+                <div class="progress-card">
+                    <h2>Your Progress</h2>
+                    <div class="progress-stat">
+                        <span class="label">Words Learned This Week</span>
+                        <span class="value">{{ weekly_total }}</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="label">Current Streak</span>
+                        <span class="value">{{ streak }} Days</span>
+                    </div>
+                    <button class="btn-secondary" onclick="window.location.href='/progress'">VIEW DETAILED PROGRESS</button>
                 </div>
-                <div class="progress-stat">
-                    <span class="label">Current Streak</span>
-                    <span class="value">{{ streak }} Days</span>
-                </div>
-                <div class="progress-stat">
-                    <span class="label">Pokémon Evolutions</span>
-                    <span class="value">{{ evolutions }}</span>
-                </div>
-                <div class="progress-stat">
-                    <span class="label">Accuracy Rate</span>
-                    <span class="value">{{ accuracy }}%</span>
-                </div>
-                <button class="btn-secondary" onclick="window.location.href='/progress'">VIEW DETAILED PROGRESS</button>
-            </div>
 
-
-            <div class="progress-card">
-                <h2>All Time Ranking</h2>
-                <div class="progress-stat">
-                    <span class="label">Total Points</span>
-                    <span class="value">{{ total_points }}</span>
+                <div class="progress-card">
+                    <h2>All Time Ranking</h2>
+                    <div class="progress-stat">
+                        <span class="label">Current Rank</span>
+                        <span class="value">#{{ user_rank }}</span>
+                    </div>
+                    <div class="progress-stat">
+                        <span class="label">Total Points</span>
+                        <span class="value">{{ total_points }}</span>
+                    </div>
+                    <button class="btn-secondary" onclick="window.location.href='/leaderboard'">VIEW LEADERBOARD</button>
                 </div>
-                <button class="btn-secondary" onclick="window.location.href='/leaderboard'">VIEW LEADERBOARD</button>
             </div>
-        </div>
-    </div>
 
 
     <!-- Starter Modal -->
@@ -156,7 +159,7 @@
             <form action="{{ url_for('choose_partner') }}" method="POST" style="margin-top: 30px;">
                 <input type="hidden" name="pokemon_id" id="selectedPokemonId">
                 <button type="submit" class="btn-confirm">
-                    Start Learning with <span id="selectedPartnerName">Pikachu</span>!
+                    Start Learning with <span id="selectedPartnerName">Your Pokemon</span>!
                 </button>
             </form>
         </div>
@@ -170,113 +173,321 @@
 
 
     <script>
+        // --- Global Variables ---
+        let notifications = [];
+        let notificationPollInterval = null;
+        let notificationCreatorInterval = null;
+        let isNotificationDropdownOpen = false;
+
+        // --- Pokémon Selection Functions ---
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize Pokémon selection
             const pokemonData = JSON.parse(document.getElementById("pokemonDataStorage").dataset.pokemons);
             const grid = document.getElementById("pokemonGrid");
             const selectedIdInput = document.getElementById("selectedPokemonId");
             const selectedNameSpan = document.getElementById("selectedPartnerName");
 
-            // Filter only starter Pokémon and limit to 6 (3x2)
-            const starters = pokemonData.filter(p => p.rarity === "starter").slice(0, 6);
-
-            starters.forEach(p => {
-                const card = document.createElement("div");
-                card.className = "pokemon-card";
-                card.innerHTML = `
-                    <img src="${p.img}" alt="${p.name}" class="pokemon-sprite">
-                    <p>${p.name}</p>
-                `;
-                card.addEventListener("click", () => {
-                    document.querySelectorAll(".pokemon-card").forEach(c => c.classList.remove("selected"));
-                    card.classList.add("selected");
-
-                    selectedIdInput.value = p.id;
-                    selectedNameSpan.textContent = p.name;
+            if (grid && pokemonData) {
+                const starters = pokemonData.filter(p => p.rarity === "starter").slice(0, 6);
+                starters.forEach(p => {
+                    const card = document.createElement("div");
+                    card.className = "pokemon-card";
+                    card.innerHTML = `
+                        <img src="${p.img}" alt="${p.name}" class="pokemon-sprite">
+                        <p>${p.name}</p>
+                    `;
+                    card.addEventListener("click", () => {
+                        document.querySelectorAll(".pokemon-card").forEach(c => c.classList.remove("selected"));
+                        card.classList.add("selected");
+                        selectedIdInput.value = p.id;
+                        selectedNameSpan.textContent = p.name;
+                    });
+                    grid.appendChild(card);
                 });
-                grid.appendChild(card);
-            });
+            }
 
-            // Load notifications on page init
-            loadNotifications();
+            // Set current date
+            const currentDateElement = document.getElementById("currentDate");
+            if (currentDateElement) {
+                const currentDate = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                currentDateElement.textContent = currentDate.toLocaleDateString('en-US', options);
+            }
+
+            // --- START REAL-TIME NOTIFICATION SYSTEM ---
+            console.log("🚀 Starting real-time notification system...");
+            
+            // 1. Start polling for notifications every 3 seconds
+            startNotificationPolling();
+            
+            // 2. Create new notifications automatically every 10 seconds
+            startAutoNotificationCreation();
         });
 
         function openPokemonModal() {
-            document.getElementById('welcomeModal').classList.remove('active');
-            document.getElementById('pokemonModal').classList.add('active');
-        }
-        function closePokemonModal() {
-            document.getElementById('pokemonModal').classList.remove('active');
+            const welcomeModal = document.getElementById('welcomeModal');
+            const pokemonModal = document.getElementById('pokemonModal');
+            if (welcomeModal) welcomeModal.classList.remove('active');
+            if (pokemonModal) pokemonModal.classList.add('active');
         }
 
-        // --- Notification Methods ---
+        // --- REAL-TIME NOTIFICATION SYSTEM ---
+        function startNotificationPolling() {
+            // Clear any existing interval
+            if (notificationPollInterval) {
+                clearInterval(notificationPollInterval);
+            }
+            
+            // Load immediately
+            loadNotifications();
+            
+            // Poll every 3 seconds
+            notificationPollInterval = setInterval(loadNotifications, 3000);
+            
+            console.log("✅ Polling active: Checking for new notifications every 3 seconds");
+        }
+
+        function startAutoNotificationCreation() {
+            // Clear any existing interval
+            if (notificationCreatorInterval) {
+                clearInterval(notificationCreatorInterval);
+            }
+            
+            // Create first notification immediately
+            createAutoNotification();
+            
+            // Create new notifications every 10 seconds
+            notificationCreatorInterval = setInterval(createAutoNotification, 10000);
+            
+            console.log("🔄 Auto-creator active: Creating notifications every 10 seconds");
+        }
+
+        function createAutoNotification() {
+            const notificationTypes = [
+                {
+                    title: "📚 Learning Reminder",
+                    message: "Time to practice your vocabulary words!"
+                },
+                {
+                    title: "🌟 Progress Update", 
+                    message: "Keep up the great work on your learning journey!"
+                },
+                {
+                    title: "⏰ Daily Check-in",
+                    message: "Have you learned a new word today?"
+                },
+                {
+                    title: "🎯 Challenge Alert",
+                    message: "Test your knowledge with a quick review session!"
+                },
+                {
+                    title: "✨ Motivation",
+                    message: "Every word you learn makes you smarter!"
+                },
+                {
+                    title: "🧠 Memory Boost",
+                    message: "Reviewing words regularly improves retention!"
+                },
+                {
+                    title: "🏆 Achievement",
+                    message: "You're making excellent progress!"
+                },
+                {
+                    title: "💡 Tip",
+                    message: "Try adding 3 new words to your collection today!"
+                }
+            ];
+            
+            // Pick a random notification
+            const randomIndex = Math.floor(Math.random() * notificationTypes.length);
+            const notification = notificationTypes[randomIndex];
+            
+            // Send to backend to create the notification
+            fetch('/api/create_auto_notification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: notification.title,
+                    message: notification.message
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(`📨 Auto-created: ${notification.title}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error creating auto-notification:', error);
+            });
+        }
+
         function loadNotifications() {
+            fetch('/api/notifications')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network error');
+                    return response.json();
+                })
+                .then(data => {
+                    if (!Array.isArray(data)) {
+                        console.error('Invalid response format');
+                        return;
+                    }
+                    
+                    // Store old unread count before update
+                    const oldUnreadCount = notifications.filter(n => n.unread).length;
+                    
+                    // Update notifications
+                    notifications = data;
+                    
+                    // Update UI
+                    updateNotificationUI();
+                    
+                    // Check if new unread notifications arrived
+                    const newUnreadCount = data.filter(n => n.unread).length;
+                    if (newUnreadCount > oldUnreadCount) {
+                        console.log(`🎯 New notification detected! Unread: ${newUnreadCount}`);
+                        animateNotificationBadge();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading notifications:', error);
+                });
+        }
+
+        function updateNotificationUI() {
+            const badge = document.getElementById('notificationBadge');
             const notificationList = document.getElementById('notificationList');
-            notificationList.innerHTML = '';
             
-            let unreadCount = 0;
-            
-            if (notifications.length === 0) {
-                notificationList.innerHTML = '<div class="no-notifications">No notifications yet!</div>';
-                document.getElementById('notificationBadge').textContent = '0';
-                document.getElementById('notificationBadge').style.display = 'none';
+            if (!badge) {
+                console.error('Notification badge not found!');
                 return;
             }
             
-            notifications.forEach(notification => {
+            // Count unread notifications
+            const unreadCount = notifications.filter(n => n.unread).length;
+            
+            // Update badge
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                badge.style.display = 'flex';
+            } else {
+                badge.textContent = '0';
+                badge.style.display = 'none';
+            }
+            
+            // Update dropdown list if open
+            if (notificationList && isNotificationDropdownOpen) {
+                updateNotificationList(notificationList);
+            }
+        }
+
+        function updateNotificationList(listElement) {
+            listElement.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                listElement.innerHTML = '<div class="no-notifications">No notifications yet!</div>';
+                return;
+            }
+            
+            // Show newest first
+            const sorted = [...notifications].sort((a, b) => {
+                const timeA = a.timestamp ? new Date(a.timestamp) : new Date(0);
+                const timeB = b.timestamp ? new Date(b.timestamp) : new Date(0);
+                return timeB - timeA;
+            });
+            
+            sorted.forEach(notification => {
                 const item = document.createElement('div');
-                item.className = "notification-item ${notification.unread ? 'unread' : ''}";
+                item.className = `notification-item ${notification.unread ? 'unread' : ''}`;
                 item.onclick = () => markAsRead(notification.id);
                 
                 item.innerHTML = `
-                    <div class="notification-title">${notification.title}</div>
-                    <div class="notification-message">${notification.message}</div>
-                    <div class="notification-time">${notification.time}</div>
+                    <div class="notification-title">${notification.title || 'Notification'}</div>
+                    <div class="notification-message">${notification.message || ''}</div>
+                    <div class="notification-time">${notification.time || 'Just now'}</div>
                 `;
                 
-                notificationList.appendChild(item);
-                
-                if (notification.unread) {
-                    unreadCount++;
-                }
+                listElement.appendChild(item);
             });
+        }
+
+        function animateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (!badge) return;
             
-            // Update badge count
-            document.getElementById('notificationBadge').textContent = unreadCount;
-            if (unreadCount > 0) {
-                document.getElementById('notificationBadge').style.display = 'flex';
-            } else {
-                document.getElementById('notificationBadge').style.display = 'none';
-            }
+            badge.classList.add('badge-pulse');
+            setTimeout(() => badge.classList.remove('badge-pulse'), 1000);
         }
 
         function toggleNotifications() {
             const dropdown = document.getElementById('notificationDropdown');
+            if (!dropdown) return;
+            
+            isNotificationDropdownOpen = !isNotificationDropdownOpen;
             dropdown.classList.toggle('active');
-        }
-
-        function markAsRead(id) {
-            const notification = notifications.find(n => n.id === id);
-            if (notification && notification.unread) {
-                notification.unread = false;
-                loadNotifications();
+            
+            if (isNotificationDropdownOpen) {
+                // Refresh list when opening
+                updateNotificationList(document.getElementById('notificationList'));
             }
         }
 
         function clearAllNotifications() {
             if (notifications.length === 0) {
-                alert("There are no notifications to clear!");
+                alert("No notifications to clear!");
                 return;
             }
             
             if (confirm('Are you sure you want to clear all notifications?')) {
-                notifications = [];
-                loadNotifications();
-                toggleNotifications();
-                alert("All notifications have been cleared!");
+                fetch('/api/notifications/clear_all', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        notifications = [];
+                        updateNotificationUI();
+                        if (isNotificationDropdownOpen) {
+                            toggleNotifications();
+                        }
+                        alert("All notifications cleared!");
+                    }
+                });
             }
         }
+
+        function markAsRead(notificationId) {
+            fetch(`/api/notifications/mark_read/${notificationId}`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local state
+                    const notification = notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.unread = false;
+                    }
+                    updateNotificationUI();
+                }
+            });
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('notificationDropdown');
+            const button = document.querySelector('.notification-btn');
+            
+            if (!dropdown || !button) return;
+            
+            if (!button.contains(event.target) && !dropdown.contains(event.target) && isNotificationDropdownOpen) {
+                toggleNotifications();
+            }
+        });
     </script>
 {% endblock %}
-
-
-

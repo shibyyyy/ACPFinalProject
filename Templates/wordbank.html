@@ -39,12 +39,6 @@
             <h2 class="wordbank-title">Your Vocabulary Collection</h2>
             <div class="search-filter-container">
                 <input type="text" class="search-box" placeholder="Search words..." id="searchInput">
-                <select class="filter-select" id="filterSelect">
-                    <option value="all">All Words</option>
-                    <option value="mastered">Mastered</option>
-                    <option value="learning">Learning</option>
-                    <option value="new">New</option>
-                </select>
             </div>
         </div>
 
@@ -52,8 +46,15 @@
         <!-- Words Grid -->
         <div class="words-grid" id="wordsGrid">
             {% for user_word, vocab in words %}
-                <div class="word-card2" onclick="openWordModal('{{ vocab.word }}','{{ vocab.definition }}','{{ vocab.example_sentence }}','{{ user_word.date_learned.strftime(%Y-%m-%d) }}')">
-                    <div class="word-header">
+        <div class="word-card2"
+            onclick="openWordModal('{{ vocab.word }}',
+                            '{{ vocab.definition }}',
+                            '{{ vocab.example_sentence }}',
+                            '{{ user_word.date_learned.strftime("%Y-%m-%d")}}',
+                            '{{ vocab.word_id }}')">
+
+
+        <div class="word-header">
                         <h3 class="word-text">{{ vocab.word }}</h3>
                         <span class="word-type">{{ vocab.category or "N/A" }}</span>
                     </div>
@@ -92,7 +93,6 @@
                 </div>
             </div>
             <div class="modal2-actions">
-                <button class="btn-edit" onclick="editWord()">EDIT</button>
                 <button class="btn-close" onclick="closeWordModal()">CLOSE</button>
             </div>
         </div>
@@ -105,47 +105,42 @@
 
 
     <script>
-        // Open word detail modal
-        function openWordModal(word, definition, example, date) {
-            document.getElementById('modalWord').textContent = word;
-            document.getElementById('modalDefinition').textContent = definition;
-            document.getElementById('modalExample').textContent = `"${example}"`;
-            document.getElementById('modalDate').textContent = date;
-            document.getElementById('wordModal').classList.add('active');
-        }
+        let currentWordId = null;
 
 
-        // Close word detail modal
-        function closeWordModal() {
-            document.getElementById('wordModal').classList.remove('active');
-        }
+// Open word detail modal
+function openWordModal(word, definition, example, date, id) {
+    document.getElementById('modalWord').textContent = word;
+    document.getElementById('modalDefinition').textContent = definition;
+    document.getElementById('modalExample').textContent = `"${example}"`;
+    document.getElementById('modalDate').textContent = date;
+    document.getElementById('wordModal').classList.add('active');
 
 
-        // Edit word function
-        function editWord() {
-            alert('Edit word feature coming soon!');
-        }
+    currentWordId = id; // store the word id
+}
 
 
-        // Search and filter functionality
+// Close word detail modal
+function closeWordModal() {
+    document.getElementById('wordModal').classList.remove('active');
+    currentWordId = null;
+}
+
+
+        // Search functionality
         document.getElementById('searchInput').addEventListener('input', filterWords);
-        document.getElementById('filterSelect').addEventListener('change', filterWords);
-
 
         function filterWords() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filterValue = document.getElementById('filterSelect').value;
             const cards = document.querySelectorAll('.word-card2');
-
 
             cards.forEach(card => {
                 const word = card.querySelector('.word-text').textContent.toLowerCase();
                 const definition = card.querySelector('.word-definition').textContent.toLowerCase();
                 const matchesSearch = word.includes(searchTerm) || definition.includes(searchTerm);
-                const matchesFilter = filterValue === 'all'; // extend later with status field
 
-
-                if (matchesSearch && matchesFilter) {
+                if (matchesSearch) {
                     card.style.display = '';
                 } else {
                     card.style.display = 'none';
@@ -154,6 +149,3 @@
         }
     </script>
 {% endblock %}
-
-
-
