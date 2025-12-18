@@ -5,5 +5,5 @@ CREATE TABLE achievement (
     description TEXT,
     points_reward INT DEFAULT 0,
     requirement INT DEFAULT 0,
-    FOREIGN KEY (pokemon_id) REFERENCES pokemon(pokemon_id)
+    FOREIGN KEY (pokemon_id) REFERENCES pokemon(pokemon_id) 
 );
