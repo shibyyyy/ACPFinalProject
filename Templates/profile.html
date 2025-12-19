@@ -20,6 +20,11 @@
     {%endblock%}
    
     <div class="profile-container">
+        <div class="back-button-container">
+            <a href="{{ url_for('dashboard') }}" class="back-button">
+                ← Back to Dashboard
+            </a>
+        </div>
         <div class="profile-header-section">
             <div class="profile-avatar-container">
                 <div class="profile-avatar" id="profileAvatar">
@@ -61,6 +66,14 @@
                 <div class="stat-value">{{ user.total_points }}</div>
                 <div class="stat-label">POINTS</div>
                 <div class="stat-subtitle">Pokémon EXP</div>
+            </div>
+
+            <!-- New Pokemon Collection Stat Card -->
+            <div class="stat-card clickable" onclick="showPokemonCollection()">
+                <div class="stat-icon">📖</div>
+                <div class="stat-value" id="pokemonCollected">{{ collected_pokemon_count }}</div>
+                <div class="stat-label">POKÉMON</div>
+                <div class="stat-subtitle">Tap to view collection</div>
             </div>
         </div>
 
@@ -192,63 +205,64 @@
                 </div>
             </div>
 
-                        <div class="profile-section" style="grid-column: span 2;">
+            <div class="profile-section" style="grid-column: span 2;">
                 <h2 data-icon="🏆">ACHIEVEMENTS</h2>
-               
+            
                 <div class="pokemon-achievements-grid">
-                    {% for achievement in all_achievements %}
-                        {% set user_achievement = none %}
-                        {% set user_progress = 0 %}
-                        {% for ua in user_achievements %}
-                            {% if ua.achievement_id == achievement.achievement_id %}
-                                {% set user_achievement = ua %}
-                                {% set user_progress = ua.progress if ua.progress else 0 %}
-                            {% endif %}
-                        {% endfor %}
-                       
+                    {% for achievement in achievements_data %}
                         {% set pokemon_data = achievement_pokemon.get(achievement.achievement_id) %}
-                        {% set is_unlocked = user_achievement and user_progress >= achievement.requirement %}
+                        {% set is_earned = achievement.is_earned %}
+                        {% set user_progress = achievement.user_progress %}
+                        {% set can_claim = not is_earned and user_progress >= achievement.requirement %}
                         {% set progress_percentage = (user_progress / achievement.requirement * 100) if achievement.requirement > 0 else 100 %}
                         {% set progress_percentage = progress_percentage if progress_percentage <= 100 else 100 %}
-                       
-                        <div class="pokemon-badge {% if not is_unlocked %}locked{% endif %}">
+                    
+                        <div class="pokemon-badge {% if not is_earned %}locked{% endif %}" data-achievement-id="{{ achievement.achievement_id }}">
                             <div class="pokemon-icon">
                                 {% if pokemon_data and pokemon_data.url %}
-                                    <img src="{{ pokemon_data.url }}" alt="{{ pokemon_data.name }}" {% if not is_unlocked %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
+                                    <img src="{{ pokemon_data.url }}" alt="{{ pokemon_data.name }}" {% if not is_earned %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
                                 {% else %}
-                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Unknown" {% if not is_unlocked %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png" alt="Unknown" {% if not is_earned %}style="filter: grayscale(100%); opacity: 0.5;"{% endif %}>
                                 {% endif %}
-                                {% if not is_unlocked %}
+                                {% if not is_earned and not can_claim %}
                                     <div class="lock-overlay">🔒</div>
                                 {% endif %}
                             </div>
                             <div class="pokemon-name">{{ achievement.name }}</div>
                             <div class="pokemon-desc">{{ achievement.description }}</div>
                             
-                            <!-- Progress Bar Section -->
+
                             <div class="achievement-progress-container">
                                 <div class="progress-label">
                                     <span class="progress-text">
-                                        {% if is_unlocked %}
-                                            ✅ COMPLETED
+                                        {% if is_earned %}
+                                            ✅ CLAIMED
+                                        {% elif user_progress >= achievement.requirement %}
+                                            🎯 READY TO CLAIM!
                                         {% else %}
                                             {{ user_progress }}/{{ achievement.requirement }}
                                         {% endif %}
                                     </span>
-                                    {% if not is_unlocked %}
+                                    {% if not is_earned and user_progress < achievement.requirement %}
                                         <span class="progress-percent">{{ progress_percentage|int }}%</span>
                                     {% endif %}
                                 </div>
                                 
-                                {% if not is_unlocked %}
+                                {% if not is_earned and user_progress < achievement.requirement %}
                                 <div class="progress-bar-bg">
                                     <div class="progress-bar-fill" style="width: {{ progress_percentage }}%;"></div>
                                 </div>
                                 {% endif %}
                                 
                                 <div class="pokemon-reward">
-                                    {% if is_unlocked %}
+                                    {% if is_earned %}
                                         <span class="reward-badge">🏆 +{{ achievement.points_reward }} XP</span>
+                                    {% elif user_progress >= achievement.requirement %}
+                                        <button class="claim-achievement-btn" 
+                                                onclick="claimAchievement({{ achievement.achievement_id }})"
+                                                data-achievement-id="{{ achievement.achievement_id }}">
+                                            🎁 CLAIM +{{ achievement.points_reward }} XP
+                                        </button>
                                     {% else %}
                                         <span class="reward-text">Reward: {{ achievement.points_reward }} XP</span>
                                     {% endif %}
@@ -257,6 +271,7 @@
                         </div>
                     {% endfor %}
                 </div>
+            </div>
             </div>
         </div>
 
@@ -267,11 +282,428 @@
         </div>
     </div>
 
+    <!-- Pokémon Collection Modal -->
+    <div id="pokemonCollectionModal" class="modal">
+        <div class="modal-content" style="max-width: 90%; max-height: 90%;">
+            <div class="modal-header">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 10px;">
+                    <span>🔮</span>
+                    <span>MY POKÉMON COLLECTION</span>
+                </h2>
+                <span class="modal-close" onclick="closePokemonCollection()">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <div class="collection-stats">
+                    <div class="collection-stat">
+                        <span class="stat-number" id="modalPokemonCount">{{ collected_pokemon_count }}</span>
+                        <span class="stat-label">Total Collected</span>
+                    </div>
+                    <div class="collection-stat">
+                        <span class="stat-number" id="modalUniqueCount">{{ unique_pokemon_count }}</span>
+                        <span class="stat-label">Unique Species</span>
+                    </div>
+                    <div class="collection-stat">
+                        <span class="stat-number">{{ current_partner_name }}</span>
+                        <span class="stat-label">Current Partner</span>
+                    </div>
+                </div>
+                
+                <div class="collection-filters">
+                    <button class="filter-btn active" onclick="filterCollection('all')">All Pokémon</button>
+                    <button class="filter-btn" onclick="filterCollection('common')">Common</button>
+                    <button class="filter-btn" onclick="filterCollection('rare')">Rare</button>
+                    <button class="filter-btn" onclick="filterCollection('legendary')">Legendary</button>
+                </div>
+                
+                <div id="pokemonCollectionGrid" class="pokemon-collection-grid">
+                    <!-- Pokemon will be loaded here -->
+                </div>
+                
+                <div class="collection-empty" id="emptyCollectionMessage" style="display: none;">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No Pokémon Found</h3>
+                    <p>Earn more XP and complete achievements to collect Pokémon!</p>
+                    <button class="action-btn" onclick="window.location.href='/dashboard'">
+                        🚀 Go to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <p>© 2025 VocabuLearner • Profile Management</p>
     </footer>
 
-        <style>
+    <style>
+        /* Existing styles remain the same, add these new styles */
+
+        /* Pokemon Collection Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            overflow: auto;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #1a1a2e;
+            margin: 5% auto;
+            padding: 0;
+            border: 4px solid #ffd700;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1200px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            font-family: 'Press Start 2P', monospace;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #4169e1, #8a2be2);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #ffd700;
+        }
+
+        .modal-close {
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 10px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #ffd700;
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .collection-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .collection-stat {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4169e1;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .collection-stat:hover {
+            transform: translateY(-5px);
+            border-color: #ffd700;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #fff;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .collection-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            border: 2px solid #000;
+            background: #4169e1;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            box-shadow: 3px 3px 0 #000;
+        }
+
+        .filter-btn.active {
+            background: #ffd700;
+            color: #000;
+            border-color: #000;
+        }
+
+        .filter-btn:hover {
+            transform: translate(2px, 2px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .pokemon-collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .pokemon-collection-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid #4169e1;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pokemon-collection-card:hover {
+            transform: scale(1.05);
+            border-color: #ffd700;
+            box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2);
+        }
+
+        .pokemon-collection-card.current-partner {
+            border-color: #ffd700;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(139, 69, 19, 0.2));
+            position: relative;
+        }
+
+        .pokemon-collection-card.current-partner::before {
+            content: '⭐ CURRENT PARTNER';
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ffd700;
+            color: #000;
+            font-size: 6px;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .pokemon-collection-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin-bottom: 10px;
+            filter: drop-shadow(2px 2px 0 #000);
+        }
+
+        .pokemon-collection-name {
+            font-size: 12px;
+            color: #fff;
+            margin-bottom: 5px;
+            text-transform: capitalize;
+            font-weight: bold;
+        }
+
+        .pokemon-collection-rarity {
+            font-size: 8px;
+            color: #aaa;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .pokemon-collection-date {
+            font-size: 8px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .set-partner-btn {
+            padding: 6px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            background: #4CAF50;
+            color: white;
+            border: 2px solid #000;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 0 #000;
+            width: 100%;
+        }
+
+        .set-partner-btn:hover:not(:disabled) {
+            background: #45a049;
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .set-partner-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .rarity-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 3px 6px;
+            font-size: 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .rarity-badge.common {
+            background: #808080;
+            color: white;
+        }
+
+        .rarity-badge.rare {
+            background: #4169e1;
+            color: white;
+        }
+
+        .rarity-badge.legendary {
+            background: #ffd700;
+            color: #000;
+        }
+
+        .collection-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #fff;
+        }
+
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-icon h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        /* Make the Pokemon Collection Stat Card clickable */
+        .stat-card.clickable {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card.clickable:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(65, 105, 225, 0.3);
+            border-color: #ffd700;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 2% auto;
+                width: 95%;
+            }
+            
+            .collection-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .pokemon-collection-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .pokemon-collection-card {
+                padding: 10px;
+            }
+            
+            .pokemon-collection-img {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .pokemon-collection-name {
+                font-size: 10px;
+            }
+            
+            .filter-btn {
+                padding: 6px 12px;
+                font-size: 8px;
+            }
+        }
+
+        /* Existing back-button styles remain */
+        .back-button-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .back-button-container {
+            margin-bottom: 20px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+        
+        .back-button:hover {
+            background-color: '#e0e0e0';
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-button:active {
+            transform: translateY(0);
+        }
+
+        /* Rest of your existing styles remain unchanged */
         .info-value, .info-value-dark {
             color: #ffd700 !important;
             text-shadow: 1px 1px 0 #000 !important;
@@ -466,6 +898,60 @@
             color: #888;
         }
         
+        /* CLAIMED ACHIEVEMENT STYLES */
+        .pokemon-badge.claimed {
+            border: 2px solid #FFD700 !important;
+            background: rgba(139, 69, 19, 0.9) !important;
+        }
+        
+        .pokemon-badge.claimed .pokemon-name {
+            color: #FFD700 !important;
+            text-shadow: 2px 2px 0 #000 !important;
+        }
+        
+        .pokemon-badge.claimed .pokemon-desc {
+            color: #fff !important;
+            text-shadow: 1px 1px 0 #000 !important;
+        }
+        
+        .pokemon-reward-message {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 7px;
+            margin-top: 5px;
+            text-align: center;
+            padding: 3px 5px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Claim button styles */
+        .claim-achievement-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            border: 2px solid #000;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 2px 2px 0 #000;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .claim-achievement-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #45a049, #1B5E20);
+            transform: translate(1px, 1px);
+            box-shadow: 1px 1px 0 #000;
+        }
+        
+        .claim-achievement-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         @media (max-width: 768px) {
             .edit-input {
                 font-size: 14px;
@@ -495,10 +981,362 @@
             .pokemon-reward {
                 font-size: 7px;
             }
+            
+            .claim-achievement-btn {
+                padding: 6px 10px;
+                font-size: 7px;
+            }
         }
     </style>
 
     <script>
+        // Pokémon Collection Modal Functions
+        let allPokemonData = [];
+        let currentUserId = {{ user.user_id }};
+        let currentPartnerId = {{ user.pokemon_id if user.pokemon_id else 0 }};
+
+        function showPokemonCollection() {
+            const modal = document.getElementById('pokemonCollectionModal');
+            modal.style.display = 'block';
+            
+            // Load Pokemon collection data
+            loadPokemonCollection();
+        }
+
+        function closePokemonCollection() {
+            const modal = document.getElementById('pokemonCollectionModal');
+            modal.style.display = 'none';
+        }
+
+        function loadPokemonCollection() {
+            const collectionGrid = document.getElementById('pokemonCollectionGrid');
+            const emptyMessage = document.getElementById('emptyCollectionMessage');
+            
+            // Show loading state
+            collectionGrid.innerHTML = '<div style="grid-column: span 4; text-align: center; padding: 40px; color: #ffd700;">Loading your Pokémon collection... ⚡</div>';
+            
+            fetch('/api/get_user_pokemon')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        allPokemonData = data.pokemon;
+                        renderPokemonCollection('all');
+                        
+                        // Update counts in modal
+                        document.getElementById('modalPokemonCount').textContent = data.total_collected || allPokemonData.length;
+                        document.getElementById('modalUniqueCount').textContent = data.unique_species || new Set(allPokemonData.map(p => p.pokemon_id)).size;
+                        
+                        // Show/hide empty message
+                        if (allPokemonData.length === 0) {
+                            collectionGrid.style.display = 'none';
+                            emptyMessage.style.display = 'block';
+                        } else {
+                            collectionGrid.style.display = 'grid';
+                            emptyMessage.style.display = 'none';
+                        }
+                    } else {
+                        showNotification('Error loading Pokémon collection: ' + (data.error || 'Unknown error'));
+                        collectionGrid.innerHTML = '<div style="grid-column: span 4; text-align: center; padding: 40px; color: #ff4444;">Failed to load collection 🔥</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Network error loading Pokémon collection');
+                    collectionGrid.innerHTML = '<div style="grid-column: span 4; text-align: center; padding: 40px; color: #ff4444;">Network error 🔥</div>';
+                });
+        }
+
+        function renderPokemonCollection(filter) {
+            const collectionGrid = document.getElementById('pokemonCollectionGrid');
+            
+            // Filter Pokemon by rarity
+            let filteredPokemon = allPokemonData;
+            if (filter !== 'all') {
+                filteredPokemon = allPokemonData.filter(pokemon => {
+                    if (filter === 'common') return pokemon.rarity === 'common';
+                    if (filter === 'rare') return pokemon.rarity === 'rare';
+                    if (filter === 'legendary') return pokemon.rarity === 'legendary';
+                    return true;
+                });
+            }
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.toLowerCase().includes(filter)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            if (filteredPokemon.length === 0) {
+                collectionGrid.innerHTML = '<div style="grid-column: span 4; text-align: center; padding: 40px; color: #ffd700;">No Pokémon found for this filter 🔍</div>';
+                return;
+            }
+            
+            collectionGrid.innerHTML = filteredPokemon.map(pokemon => `
+                <div class="pokemon-collection-card ${pokemon.pokemon_id === currentPartnerId ? 'current-partner' : ''}">
+                    ${pokemon.rarity ? `<div class="rarity-badge ${pokemon.rarity}">${pokemon.rarity.toUpperCase()}</div>` : ''}
+                    <img src="${pokemon.url || 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'}" 
+                         alt="${pokemon.name}" 
+                         class="pokemon-collection-img"
+                         onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'">
+                    <div class="pokemon-collection-name">${pokemon.display_name || pokemon.name || 'Unknown'}</div>
+                    <div class="pokemon-collection-rarity">ID: ${pokemon.pokemon_id}</div>
+                    <div class="pokemon-collection-date">${pokemon.date_obtained ? new Date(pokemon.date_obtained).toLocaleDateString() : 'Unknown date'}</div>
+                    <button class="set-partner-btn" 
+                            onclick="setAsPartner(${pokemon.pokemon_id})"
+                            ${pokemon.pokemon_id === currentPartnerId ? 'disabled' : ''}>
+                        ${pokemon.pokemon_id === currentPartnerId ? '⭐ CURRENT PARTNER' : '⚡ SET AS PARTNER'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function filterCollection(filterType) {
+            renderPokemonCollection(filterType);
+        }
+
+        function setAsPartner(pokemonId) {
+            if (!pokemonId) {
+                showNotification('Invalid Pokémon selection!');
+                return;
+            }
+            
+            if (pokemonId === currentPartnerId) {
+                showNotification('This Pokémon is already your partner! ⭐');
+                return;
+            }
+            
+            // Find the selected Pokémon
+            const selectedPokemon = allPokemonData.find(p => p.pokemon_id === pokemonId);
+            if (!selectedPokemon) {
+                showNotification('Pokémon not found in your collection!');
+                return;
+            }
+            
+            // Show confirmation
+            if (!confirm(`Set "${selectedPokemon.display_name || selectedPokemon.name}" as your new learning partner? ⚡`)) {
+                return;
+            }
+            
+            // Send request to update partner
+            fetch('/api/set_pokemon_partner', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({pokemon_id: pokemonId})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(`✅ ${selectedPokemon.display_name || selectedPokemon.name} is now your partner! ⚡`);
+                    
+                    // Update current partner ID
+                    currentPartnerId = pokemonId;
+                    
+                    // Reload the collection to update UI
+                    loadPokemonCollection();
+                    
+                    // Update the partner section on the main profile page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                    
+                } else {
+                    showNotification('Error: ' + (data.error || 'Failed to set partner'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Network error. Please try again.');
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('pokemonCollectionModal');
+            if (event.target === modal) {
+                closePokemonCollection();
+            }
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePokemonCollection();
+            }
+        });
+
+        // Existing functions remain the same
+        function claimAchievement(achievementId) {
+            const claimBtn = document.querySelector(`button[data-achievement-id="${achievementId}"]`);
+            
+            if (!claimBtn) {
+                showNotification('Error: Achievement button not found');
+                return;
+            }
+            
+            // Disable button and show loading
+            const originalText = claimBtn.innerHTML;
+            claimBtn.innerHTML = '<span style="font-size: 8px;">🎁 CLAIMING...</span>';
+            claimBtn.disabled = true;
+            
+            fetch(`/api/claim_achievement/${achievementId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showNotification(`✅ ${data.message}`);
+                    
+                    // Update total points display
+                    const pointsElement = document.querySelector('.stat-card:nth-child(3) .stat-value');
+                    if (pointsElement) {
+                        pointsElement.textContent = data.new_total_points;
+                    }
+                    
+                    // Update the achievement UI
+                    updateAchievementUI(achievementId, data.pokemon_reward, data.points_awarded);
+                    
+                } else {
+                    showNotification(`❌ ${data.error || 'Failed to claim achievement'}`);
+                    // Re-enable button
+                    claimBtn.innerHTML = originalText;
+                    claimBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('❌ Network error. Please try again.');
+                claimBtn.innerHTML = originalText;
+                claimBtn.disabled = false;
+            });
+        }
+
+        function updateAchievementUI(achievementId, pokemonReward, pointsAwarded) {
+            // Find the achievement badge element
+            const achievementBadge = document.querySelector(`.pokemon-badge[data-achievement-id="${achievementId}"]`);
+            
+            if (achievementBadge) {
+                // Remove the lock class if present
+                achievementBadge.classList.remove('locked');
+                
+                // Find and update the progress text
+                const progressText = achievementBadge.querySelector('.progress-text');
+                if (progressText) {
+                    progressText.textContent = '✅ CLAIMED';
+                    progressText.style.color = '#FFD700';
+                }
+                
+                // Hide the progress bar
+                const progressBar = achievementBadge.querySelector('.progress-bar-bg');
+                if (progressBar) {
+                    progressBar.style.display = 'none';
+                }
+                
+                // Hide the progress percent
+                const progressPercent = achievementBadge.querySelector('.progress-percent');
+                if (progressPercent) {
+                    progressPercent.style.display = 'none';
+                }
+                
+                // Update the reward section
+                const rewardSection = achievementBadge.querySelector('.pokemon-reward');
+                if (rewardSection) {
+                    // Clear the reward section
+                    rewardSection.innerHTML = '';
+                    
+                    // Add claimed badge with the actual points awarded
+                    const rewardBadge = document.createElement('span');
+                    rewardBadge.className = 'reward-badge';
+                    rewardBadge.textContent = `🏆 +${pointsAwarded || '??'} XP`;
+                    
+                    // Add Pokémon reward message if applicable
+                    if (pokemonReward && pokemonReward.message) {
+                        const pokemonMsg = document.createElement('div');
+                        pokemonMsg.className = 'pokemon-reward-message';
+                        pokemonMsg.textContent = pokemonReward.message;
+                        pokemonMsg.style.fontSize = '7px';
+                        pokemonMsg.style.marginTop = '5px';
+                        pokemonMsg.style.color = pokemonReward.awarded ? '#4CAF50' : '#FF9800';
+                        rewardSection.appendChild(pokemonMsg);
+                    }
+                    
+                    rewardSection.appendChild(rewardBadge);
+                }
+                
+                // Update the Pokémon image to full color
+                const pokemonImg = achievementBadge.querySelector('.pokemon-icon img');
+                if (pokemonImg) {
+                    pokemonImg.style.filter = 'none';
+                    pokemonImg.style.opacity = '1';
+                }
+                
+                // Remove lock overlay
+                const lockOverlay = achievementBadge.querySelector('.lock-overlay');
+                if (lockOverlay) {
+                    lockOverlay.remove();
+                }
+                
+                // Add a visual effect
+                achievementBadge.style.animation = 'claimedPulse 0.5s ease';
+                
+                // Add animation styles if not present
+                if (!document.querySelector('#claimed-animation')) {
+                    const style = document.createElement('style');
+                    style.id = 'claimed-animation';
+                    style.textContent = `
+                        @keyframes claimedPulse {
+                            0% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+                            50% { transform: scale(1.05); box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6); }
+                            100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); }
+                        }
+                        
+                        .pokemon-badge.claimed {
+                            border-color: #FFD700;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                // Add claimed class
+                achievementBadge.classList.add('claimed');
+            }
+            
+            // Update total points in any other places
+            updateTotalPoints();
+        }
+
+        function updateTotalPoints() {
+            // Fetch updated points from server
+            fetch('/api/get_user_points')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the third stat card (points)
+                        const statCards = document.querySelectorAll('.stat-card');
+                        if (statCards.length >= 3) {
+                            const pointsValue = statCards[2].querySelector('.stat-value');
+                            if (pointsValue) {
+                                pointsValue.textContent = data.total_points;
+                            }
+                        }
+                        
+                        // Update the level badge
+                        const levelBadge = document.getElementById('levelBadge');
+                        if (levelBadge) {
+                            const streakMatch = levelBadge.textContent.match(/Streak: (\d+) days/);
+                            const streak = streakMatch ? streakMatch[1] : '0';
+                            levelBadge.textContent = `${data.total_points} XP • Streak: ${streak} days`;
+                        }
+                    }
+                })
+                .catch(console.error);
+        }
+
         function enablePartnerEdit() {
             const partnerNameElement = document.getElementById('partnerNameValue');
             if (!partnerNameElement) {
@@ -1051,6 +1889,7 @@
                     @keyframes slideOut {
                         from { transform: translateX(0); opacity: 1; }
                         to { transform: translateX(100%); opacity: 0; }
+                    }
                 `;
                 document.head.appendChild(style);
             }

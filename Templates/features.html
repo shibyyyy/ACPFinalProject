@@ -5,7 +5,14 @@
 
 
 {%block content%}
-    {%block header%}{%endblock%}
+    {%block header%}
+    <div class="nav-links">
+            <a href="{{url_for('home')}}">Home</a>
+            <a href="{{url_for('challenges')}}">Vocab Challenges</a>
+            <a href="{{url_for('features')}}">Features</a>
+            <a href="{{url_for('login')}}" class="login-btn">Login</a>
+        </div>
+    {%endblock%}
     <div class="features-container">
         <!-- Hero Section -->
         <div class="features-hero">
@@ -23,11 +30,10 @@
                 <div class="feature-icon2">📚</div>
                 <div class="feature-content2">
                     <h2>Custom Word Collections</h2>
-                    <p>Create unlimited personalized word lists for different subjects, exams, or interests. Organize your vocabulary learning exactly the way you need it.</p>
+                    <p>Store unlimited personalized word collection. Organize your vocabulary learning exactly the way you need it.</p>
                     <ul class="feature-list">
-                        <li>Create unlimited custom collections (decks)</li>
+                        <li>Create unlimited personal collection</li>
                         <li>Add words with definitions, examples, and notes</li>
-                        <li>Tag words by category</li>
                     </ul>
                     <span class="feature-badge">NEW!!!</span>
                 </div>

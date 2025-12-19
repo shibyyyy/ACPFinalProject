@@ -17,7 +17,7 @@
     {% endblock %}
     {% block header %}
     <div class="header-actions">
-        <button class="logout-btn" onclick="window.location.href='/'">Logout</button>
+        <button class="logout-btn" onclick="confirmLogout()">Logout</button>
     </div>
     {% endblock %}
 
@@ -70,7 +70,6 @@
                 <thead>
                     <tr>
                         <th>WORD</th>
-                        <th>PRONUNCIATION</th>
                         <th>TYPE</th>
                         <th>MEANING</th>
                         <th>EXAMPLE</th>
@@ -79,7 +78,6 @@
                 <tbody>
                     <tr>
                         <td><span class="word-main">{{ word_data.word }}</span></td>
-                        <td><span class="word-pronunciation">{{ word_data.pronunciation }}</span></td>
                         <td><span class="word-type">{{ word_data.type }}</span></td>
                         <td>{{ word_data.definition }}</td>
                         <td><div class="word-example">"{{ word_data.example }}"</div></td>
@@ -88,13 +86,13 @@
                 </table>
 
             <div class="word-actions">
-                <form action="{{ url_for('add_to_collection', word_id=word_data.word_id) }}" method="post">
+                <form action="{{ url_for('add_to_collection', word_id=word_data.word_id) }}" method="post" id="addWordOfDayForm">
                     {% if word_data.user_has_word %}
                         <button type="submit" class="btn btn-primary" disabled style="opacity: 0.6; cursor: not-allowed;">
                             ✓ Already in Collection
                         </button>
                     {% else %}
-                        <button type="submit" class="btn btn-primary">➕ Save to Collection</button>
+                        <button type="submit" class="btn btn-primary" onclick="showWordOfDayNotice(event)">➕ Save to Collection</button>
                     {% endif %}
                 </form>
             </div>
@@ -105,7 +103,7 @@
         <div class="nav-row">
             <div class="nav-item" onclick="window.location.href='/review'"><div class="icon">📖</div><h3>Review Now</h3></div>
             <div class="nav-item" onclick="window.location.href='/wordbank'"><div class="icon">📝</div><h3>My Words</h3></div>
-            <div class="nav-item" onclick="window.location.href='/add_word'"><div class="icon">➕</div><h3>ADD NEW WORD</h3></div>
+            <div class="nav-item" onclick="window.location.href='/add_word'"><div class="icon">➕</div><h3>Add New Word</h3></div>
         </div>
 
 
@@ -167,10 +165,121 @@
     {% endif %}
 
 
+    <!-- Word of the Day Added Notice (will be shown via JavaScript) -->
+    <div class="word-of-day-notice" id="wordOfDayNotice" style="display: none;">
+        <div class="notice-content">
+            <span class="notice-icon">🎉</span>
+            <div class="notice-text">
+                <strong id="noticeMessage">Word of the Day added to your collection!</strong>
+                <p>You've earned +{{ word_data.points_value }} bonus points for adding the Word of the Day!</p>
+            </div>
+            <button class="notice-close" onclick="closeWordOfDayNotice()">&times;</button>
+        </div>
+    </div>
+
+    <!-- Flash-based notice (for when page reloads) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'word_of_day' %}
+                    <div class="word-of-day-notice" id="flashWordOfDayNotice">
+                        <div class="notice-content">
+                            <span class="notice-icon">🎉</span>
+                            <div class="notice-text">
+                                <strong>{{ message }}</strong>
+                                <p>You've earned +{{ word_data.points_value }} bonus points for adding the Word of the Day!</p>
+                            </div>
+                            <button class="notice-close" onclick="closeFlashWordOfDayNotice()">&times;</button>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+    <style>
+        /* Word of the Day Notice Styles */
+        .word-of-day-notice {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            z-index: 1000;
+            animation: slideInRight 0.5s ease-out;
+            max-width: 350px;
+        }
+        
+        .notice-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .notice-icon {
+            font-size: 24px;
+        }
+        
+        .notice-text {
+            flex: 1;
+        }
+        
+        .notice-text strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        
+        .notice-text p {
+            font-size: 14px;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .notice-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        .notice-close:hover {
+            opacity: 1;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
 
     <script>
         // --- Global Variables ---
@@ -178,9 +287,85 @@
         let notificationPollInterval = null;
         let notificationCreatorInterval = null;
         let isNotificationDropdownOpen = false;
+        
+        // Notice persistence key
+        const NOTICE_STORAGE_KEY = 'word_of_day_notice_shown';
+
+        // --- Word of the Day Notice Functions ---
+        function showWordOfDayNotice(event) {
+            // Prevent default form submission for a moment to show the notice
+            event.preventDefault();
+            
+            // Get the word from the table
+            const wordElement = document.querySelector('.word-main');
+            const word = wordElement ? wordElement.textContent : 'Word of the Day';
+            
+            // Show the notice
+            const notice = document.getElementById('wordOfDayNotice');
+            const noticeMessage = document.getElementById('noticeMessage');
+            
+            if (notice && noticeMessage) {
+                noticeMessage.textContent = `Word of the Day '${word}' added to your collection!`;
+                notice.style.display = 'block';
+                notice.style.animation = 'slideInRight 0.5s ease-out';
+                
+                // Save to localStorage so it persists after refresh
+                localStorage.setItem(NOTICE_STORAGE_KEY, 'true');
+                localStorage.setItem('word_of_day_message', `Word of the Day '${word}' added to your collection!`);
+            }
+            
+            // Now submit the form after a short delay
+            setTimeout(() => {
+                document.getElementById('addWordOfDayForm').submit();
+            }, 100);
+        }
+
+        function closeWordOfDayNotice() {
+            const notice = document.getElementById('wordOfDayNotice');
+            if (notice && notice.style.display !== 'none') {
+                notice.style.animation = 'slideOutRight 0.5s ease-out';
+                setTimeout(() => {
+                    notice.style.display = 'none';
+                    // Remove from localStorage when closed
+                    localStorage.removeItem(NOTICE_STORAGE_KEY);
+                    localStorage.removeItem('word_of_day_message');
+                }, 500);
+            }
+        }
+
+        function closeFlashWordOfDayNotice() {
+            const notice = document.getElementById('flashWordOfDayNotice');
+            if (notice) {
+                notice.style.animation = 'slideOutRight 0.5s ease-out';
+                setTimeout(() => {
+                    if (notice.parentElement) {
+                        notice.parentElement.removeChild(notice);
+                    }
+                }, 500);
+            }
+        }
+
+        // Check if notice should be shown on page load
+        function checkAndShowPersistentNotice() {
+            const noticeShown = localStorage.getItem(NOTICE_STORAGE_KEY);
+            if (noticeShown === 'true') {
+                const notice = document.getElementById('wordOfDayNotice');
+                const noticeMessage = document.getElementById('noticeMessage');
+                const savedMessage = localStorage.getItem('word_of_day_message');
+                
+                if (notice && noticeMessage) {
+                    noticeMessage.textContent = savedMessage || 'Word of the Day added to your collection!';
+                    notice.style.display = 'block';
+                    notice.style.animation = 'slideInRight 0.5s ease-out';
+                }
+            }
+        }
 
         // --- Pokémon Selection Functions ---
         document.addEventListener("DOMContentLoaded", function() {
+            // Check and show persistent notice on page load
+            checkAndShowPersistentNotice();
+            
             // Initialize Pokémon selection
             const pokemonData = JSON.parse(document.getElementById("pokemonDataStorage").dataset.pokemons);
             const grid = document.getElementById("pokemonGrid");
@@ -188,8 +373,7 @@
             const selectedNameSpan = document.getElementById("selectedPartnerName");
 
             if (grid && pokemonData) {
-                const starters = pokemonData.filter(p => p.rarity === "starter").slice(0, 6);
-                starters.forEach(p => {
+                pokemonData.forEach(p => {
                     const card = document.createElement("div");
                     card.className = "pokemon-card";
                     card.innerHTML = `
@@ -476,6 +660,17 @@
                     updateNotificationUI();
                 }
             });
+        }
+
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear any local data if needed
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Redirect to logout endpoint
+                window.location.href = "/logout";
+            }
         }
 
         // Close dropdown when clicking outside

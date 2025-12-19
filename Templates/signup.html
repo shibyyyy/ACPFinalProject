@@ -3,6 +3,14 @@
 {% block title %}<title>Sign up - VocabuLearner</title>{% endblock %}
 
 {% block content %}
+{% block header %}
+    <div class="nav-links">
+            <a href="{{url_for('home')}}">Home</a>
+            <a href="{{url_for('challenges')}}">Vocab Challenges</a>
+            <a href="{{url_for('features')}}">Features</a>
+            <a href="{{url_for('login')}}" class="login-btn">Login</a>
+        </div>
+    {% endblock %}
 <div class="signup-container">
     <h1>Sign Up</h1>
     <p>Create your trainer account and start collecting words like Pokémon!</p>
@@ -26,9 +34,6 @@
         {{ form.password(placeholder="Password") }}
         {{ form.confirm_password(placeholder="Confirm Password") }}
 
-        <div class="terms">
-            {{ form.terms }} {{ form.terms.label }}
-        </div>
 
         {{ form.submit(class="btn-primary") }}
     </form>

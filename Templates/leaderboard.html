@@ -14,9 +14,19 @@
         </a>
     {% endblock %}
    
-    {% block header %}{% endblock %}
-   
+    <!-- SIMPLIFIED: Back Button at the top without extra wrapper -->
+    <div style="width: 100%; max-width: 1200px; margin: 20px auto; padding: 0 20px; box-sizing: border-box;">
+        <a href="{{ url_for('dashboard') }}" style="display: inline-block; padding: 10px 20px; background-color: #f0f0f0; color: #333; text-decoration: none; border-radius: 8px; font-weight: 500; transition: all 0.3s ease; border: 1px solid #ddd;">
+            
+        </a>
+    </div>
+
     <div class="leaderboard-container">
+        <div style="width: 100%; max-width: 1200px; margin: 20px auto; padding: 0 20px; box-sizing: border-box;">
+            <a href="{{ url_for('dashboard') }}" style="display: inline-block; padding: 10px 20px; background-color: #f0f0f0; color: #333; text-decoration: none; border-radius: 8px; font-weight: 500; transition: all 0.3s ease; border: 1px solid #ddd;">
+                ← Back to Dashboard
+            </a>
+        </div>
         <div class="page-title">
             <h1>Leaderboard</h1>
             <p>Compete with trainers around the world</p>
@@ -168,6 +178,32 @@
     <footer class="footer">
         <p>© 2025 VocabuLearner</p>
     </footer>
+
+    <style>
+        /* All other CSS remains EXACTLY the same */
+        /* Leaderboard container adjustments */
+        .leaderboard-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Footer */
+        .footer {
+            width: 100%;
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Everything below remains EXACTLY as it was - I won't change any other styles */
+    </style>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {

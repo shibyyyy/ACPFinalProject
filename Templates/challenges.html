@@ -3,7 +3,14 @@
 
 
 {%block content%}
-    {%block header%}{%endblock%}
+    {%block header%}
+    <div class="nav-links">
+            <a href="{{url_for('home')}}">Home</a>
+            <a href="{{url_for('challenges')}}">Vocab Challenges</a>
+            <a href="{{url_for('features')}}">Features</a>
+            <a href="{{url_for('login')}}" class="login-btn">Login</a>
+        </div>
+        {%endblock%}
     <main class="main-content">
         <h1 class="page-title">Vocabulary Challenge Features</h1>
         <p class="page-subtitle">Master words through our interactive game modes - Collect, Train, Excel!</p>
@@ -22,27 +29,19 @@
                 <div class="features-list">
                     <div class="feature-item">
                         <span class="feature-icon3">🎯</span>
-                        <span><strong>Active Recall:</strong> Strengthen memory by actively retrieving information</span>
+                        <span><strong>Active Recall Challenge:</strong> Test your knowledge with timed flashcard sessions</span>
                     </div>
                     <div class="feature-item">
                         <span class="feature-icon3">⏱️</span>
-                        <span><strong>Timed Sessions:</strong> Set time limits to challenge your speed</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">📊</span>
-                        <span><strong>Spaced Repetition:</strong> System shows cards you struggle with more frequently</span>
+                        <span><strong>Speed Challenge:</strong> Timed sessions that track your response speed</span>
                     </div>
                     <div class="feature-item">
                         <span class="feature-icon3">🎨</span>
-                        <span><strong>Visual Learning:</strong> Color-coded cards based on mastery level</span>
+                        <span><strong>Progress Visualization:</strong> See your accuracy and streak with live stats</span>
                     </div>
                     <div class="feature-item">
                         <span class="feature-icon3">📈</span>
-                        <span><strong>Progress Tracking:</strong> Visual graphs show your improvement over time</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">🔊</span>
-                        <span><strong>Audio Support:</strong> Hear correct pronunciation for each word</span>
+                        <span><strong>XP & Rewards:</strong> Earn experience points and badges for correct answers</span>
                     </div>
                 </div>
             </div>
@@ -59,27 +58,15 @@
                 <div class="features-list">
                     <div class="feature-item">
                         <span class="feature-icon3">⏰</span>
-                        <span><strong>Time Challenge:</strong> Answer questions within time limits for bonus points</span>
+                        <span><strong>15-Second Timer:</strong> Answer each question before time runs out</span>
                     </div>
                     <div class="feature-item">
-                        <span class="feature-icon3">🏆</span>
-                        <span><strong>Leaderboards:</strong> Compete with other learners for top scores</span>
+                        <span class="feature-icon3">🔥</span>
+                        <span><strong>Streak Bonus:</strong> Earn extra points for consecutive correct answers</span>
                     </div>
                     <div class="feature-item">
-                        <span class="feature-icon3">🎯</span>
-                        <span><strong>Adaptive Difficulty:</strong> Questions adjust to your skill level</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">📝</span>
-                        <span><strong>Detailed Explanations:</strong> Learn why answers are right or wrong</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">🏅</span>
-                        <span><strong>Achievement System:</strong> Earn badges for streaks and perfect scores</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">📱</span>
-                        <span><strong>Mobile Optimized:</strong> Play quick sessions on the go</span>
+                        <span class="feature-icon3">📊</span>
+                        <span><strong>Instant Feedback:</strong> See detailed explanations after each answer</span>
                     </div>
                 </div>
             </div>
@@ -96,27 +83,15 @@
                 <div class="features-list">
                     <div class="feature-item">
                         <span class="feature-icon3">🧩</span>
-                        <span><strong>Puzzle Mechanics:</strong> Drag and drop words to their definitions</span>
+                        <span><strong>Two-Column Matching:</strong> Select words on left and definitions on right to make pairs</span>
                     </div>
                     <div class="feature-item">
-                        <span class="feature-icon3">🎮</span>
-                        <span><strong>Game Modes:</strong> Timed, unlimited, and multiplayer options</span>
+                        <span class="feature-icon3">🔥</span>
+                        <span><strong>Combo System:</strong> Build consecutive matches for multiplier bonuses</span>
                     </div>
                     <div class="feature-item">
-                        <span class="feature-icon3">🌈</span>
-                        <span><strong>Themed Sets:</strong> Match words from specific categories (science, business, etc.)</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">🤝</span>
-                        <span><strong>Multiplayer Mode:</strong> Challenge friends in real-time matching battles</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">📚</span>
-                        <span><strong>Custom Sets:</strong> Create matching games from your own word lists</span>
-                    </div>
-                    <div class="feature-item">
-                        <span class="feature-icon3">🏃</span>
-                        <span><strong>Speed Bonuses:</strong> Earn extra points for quick matches</span>
+                        <span class="feature-icon3">⏱️</span>
+                        <span><strong>2-Minute Timer:</strong> Complete matches before time runs out</span>
                     </div>
                 </div>
             </div>
@@ -127,12 +102,12 @@
             <h2>Why Our Challenges Work</h2>
             <div class="benefits-grid">
                 <div class="benefit-card">
-                    <h4>Gamified Learning</h4>
-                    <p>Transform vocabulary study into an exciting game with points, levels, and rewards that keep you motivated and engaged in long-term learning.</p>
+                    <h4>Engaging Review Methods</h4>
+                    <p>Multiple game formats keep learning fresh and cater to different learning preferences.</p>
                 </div>
                 <div class="benefit-card">
-                    <h4>Personalized Progress</h4>
-                    <p>Our intelligent algorithm adapts to your learning pace, focusing on words you find challenging while reinforcing mastered vocabulary.</p>
+                    <h4>Consistent Practice</h4>
+                    <p>Regular review of your saved vocabulary across different challenge formats helps reinforce learning and improve long-term retention.</p>
                 </div>
             </div>
         </div>
@@ -146,4 +121,3 @@
 
 
 {%endblock%}
-

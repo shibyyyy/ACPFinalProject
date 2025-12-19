@@ -19,6 +19,13 @@
     {% endblock %}
    
     <div class="review-container">
+        <!-- Back Button -->
+        <div class="back-button-container">
+            <a href="{{ url_for('dashboard') }}" class="back-button">
+                ← Back to Dashboard
+            </a>
+        </div>
+
         <!-- Welcome Section -->
         <div class="welcome-section">
             <h1>Review Vocabulary</h1>
@@ -109,51 +116,35 @@
     </footer>
 
 
-    <script>
-        // Open modals
-        function openFlashcardModal() {
-            document.getElementById('flashcardModal').style.display = 'block';
-        }
-        
-        function openMCQModal() {
-            document.getElementById('mcqModal').style.display = 'block';
-        }
-        
-        function openMatchingModal() {
-            document.getElementById('matchingModal').style.display = 'block';
-        }
-        
-        // Close modals
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-        
-        // Start activities
-        function startFlashcards() {
-            window.location.href = '/flashcard';
-        }
-        
-        function startMCQ() {
-            window.location.href = '/multichoi';
-        }
-        
-        function startMatching() {
-            window.location.href = '/matchingtype';
-        }
-        
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modals = document.querySelectorAll('.modal');
-            modals.forEach(modal => {
-                if (event.target == modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        }
-    </script>
-
-
     <style>
+        /* Back Button Styles - Same as word bank page */
+        .back-button-container {
+            margin-bottom: 20px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+        
+        .back-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-button:active {
+            transform: translateY(0);
+        }
+
         /* Modal Styles - Simple addition */
         .modal {
             display: none;
@@ -266,4 +257,47 @@
             margin-top: 10px;
         }
     </style>
+
+    <script>
+        // Open modals
+        function openFlashcardModal() {
+            document.getElementById('flashcardModal').style.display = 'block';
+        }
+        
+        function openMCQModal() {
+            document.getElementById('mcqModal').style.display = 'block';
+        }
+        
+        function openMatchingModal() {
+            document.getElementById('matchingModal').style.display = 'block';
+        }
+        
+        // Close modals
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Start activities
+        function startFlashcards() {
+            window.location.href = '/flashcard';
+        }
+        
+        function startMCQ() {
+            window.location.href = '/multichoi';
+        }
+        
+        function startMatching() {
+            window.location.href = '/matchingtype';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
 {%endblock%}

@@ -17,63 +17,138 @@
     {% endblock %}
     {% block header %}{% endblock %}
 
-
-    <div class="progress-container">
-        <div class="page-title">
-            <h1>Study Progress Analytics</h1>
-            <p>Track your vocabulary learning journey and progress statistics</p>
+    <!-- Page Container -->
+    <div class="page-wrapper">
+        <div class="back-button-container">
+            <a href="{{ url_for('dashboard') }}" class="back-button">
+                
+            </a>
         </div>
-
-
-        <div class="analytics-main">
-            <h2>Study Progress Analytics</h2>
-
-
-            <!-- Tabs -->
-            <div class="time-filter">
-                <button class="time-tab active" data-period="weekly">Weekly</button>
-                <button class="time-tab" data-period="daily">Daily</button>
-                <button class="time-tab" data-period="monthly">Monthly</button>
+        <div class="progress-container">
+            <div class="back-button-container">
+                <a href="{{ url_for('dashboard') }}" class="back-button">
+                    ← Back to Dashboard
+                </a>
+            </div>
+            <div class="page-title">
+                <h1>Study Progress Analytics</h1>
+                <p>Track your vocabulary learning journey and progress statistics</p>
             </div>
 
+            <div class="analytics-main">
+                <h2>Study Progress Analytics</h2>
 
-            <!-- Overview -->
-            <div class="weekly-overview">
-                <h3 id="overview-title">Weekly Overview</h3>
-                <div class="weekly-stats">
-                    <strong id="overview-stats">
-                        Current Week: {{ weekly_total }} words
-                    </strong>
+                <!-- Tabs -->
+                <div class="time-filter">
+                    <button class="time-tab active" data-period="weekly">Weekly</button>
+                    <button class="time-tab" data-period="daily">Daily</button>
+                    <button class="time-tab" data-period="monthly">Monthly</button>
                 </div>
 
+                <!-- Overview -->
+                <div class="weekly-overview">
+                    <h3 id="overview-title">Weekly Overview</h3>
+                    <div class="weekly-stats">
+                        <strong id="overview-stats">
+                            Current Week: {{ weekly_total }} words
+                        </strong>
+                    </div>
 
-                <!-- Chart -->
-                <div class="bar-chart-container">
-                    <div class="chart-title" id="chart-title">Weekly Words Learned</div>
-                    <div class="chart-grid" id="chart-grid">
-                        {% for date, count in weekly_data.items() %}
-                            <div class="bar-column">
-                                <div class="bar" style="height: '{{ (count / (weekly_total if weekly_total else 1)) * 90 }} %';" data-value="{{ count }}">
-                                    <div class="bar-value">{{ count }}</div>
+                    <!-- Chart -->
+                    <div class="bar-chart-container">
+                        <div class="chart-title" id="chart-title">Weekly Words Learned</div>
+                        <div class="chart-grid" id="chart-grid">
+                            {% for date, count in weekly_data.items() %}
+                                <div class="bar-column">
+                                    <div class="bar" style="height: '{{ (count / (weekly_total if weekly_total else 1)) * 90 }} %';" data-value="{{ count }}">
+                                        <div class="bar-value">{{ count }}</div>
+                                    </div>
                                 </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div class="day-labels" id="day-labels">
-                        {% for date, count in weekly_data.items() %}
-                            <div class="day-label">{{ date }}</div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
+                        <div class="day-labels" id="day-labels">
+                            {% for date, count in weekly_data.items() %}
+                                <div class="day-label">{{ date }}</div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <footer class="footer">
+            <p>© 2025 VocabuLearner - Study Progress Analytics</p>
+        </footer>
     </div>
 
-
-    <footer class="footer">
-        <p>© 2025 VocabuLearner - Study Progress Analytics</p>
-    </footer>
-
+    <style>
+        /* Reset and base styles */
+        .page-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        /* Back Button Styles - Improved */
+        .back-button-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .back-button-container {
+            margin-bottom: 20px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+        
+        .back-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-button:active {
+            transform: translateY(0);
+        }
+        
+        /* Ensure content doesn't overlap */
+        .progress-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+        
+        /* Footer positioning */
+        .footer {
+            width: 100%;
+            max-width: 1200px;
+            margin: 40px auto 0;
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {

@@ -1,26 +1,20 @@
-from time import time
-from flask import Flask, render_template, session, redirect, url_for, flash, request, jsonify
+from flask import Flask, render_template, session, redirect, url_for, flash, request, jsonify, make_response
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms import LoginForm, SignupForm, AddWordForm, ForgotPasswordForm
-from models import db,UserAcc, UserAchievement, UserWords, Pokemon, Achievement, Vocabulary, WordHistory, Notification
+from forms import LoginForm, PaginationForm, PokemonAddForm, PokemonDeleteForm, PokemonEditForm, PokemonSearchForm, SignupForm, AddWordForm, ForgotPasswordForm, UserActionForm, UserSearchForm, ViewUserForm
+from models import db,UserAcc, UserAchievement, UserWords, Pokemon, Achievement, Vocabulary, Notification, UserPokemon
 from functools import wraps
 import os
-from datetime import datetime, date
+from sqlalchemy import or_, and_  
+from datetime import datetime, date, timedelta
 import pytz
 from sqlalchemy.sql import func
-from datetime import datetime, timedelta
 import random, requests
-import os
-import secrets
-import smtplib
+import smtplib, hashlib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, timedelta
-from flask import request, jsonify, current_app
-from werkzeug.utils import secure_filename
-import hashlib
 from dotenv import load_dotenv
+import traceback
 
 
 app = Flask(__name__)
@@ -29,7 +23,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///vocabulearner.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 ph_timezone = pytz.timezone('Asia/Manila')
-
 
 
 
@@ -77,57 +70,85 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-def check_and_update_pokemon_evolution(user):
-    """Check if user qualifies for Pokémon evolution and update if needed."""
-    if not user.pokemon_id:
-        return False, None, None
+
+
+@app.route('/api/get_user_points')
+@login_required
+def get_user_points():
+    """Get current user's total points"""
+    user = get_current_user()
+    return jsonify({
+        'success': True,
+        'total_points': user.total_points or 0
+    })
+
+def check_and_update_achievements(user):
+    """Check all achievements and award them if user qualifies."""
+    all_achievements = Achievement.query.all()
     
-    current_pokemon = Pokemon.query.get(user.pokemon_id)
-    if not current_pokemon:
-        return False, None, None
-    
-    # Get all Pokémon in the same family
-    evolution_line = (
-        Pokemon.query
-        .filter_by(family_id=current_pokemon.family_id)
-        .order_by(Pokemon.min_points_required)
-        .all()
-    )
-    
-    # Find the highest evolution the user qualifies for
-    highest_evolution = None
-    for evo in evolution_line:
-        if user.total_points >= evo.min_points_required:
-            highest_evolution = evo
-    
-    # If we found a higher evolution than current
-    if highest_evolution and highest_evolution.pokemon_id != current_pokemon.pokemon_id:
-        # Update user's Pokémon
-        user.pokemon_id = highest_evolution.pokemon_id
+    for achievement in all_achievements:
+        # Get or create UserAchievement record
+        user_achievement = UserAchievement.query.filter_by(
+            user_id=user.user_id,
+            achievement_id=achievement.achievement_id
+        ).first()
         
-        # Keep the user's custom Pokémon name if they have one
-        if user.pokemon_name:
-            # User keeps their custom name for the evolved Pokémon
-            pass
-        else:
-            # If no custom name, set to new Pokémon's name
-            user.pokemon_name = highest_evolution.name
+        if not user_achievement:
+            # Create new UserAchievement record
+            user_achievement = UserAchievement(
+                user_id=user.user_id,
+                achievement_id=achievement.achievement_id,
+                current_progress=0,
+                date_earned=None  # Explicitly set to None
+            )
+            db.session.add(user_achievement)
         
+        # Only update if not already earned
+        if not user_achievement.date_earned:
+            # Calculate current progress based on achievement
+            current_progress = 0
+            
+            # WORD COLLECTOR ACHIEVEMENT - Learn 10 different words
+            if "Word Collector" in achievement.name:
+                current_progress = UserWords.query.filter_by(user_id=user.user_id).count()
+                
+            # ZZZ ACHIEVEMENT - Logout for the first time
+            elif "Zzz" in achievement.name:
+                current_progress = 1 if user.last_logout else 0
+                
+            # SOLO LEVELING ACHIEVEMENT - Reach 500 points
+            elif "Solo Leveling" in achievement.name:
+                current_progress = user.total_points or 0
+                
+            # JOURNEY BEGINS ACHIEVEMENT - Welcome to VocabuLearner!
+            elif "Journey Begins" in achievement.name:
+                current_progress = 1  # Always earned when account is created
+            
+            # Update progress
+            user_achievement.current_progress = current_progress
+
         db.session.commit()
-        return True, current_pokemon.name, highest_evolution.name
-    
-    return False, None, None
 
 def update_user_streak(user):
-    """Update the user's streak based on daily login."""
+    
+    # Skip streak updates for admin users
+    if hasattr(user, 'is_admin') and user.is_admin:
+        return
+    
     today = datetime.now(ph_timezone).date()
     
-    # If user has never logged in before, start streak
+    # ALWAYS set streak to 1 if it's 0 (from default)
+    if user.current_streak == 0:
+        user.current_streak = 1
+        user.longest_streak = 1
+        user.last_login = datetime.now(ph_timezone)
+        return
+    
+    # If first login ever
     if not user.last_login:
         user.current_streak = 1
         user.longest_streak = 1
         user.last_login = datetime.now(ph_timezone)
-        db.session.commit()
         return
     
     # Convert last_login to Philippine timezone
@@ -139,32 +160,17 @@ def update_user_streak(user):
     last_login_date = last_login_ph.date()
     days_difference = (today - last_login_date).days
     
-    if days_difference == 0:
-        # Already logged in today - just update last_login time
-        # BUT we should still check if current_streak > longest_streak
-        # (in case longest_streak was manually changed or there's a bug)
-        if user.current_streak > user.longest_streak:
-            user.longest_streak = user.current_streak
-        user.last_login = datetime.now(ph_timezone)
-        db.session.commit()
-    elif days_difference == 1:
-        # Consecutive day - increment streak
+    if days_difference == 1:
+        # Consecutive day
         user.current_streak += 1
-        
-        # Update longest streak if current streak is greater
         if user.current_streak > user.longest_streak:
             user.longest_streak = user.current_streak
-        
         user.last_login = datetime.now(ph_timezone)
-        db.session.commit()
     elif days_difference > 1:
-        # Streak broken - reset to 1
+        # Streak broken
         user.current_streak = 1
-        # Check if we need to update longest_streak (should be same)
-        if user.current_streak > user.longest_streak:
-            user.longest_streak = user.current_streak
         user.last_login = datetime.now(ph_timezone)
-        db.session.commit()
+    # If days_difference == 0: Already logged in today - do nothing
 
 @app.route('/insert_achievement_samples')
 def insert_achievement_samples():
@@ -619,26 +625,60 @@ def delete_account():
 @app.route('/api/update_pokemon_name', methods=['POST'])
 @login_required
 def update_pokemon_name():
-    user_id = session.get('user_id')
-    user = UserAcc.query.get(user_id)
-   
-    if not user:
-        return jsonify({'success': False, 'error': 'User not found'})
-   
-    data = request.json
-    new_name = data.get('pokemon_name', '').strip()
-   
-    if not new_name:
-        return jsonify({'success': False, 'error': 'Name cannot be empty'})
-   
-    if len(new_name) > 50:
-        return jsonify({'success': False, 'error': 'Name too long (max 50 characters)'})
-   
-    # Update custom Pokémon name
-    user.pokemon_name = new_name
-    db.session.commit()
-   
-    return jsonify({'success': True, 'message': 'Pokémon name updated!'})
+    """Update the name of the user's current partner Pokémon"""
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+        
+        if not data or 'pokemon_name' not in data:
+            return jsonify({'success': False, 'error': 'Pokémon name required'}), 400
+        
+        new_name = data['pokemon_name'].strip()
+        
+        if not new_name:
+            return jsonify({'success': False, 'error': 'Pokémon name cannot be empty'}), 400
+        
+        if len(new_name) > 20:
+            return jsonify({'success': False, 'error': 'Pokémon name cannot be more than 20 characters'}), 400
+        
+        # Get the user
+        user = UserAcc.query.get(user_id)
+        if not user or not user.pokemon_id:
+            return jsonify({'success': False, 'error': 'No active partner Pokémon'}), 400
+        
+        # Update the name in UserAcc
+        user.pokemon_name = new_name
+        
+        # Also update the custom name in UserPokemon
+        user_pokemon_entry = UserPokemon.query.filter_by(
+            user_id=user_id, 
+            pokemon_id=user.pokemon_id
+        ).first()
+        
+        if user_pokemon_entry:
+            user_pokemon_entry.custom_name = new_name
+        
+        # Create notification
+        notification = Notification(
+            user_id=user_id,
+            title='Pokémon Renamed!',
+            message=f'Your partner is now called {new_name}! ✨',
+            notification_type='pokemon'
+        )
+        db.session.add(notification)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Partner renamed to {new_name}! ✨',
+            'pokemon_name': new_name
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating Pokémon name: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
 
 
 def allowed_file(filename):
@@ -763,29 +803,51 @@ def update_profile():
         return jsonify({'error': str(e)}), 500
 
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = UserAcc.query.filter_by(email=form.email.data).first()
-        if user and check_password_hash(user.password, form.password.data):
+        
+        if user:
+            if not user.is_active:
+                flash("Your account has been deactivated.", "danger")
+                return render_template('login.html', form=form)
             
-            
-            # Update streak on login
-            update_user_streak(user)
-            
-            # Store user info in session
-            session['user_id'] = user.user_id
-            session['username'] = user.name
-            session['is_admin'] = user.is_admin  # Store admin status in session
-            
-            # Check if user is admin and redirect accordingly
-            if user.is_admin:
-                return redirect(url_for('admin_dashboard'))
+            if check_password_hash(user.password, form.password.data):
+                # Update streak FIRST
+                update_user_streak(user)
+                
+                # UPDATE LAST LOGIN in Philippine Time
+                pht = pytz.timezone('Asia/Manila')
+                user.last_login = datetime.now(pht)
+                
+                # Store user info
+                session['user_id'] = user.user_id
+                session['username'] = user.name
+                session['is_admin'] = user.is_admin
+                
+                # Commit ALL changes
+                db.session.commit()
+                
+                # CHECK ACHIEVEMENTS AFTER LOGIN (Journey Begins if not already)
+                check_and_update_achievements(user)
+                
+                # Log success
+                print(f"LOGIN: User {user.user_id} ({user.name}) logged in")
+                print(f"LAST_LOGIN (PHT): Updated to {user.last_login}")
+                print(f"STREAK: Current streak: {user.current_streak}")
+                
+                if user.is_admin:
+                    return redirect(url_for('admin_dashboard'))
+                else:
+                    return redirect(url_for('dashboard'))
             else:
-                return redirect(url_for('dashboard'))
+                flash("The password you entered is incorrect.", "danger")
         else:
-            flash("Invalid email or password.", "danger")
+            flash("No account found with this email address.", "danger")
+            
     return render_template('login.html', form=form)
 
 
@@ -824,8 +886,24 @@ def signup():
             password=hashed_pw
         )
         db.session.add(new_user)
+        
         try:
+            # CREATE USERACHIEVEMENT ENTRIES FOR NEW USER
+            all_achievements = Achievement.query.all()
+            for achievement in all_achievements:
+                user_achievement = UserAchievement(
+                    user_id=new_user.user_id,  # This will work because user_id is auto-increment
+                    achievement_id=achievement.achievement_id,
+                    current_progress=0,
+                    date_earned=None
+                )
+                db.session.add(user_achievement)
+            
             db.session.commit()
+            
+            # CHECK ACHIEVEMENTS AFTER ACCOUNT CREATION (Journey Begins)
+            check_and_update_achievements(new_user)
+            
         except IntegrityError:
             db.session.rollback()
             flash("This email or username is already registered. Please log in.", "warning")
@@ -844,10 +922,49 @@ def signup():
 
 @app.route('/logout')
 def logout():
+    user_id = session.get('user_id')
+    username = session.get('username')
+    
+    if user_id:
+        try:
+            user = UserAcc.query.get(user_id)
+            
+            if user:
+                # Get current timestamp in Philippine Time
+                pht = pytz.timezone('Asia/Manila')
+                current_time = datetime.now(pht)
+                
+                # Update last_logout timestamp in PHT
+                user.last_logout = current_time
+                
+                # Also update other fields if needed
+                # For example, if you want to calculate session duration:
+                if user.last_login:
+                    # Convert both times to UTC for accurate duration calculation
+                    utc = pytz.UTC
+                    login_utc = user.last_login.astimezone(utc)
+                    logout_utc = current_time.astimezone(utc)
+                
+                # Commit to database
+                db.session.commit()
+                
+                # CHECK ACHIEVEMENTS AFTER LOGOUT (for Zzz achievement)
+                check_and_update_achievements(user)
+                
+            else:
+                print(f"WARNING: User with user_id {user_id} not found in database")
+            
+        except Exception as e:
+            # Log error but still allow logout
+            print(f"ERROR updating last_logout: {str(e)}")
+            traceback.print_exc()
+            db.session.rollback()
+    else:
+        print(f"DEBUG: No user_id found in session")
+    
     # Clear all session data
     session.clear()
-    # Optional: flash a message
-    flash('You have been logged out.', 'info')
+
     return redirect(url_for('home'))
 
 
@@ -882,32 +999,17 @@ def features():
     return render_template('features.html')
 
 
-def get_word_of_the_day():
+def get_word_of_the_day(user_id=None):
     today = date.today()
 
-
-    # Check if a word was already shown today
-    history = WordHistory.query.filter_by(date_shown=today).first()
-   
-    if history:
-        chosen = Vocabulary.query.get(history.word_id)
-        # Check if chosen exists (word might have been deleted)
-        if not chosen:
-            # If the word was deleted, remove the history entry and get a new word
-            db.session.delete(history)
-            db.session.commit()
-            history = None
-   
-    if not history:
-        # Exclude words shown in the last 7 days
-        recent_ids = [h.word_id for h in WordHistory.query.filter(
-            WordHistory.date_shown >= today - timedelta(days=7)
-        ).all()]
-
-
-        # Get all words
+    # Get all words marked as Word of the Day
+    word_of_day_candidates = Vocabulary.query.filter_by(is_word_of_day=True).all()
+    
+    # If no Word of Day candidates at all
+    if not word_of_day_candidates:
+        # If no words marked as Word of Day, get any random word
         all_words = Vocabulary.query.all()
-       
+        
         # If no words exist in the database, return a default response
         if not all_words:
             return {
@@ -916,25 +1018,45 @@ def get_word_of_the_day():
                 "pronunciation": "",
                 "type": "",
                 "definition": "Please add vocabulary words to your collection.",
-                "example": ""
+                "example": "",
+                "points_value": 0
             }
-       
-        # Filter out recently shown words
-        available_words = [word for word in all_words if word.word_id not in recent_ids]
-       
-        # If all words have been shown recently, use any word
-        if not available_words:
-            available_words = all_words
-       
-        # Choose a random word
-        chosen = random.choice(available_words)
-
-
-        # Save to history
-        new_entry = WordHistory(word_id=chosen.word_id, date_shown=today)
-        db.session.add(new_entry)
-        db.session.commit()
-
+        
+        word_of_day_candidates = all_words
+    
+    # If user_id is provided, exclude words they already have
+    if user_id:
+        # Get word IDs that the user already has
+        user_word_ids = db.session.query(UserWords.word_id).filter_by(user_id=user_id).all()
+        user_word_ids = [word_id for (word_id,) in user_word_ids]
+        
+        # Filter out words the user already has
+        if user_word_ids:
+            word_of_day_candidates = [
+                word for word in word_of_day_candidates 
+                if word.word_id not in user_word_ids
+            ]
+    
+    # If no Word of Day candidates remain after filtering
+    if not word_of_day_candidates:
+        return {
+            "word_id": 0,
+            "word": "All Words Learned",
+            "pronunciation": "",
+            "type": "",
+            "definition": "You've already learned all available words!",
+            "example": "Check back tomorrow or add more words.",
+            "points_value": 0
+        }
+    
+    # Create a hash based on today's date for consistent selection
+    today_str = today.strftime('%Y-%m-%d')
+    date_hash = hashlib.md5(today_str.encode()).hexdigest()
+    hash_int = int(date_hash, 16)
+    
+    # Select word based on hash (consistent for the day)
+    word_index = hash_int % len(word_of_day_candidates)
+    chosen = word_of_day_candidates[word_index]
 
     # Now chosen should definitely exist
     if not chosen:
@@ -944,9 +1066,9 @@ def get_word_of_the_day():
             "pronunciation": "",
             "type": "",
             "definition": "Unable to load vocabulary word.",
-            "example": ""
+            "example": "",
+            "points_value": 0
         }
-
 
     # Fetch details from Dictionary API
     try:
@@ -959,21 +1081,18 @@ def get_word_of_the_day():
                 "pronunciation": "",
                 "type": chosen.category or "",
                 "definition": chosen.definition or "Definition not found",
-                "example": chosen.example_sentence or ""
+                "example": chosen.example_sentence or "",
+                "points_value": chosen.points_value
             }
 
-
         data = response.json()[0]
-
 
         pronunciation = ""
         if data.get("phonetics"):
             pronunciation = data["phonetics"][0].get("text", "")
 
-
         meaning_block = data["meanings"][0]
         definition_block = meaning_block["definitions"][0]
-
 
         # Example handling: loop through all definitions
         example = ""
@@ -982,14 +1101,14 @@ def get_word_of_the_day():
                 example = d["example"]
                 break
 
-
         return {
             "word_id": chosen.word_id,
             "word": chosen.word,
             "pronunciation": pronunciation,
             "type": meaning_block.get("partOfSpeech", ""),
             "definition": definition_block.get("definition", ""),
-            "example": example  # stays blank if none found
+            "example": example or chosen.example_sentence or "",
+            "points_value": chosen.points_value
         }
     except Exception as e:
         print(f"Error fetching word details: {e}")
@@ -1000,7 +1119,8 @@ def get_word_of_the_day():
             "pronunciation": "",
             "type": chosen.category or "",
             "definition": chosen.definition or "Definition unavailable",
-            "example": chosen.example_sentence or ""
+            "example": chosen.example_sentence or "",
+            "points_value": chosen.points_value
         }
         
 def create_daily_reminder_notification(user_id):
@@ -1115,7 +1235,6 @@ def get_notifications():
         
     except Exception as e:
         print(f"ERROR in get_notifications: {str(e)}")
-        import traceback
         traceback.print_exc()
         # Return empty array with proper headers
         response = jsonify([])
@@ -1197,8 +1316,8 @@ def dashboard():
     user = get_current_user()
     showStarterModal = user.pokemon_id is None
     
-    # Get Pokémon from database
-    pokemons = Pokemon.query.all()
+    # Get Pokémon from database - CHANGED: Get common Pokémon for starters
+    pokemons = Pokemon.query.filter_by(rarity='starter').all()
     pokemons_list = []
     for p in pokemons:
         pokemons_list.append({
@@ -1240,6 +1359,7 @@ def dashboard():
         existing_link = UserWords.query.filter_by(user_id=user.user_id, word_id=word_of_day.word_id).first()
         user_has_word = existing_link is not None
     
+    # In your dashboard function, update the word_data dictionary:
     if word_of_day:
         word_data = {
             'word_id': word_of_day.word_id,
@@ -1247,8 +1367,8 @@ def dashboard():
             'definition': word_of_day.definition,
             'example': word_of_day.example_sentence,
             'type': word_of_day.category if word_of_day.category else 'General',
-            'pronunciation': 'N/A',
-            'user_has_word': user_has_word
+            'user_has_word': user_has_word,
+            'points_value': word_of_day.points_value  # Add this line
         }
     else:
         # If there are no words in the database
@@ -1259,7 +1379,8 @@ def dashboard():
             'example': 'Use the "Add New Word" feature.',
             'type': 'General',
             'pronunciation': '',
-            'user_has_word': True
+            'user_has_word': True,
+            'points_value': 10  # Default value
         }
     
     # --- Calculate user rank ---
@@ -1348,8 +1469,12 @@ def add_to_collection(word_id):
     # Check if user already has this word
     existing_link = UserWords.query.filter_by(user_id=user.user_id, word_id=word_id).first()
     if not existing_link:
-        # Add word to user's collection
-        user_word = UserWords(user_id=user.user_id, word_id=word_id)
+        # Get Philippine Time
+        ph_tz = pytz.timezone('Asia/Manila')
+        ph_time = datetime.now(ph_tz)
+        
+        # Add word to user's collection with Philippine time
+        user_word = UserWords(user_id=user.user_id, word_id=word_id, date_learned=ph_time)
         db.session.add(user_word)
         user.total_points = (user.total_points or 0) + word.points_value
         
@@ -1360,21 +1485,26 @@ def add_to_collection(word_id):
             flash(f"Word '{word.word}' added to your collection! +{word.points_value} EXP", 'success')
         
         db.session.commit()
+        
+        # CHECK ACHIEVEMENTS AFTER LEARNING A WORD
+        check_and_update_achievements(user)
+        
     else:
         flash(f"Word '{word.word}' is already in your collection!", 'info')
     
     return redirect(url_for('dashboard'))
 
 def get_daily_word_of_day():
-    """Get a consistent Word of the Day for the current day."""
-    today = datetime.utcnow().date()
-    today_str = today.strftime('%Y-%m-%d')
+    """Get a consistent Word of the Day for the current day in Philippine Time."""
+    # Get Philippine Time
+    ph_tz = pytz.timezone('Asia/Manila')
+    ph_time = datetime.now(ph_tz)
+    today_ph = ph_time.date()
     
-    # You could store daily word selection in a cache or database
-    # For simplicity, we'll use a predictable method based on date
-    import hashlib
+    today_str = today_ph.strftime('%Y-%m-%d')
+
     
-    # Create a hash based on today's date
+    # Create a hash based on today's Philippine date
     date_hash = hashlib.md5(today_str.encode()).hexdigest()
     hash_int = int(date_hash, 16)
     
@@ -1451,6 +1581,9 @@ def add_review_exp():
         # Check for Pokémon evolution (optional)
         check_and_update_pokemon_evolution(user)
         
+        # CHECK ACHIEVEMENTS AFTER EARNING POINTS (for Solo Leveling)
+        check_and_update_achievements(user)
+        
         db.session.commit()
         
         return jsonify({
@@ -1479,9 +1612,6 @@ def choose_partner():
     # Get pokemon_id safely
     pokemon_id = request.form.get('pokemon_id', '').strip()
    
-    # Debug
-    print(f"DEBUG: Received pokemon_id: '{pokemon_id}'")
-   
     # Validate
     if not pokemon_id:
         flash("Please select a Pokémon partner.", "danger")
@@ -1493,97 +1623,324 @@ def choose_partner():
         flash("Invalid Pokémon selection.", "danger")
         return redirect(url_for('dashboard'))
    
-    # Save to database
+    # Get Pokémon details
+    pokemon = Pokemon.query.get(chosen_id)
+    if not pokemon:
+        flash("Invalid Pokémon selection.", "danger")
+        return redirect(url_for('dashboard'))
+   
+    # 1. Add to UserPokemon collection
+    user_pokemon = UserPokemon(
+        user_id=user.user_id,
+        pokemon_id=chosen_id,
+        date_obtained=datetime.utcnow(),
+        custom_name=None  # No custom name initially
+    )
+    db.session.add(user_pokemon)
+    
+    # 2. Set as active partner in UserAcc
     user.pokemon_id = chosen_id
+    user.pokemon_name = pokemon.name  # Default name
+    
+    # Create notification
+    notification = Notification(
+        user_id=user.user_id,
+        title='New Partner!',
+        message=f'{pokemon.name} is now your learning partner! ⚡',
+        notification_type='pokemon'
+    )
+    db.session.add(notification)
+    
     db.session.commit()
    
-    flash(f"Starter Pokémon chosen successfully!", "success")
+    flash(f"{pokemon.name} is now your starter Pokémon! ⚡", "success")
     return redirect(url_for('dashboard'))
 
 
-@app.route('/profile')
+def check_and_update_achievements(user):
+    """Check all achievements and update progress ONLY - do not auto-claim."""
+    all_achievements = Achievement.query.all()
+    
+    for achievement in all_achievements:
+        # Get or create UserAchievement record
+        user_achievement = UserAchievement.query.filter_by(
+            user_id=user.user_id,
+            achievement_id=achievement.achievement_id
+        ).first()
+        
+        if not user_achievement:
+            # Create new UserAchievement record
+            user_achievement = UserAchievement(
+                user_id=user.user_id,
+                achievement_id=achievement.achievement_id,
+                current_progress=0,
+                date_earned=None
+            )
+            db.session.add(user_achievement)
+        
+        # Calculate current progress based on achievement
+        current_progress = 0
+        
+        # WORD COLLECTOR ACHIEVEMENT - Learn 10 different words
+        if "Word Collector" in achievement.name:
+            current_progress = UserWords.query.filter_by(user_id=user.user_id).count()
+            
+        # ZZZ ACHIEVEMENT - Logout for the first time
+        elif "Zzz" in achievement.name:
+            current_progress = 1 if user.last_logout else 0
+            
+        # SOLO LEVELING ACHIEVEMENT - Reach 500 points
+        elif "Solo Leveling" in achievement.name:
+            current_progress = user.total_points or 0
+            
+        # JOURNEY BEGINS ACHIEVEMENT - Welcome to VocabuLearner!
+        elif "Journey Begins" in achievement.name:
+            current_progress = 1  # Always earned when account is created
+        
+        # Other achievement types
+        elif "Vocabulary Novice" in achievement.name:
+            current_progress = UserWords.query.filter_by(user_id=user.user_id).count()
+        elif "Flashcard Champion" in achievement.name:
+            # You'll need to track flashcard sessions separately
+            current_progress = 0  # TODO: Add flashcard session tracking
+
+        user_achievement.current_progress = current_progress
+
+    db.session.commit()
+
+def check_and_update_pokemon_evolution(user):
+    """Check if user qualifies for Pokémon evolution and update if needed."""
+    if not user.pokemon_id:
+        return False, None, None
+    
+    current_pokemon = Pokemon.query.get(user.pokemon_id)
+    if not current_pokemon:
+        return False, None, None
+    
+    # Get all Pokémon in the same family
+    evolution_line = (
+        Pokemon.query
+        .filter_by(family_id=current_pokemon.family_id)
+        .order_by(Pokemon.min_points_required)
+        .all()
+    )
+    
+    # Find the highest evolution the user qualifies for
+    highest_evolution = None
+    for evo in evolution_line:
+        if user.total_points >= evo.min_points_required:
+            highest_evolution = evo
+    
+    # If we found a higher evolution than current
+    if highest_evolution and highest_evolution.pokemon_id != current_pokemon.pokemon_id:
+        # FIXED: Check if evolved form already in collection
+        existing_evolved = UserPokemon.query.filter_by(
+            user_id=user.user_id,
+            pokemon_id=highest_evolution.pokemon_id
+        ).first()
+        
+        # Only add to collection if not already there
+        if not existing_evolved:
+            evolved_pokemon_entry = UserPokemon(
+                user_id=user.user_id,
+                pokemon_id=highest_evolution.pokemon_id,
+                date_obtained=datetime.now(ph_timezone),
+                custom_name=None
+            )
+            db.session.add(evolved_pokemon_entry)
+            print(f"✅ Added evolved {highest_evolution.name} to user {user.user_id}'s collection")
+        
+        # Update user's current partner
+        user.pokemon_id = highest_evolution.pokemon_id
+        
+        # Keep the user's custom Pokémon name if they have one
+        if not user.pokemon_name:
+            user.pokemon_name = highest_evolution.name
+        
+        db.session.commit()
+        return True, current_pokemon.name, highest_evolution.name
+    
+    return False, None, None
+
+@app.route('/api/claim_achievement/<int:achievement_id>', methods=['POST'])
 @login_required
+def claim_achievement(achievement_id):
+    """Claim an achievement that has been unlocked"""
+    try:
+        user = get_current_user()
+        
+        # Get the UserAchievement record
+        user_achievement = UserAchievement.query.filter_by(
+            user_id=user.user_id,
+            achievement_id=achievement_id
+        ).first()
+        
+        if not user_achievement:
+            return jsonify({'success': False, 'error': 'Achievement not found for user'}), 404
+        
+        # Get the achievement details
+        achievement = Achievement.query.get(achievement_id)
+        if not achievement:
+            return jsonify({'success': False, 'error': 'Achievement not found'}), 404
+        
+        # Check if achievement is already claimed
+        if user_achievement.date_earned:
+            return jsonify({'success': False, 'error': 'Achievement already claimed'}), 400
+        
+        # Check if user meets the requirements
+        if user_achievement.current_progress >= achievement.requirement:
+            # 1. Award the achievement
+            user_achievement.date_earned = datetime.now(ph_timezone)
+            
+            # 2. Add points reward to user
+            user.total_points = (user.total_points or 0) + achievement.points_reward
+            
+            # 3. Check if achievement gives a Pokémon reward
+            pokemon_reward_data = None
+            if achievement.pokemon_id:
+                reward_pokemon = Pokemon.query.get(achievement.pokemon_id)
+                if reward_pokemon:
+                    # Check if user already has this Pokémon
+                    existing = UserPokemon.query.filter_by(
+                        user_id=user.user_id,
+                        pokemon_id=achievement.pokemon_id
+                    ).first()
+                    
+                    if existing:
+                        # User already has this Pokémon
+                        pokemon_reward_data = {
+                            'awarded': False,
+                            'name': reward_pokemon.name,
+                            'message': f'Already have {reward_pokemon.name}!'
+                        }
+                    else:
+                        # Add Pokémon to user's collection
+                        user_pokemon = UserPokemon(
+                            user_id=user.user_id,
+                            pokemon_id=achievement.pokemon_id,
+                            date_obtained=datetime.now(ph_timezone)
+                        )
+                        db.session.add(user_pokemon)
+                        pokemon_reward_data = {
+                            'awarded': True,
+                            'pokemon_id': reward_pokemon.pokemon_id,
+                            'name': reward_pokemon.name,
+                            'image_url': reward_pokemon.url,
+                            'message': f'🎁 {reward_pokemon.name} added to collection!'
+                        }
+            
+            # 4. Create notification
+            notification_message = f"You claimed: {achievement.name}! +{achievement.points_reward} EXP"
+            if pokemon_reward_data:
+                notification_message += f" {pokemon_reward_data['message']}"
+            
+            notification = Notification(
+                user_id=user.user_id,
+                title="🏆 Achievement Claimed!",
+                message=notification_message,
+                notification_type='achievement',
+                is_read=False,
+                created_at=datetime.now(ph_timezone)
+            )
+            db.session.add(notification)
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Achievement claimed! +{achievement.points_reward} EXP',
+                'points_awarded': achievement.points_reward,
+                'new_total_points': user.total_points,
+                'pokemon_reward': pokemon_reward_data
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'Requirements not met. Progress: {user_achievement.current_progress}/{achievement.requirement}'
+            }), 400
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/profile')
 def profile():
-    user = get_current_user()
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     
-    # Calculate words learned
-    words_learned = UserWords.query.filter_by(user_id=user.user_id).count()
+    user_id = session['user_id']
+    user = UserAcc.query.get(user_id)
     
-    # Get current Pokémon partner (including evolution based on points)
+    if not user:
+        return redirect(url_for('logout'))
+    
+    # Get words learned count
+    words_learned = UserWords.query.filter_by(user_id=user_id).count()
+    
+    # Get Pokémon data
     pokemon = None
-    pokemon_display_name = user.pokemon_name  # User's custom name for their Pokémon
+    pokemon_display_name = "No Pokémon Yet"
     
     if user.pokemon_id:
-        starter = Pokemon.query.get(user.pokemon_id)
-        if starter:
-            # Get all Pokémon in the same family
-            evolution_line = (
-                Pokemon.query
-                .filter_by(family_id=starter.family_id)
-                .order_by(Pokemon.min_points_required)
-                .all()
-            )
-            
-            # Find current Pokémon based on points (not just the starter)
-            current_pokemon = None
-            for evo in evolution_line:
-                if user.total_points >= evo.min_points_required:
-                    current_pokemon = evo
-            
-            # If no evolution qualifies yet, show the starter
-            if not current_pokemon:
-                current_pokemon = starter
-            
-            pokemon = current_pokemon
-            
-            # If user hasn't set a custom name, use Pokémon's name
-            if not pokemon_display_name:
-                pokemon_display_name = pokemon.name
+        pokemon = Pokemon.query.get(user.pokemon_id)
+        pokemon_display_name = user.pokemon_name if user.pokemon_name else (pokemon.name if pokemon else "No Pokémon")
     
-    # Get all achievements (simplified without UserAchievements)
-    all_achievements = Achievement.query.all() if hasattr(Achievement, 'query') else []
+    # Get achievements data
+    achievements = Achievement.query.all()
+    achievements_data = []
     
-    # Get Pokémon for achievements
+    for achievement in achievements:
+        user_achievement = UserAchievement.query.filter_by(
+            user_id=user_id, 
+            achievement_id=achievement.achievement_id
+        ).first()
+        
+        is_earned = user_achievement and user_achievement.date_earned is not None
+        user_progress = user_achievement.current_progress if user_achievement else 0
+        
+        # CORRECTED: Calculate can_claim based on progress vs requirement
+        can_claim = not is_earned and user_progress >= achievement.requirement
+        
+        achievements_data.append({
+            'achievement_id': achievement.achievement_id,
+            'name': achievement.name,
+            'description': achievement.description,
+            'points_reward': achievement.points_reward,
+            'requirement': achievement.requirement,
+            'is_earned': is_earned,
+            'can_claim': can_claim,  # This was the bug!
+            'user_progress': user_progress
+        })
+    
+    # Get Pokémon images for achievements
     achievement_pokemon = {}
-    for achievement in all_achievements:
-        if hasattr(achievement, 'pokemon_id') and achievement.pokemon_id:
-            poke = Pokemon.query.get(achievement.pokemon_id)
-            if poke:
-                achievement_pokemon[achievement.achievement_id] = poke
+    for achievement in achievements:
+        pokemon_for_achievement = Pokemon.query.get(achievement.pokemon_id)
+        achievement_pokemon[achievement.achievement_id] = {
+            'url': pokemon_for_achievement.url if pokemon_for_achievement else None,
+            'name': pokemon_for_achievement.name if pokemon_for_achievement else None
+        }
     
-    # Calculate achievements based on user stats (simplified)
-    user_achievements = []
+    # Get Pokémon collection count
+    collected_pokemon_count = UserPokemon.query.filter_by(user_id=user_id).count()
     
-    # Example: Streak achievement
-    if user.current_streak >= 7:
-        user_achievements.append({'achievement_id': 1, 'name': '7-Day Streak', 'description': 'Maintain a 7-day learning streak'})
-    if user.current_streak >= 30:
-        user_achievements.append({'achievement_id': 2, 'name': '30-Day Streak', 'description': 'Maintain a 30-day learning streak'})
+    # Get unique Pokémon species count
+    unique_pokemon_species = db.session.query(UserPokemon.pokemon_id).filter_by(user_id=user_id).distinct().count()
     
-    # Words learned achievement
-    if words_learned >= 10:
-        user_achievements.append({'achievement_id': 3, 'name': 'Word Collector', 'description': 'Learn 10 words'})
-    if words_learned >= 50:
-        user_achievements.append({'achievement_id': 4, 'name': 'Vocabulary Master', 'description': 'Learn 50 words'})
-    if words_learned >= 100:
-        user_achievements.append({'achievement_id': 5, 'name': 'Word Wizard', 'description': 'Learn 100 words'})
+    # Get current partner name
+    current_partner_name = pokemon_display_name
     
-    # Points/EXP achievement
-    if user.total_points >= 100:
-        user_achievements.append({'achievement_id': 6, 'name': 'EXP Expert', 'description': 'Earn 100 EXP points'})
-    if user.total_points >= 500:
-        user_achievements.append({'achievement_id': 7, 'name': 'EXP Master', 'description': 'Earn 500 EXP points'})
-    
-    return render_template(
-        'profile.html',
-        user=user,
-        words_learned=words_learned,
-        pokemon=pokemon,
-        pokemon_display_name=pokemon_display_name,
-        user_achievements=user_achievements,  # Now using calculated achievements
-        all_achievements=all_achievements,
-        achievement_pokemon=achievement_pokemon
-    )
+    return render_template('profile.html',
+                         user=user,
+                         words_learned=words_learned,
+                         pokemon=pokemon,
+                         pokemon_display_name=pokemon_display_name,
+                         achievements_data=achievements_data,
+                         achievement_pokemon=achievement_pokemon,
+                         collected_pokemon_count=collected_pokemon_count,
+                         unique_pokemon_count=unique_pokemon_species,
+                         current_partner_name=current_partner_name)
 
 
 @app.route('/challenges')
@@ -1702,14 +2059,39 @@ def insert_pokemon_data():
 @login_required
 def wordbank():
     user = get_current_user()
+    
+    # Get Philippine Timezone
+    ph_tz = pytz.timezone('Asia/Manila')
+    
     # Join UserWords with Vocabulary to get word details
     user_words = (
         db.session.query(UserWords, Vocabulary)
         .join(Vocabulary, UserWords.word_id == Vocabulary.word_id)
         .filter(UserWords.user_id == user.user_id)
+        .order_by(UserWords.date_learned.desc())  # Sort by most recent
         .all()
     )
-    return render_template("wordbank.html", words=user_words)
+    
+    # Convert dates to Philippine Time
+    words_with_ph_time = []
+    for user_word, vocab in user_words:
+        # Convert date_learned to Philippine Time
+        if user_word.date_learned:
+            # If date_learned is naive (no timezone), assume UTC
+            if user_word.date_learned.tzinfo is None:
+                date_utc = pytz.utc.localize(user_word.date_learned)
+            else:
+                date_utc = user_word.date_learned
+                
+            # Convert to Philippine Time
+            date_ph = date_utc.astimezone(ph_tz)
+            date_str = date_ph.strftime('%Y-%m-%d')
+        else:
+            date_str = "Unknown"
+        
+        words_with_ph_time.append((user_word, vocab, date_str))
+    
+    return render_template("wordbank.html", words=words_with_ph_time)
 
 
 
@@ -1846,92 +2228,55 @@ def leaderboard():
                          leaderboard_data=leaderboard_data)
     
 @app.route('/profile/<int:user_id>')
-@login_required
 def view_profile(user_id):
-    # Get the user to view
-    user = UserAcc.query.get_or_404(user_id)
+    viewed_user = UserAcc.query.get_or_404(user_id)
     
-    # Get current user (logged in user)
-    current_user = get_current_user()
+    current_user_id = session.get('user_id')
+    is_own_profile = current_user_id == user_id
     
-    # Check if it's the current user's own profile
-    is_own_profile = (user.user_id == current_user.user_id)
+    viewed_collected_count = UserPokemon.query.filter_by(user_id=user_id).count()
     
-    # Get user's word count
-    word_count = UserWords.query.filter_by(user_id=user.user_id).count()
+    viewed_unique_count = db.session.query(UserPokemon.pokemon_id)\
+        .filter_by(user_id=user_id)\
+        .distinct().count()
     
-    # Get user's Pokémon (including evolution based on points)
-    pokemon = None
-    pokemon_display_name = None
+    viewed_partner = None
+    if viewed_user.pokemon_id:
+        viewed_partner = Pokemon.query.get(viewed_user.pokemon_id)
     
-    if user.pokemon_id:
-        starter = Pokemon.query.get(user.pokemon_id)
-        if starter:
-            # Get all Pokémon in the same family
-            evolution_line = (
-                Pokemon.query
-                .filter_by(family_id=starter.family_id)
-                .order_by(Pokemon.min_points_required)
-                .all()
-            )
-            
-            # Find current Pokémon based on points (not just the starter)
-            current_pokemon = None
-            for evo in evolution_line:
-                if user.total_points >= evo.min_points_required:
-                    current_pokemon = evo
-            
-            # If no evolution qualifies yet, show the starter
-            if not current_pokemon:
-                current_pokemon = starter
-            
-            pokemon = current_pokemon
-            pokemon_display_name = user.pokemon_name or pokemon.name
+    viewed_words_learned = UserWords.query.filter_by(user_id=user_id).count()
     
-    # Get all achievements (simplified without UserAchievements)
-    all_achievements = Achievement.query.all() if hasattr(Achievement, 'query') else []
+    viewed_achievements = UserAchievement.query\
+        .filter_by(user_id=user_id)\
+        .join(Achievement, UserAchievement.achievement_id == Achievement.achievement_id)\
+        .all()
     
-    # Get Pokémon for achievements
+    viewed_achievements_dict = {ua.achievement_id: ua for ua in viewed_achievements}
+    
+    all_achievements = Achievement.query.all()
+    
     achievement_pokemon = {}
     for achievement in all_achievements:
-        if hasattr(achievement, 'pokemon_id') and achievement.pokemon_id:
-            poke = Pokemon.query.get(achievement.pokemon_id)
-            if poke:
-                achievement_pokemon[achievement.achievement_id] = poke
-    
-    # Calculate achievements based on user stats (simplified)
-    user_achievements = []
-    
-    # Example: Streak achievement
-    if user.current_streak >= 7:
-        user_achievements.append({'achievement_id': 1, 'name': '7-Day Streak', 'description': 'Maintain a 7-day learning streak'})
-    if user.current_streak >= 30:
-        user_achievements.append({'achievement_id': 2, 'name': '30-Day Streak', 'description': 'Maintain a 30-day learning streak'})
-    
-    # Words learned achievement
-    if word_count >= 10:
-        user_achievements.append({'achievement_id': 3, 'name': 'Word Collector', 'description': 'Learn 10 words'})
-    if word_count >= 50:
-        user_achievements.append({'achievement_id': 4, 'name': 'Vocabulary Master', 'description': 'Learn 50 words'})
-    if word_count >= 100:
-        user_achievements.append({'achievement_id': 5, 'name': 'Word Wizard', 'description': 'Learn 100 words'})
-    
-    # Points/EXP achievement
-    if user.total_points >= 100:
-        user_achievements.append({'achievement_id': 6, 'name': 'EXP Expert', 'description': 'Earn 100 EXP points'})
-    if user.total_points >= 500:
-        user_achievements.append({'achievement_id': 7, 'name': 'EXP Master', 'description': 'Earn 500 EXP points'})
+        if achievement.pokemon_id:
+            pokemon = Pokemon.query.get(achievement.pokemon_id)
+            if pokemon:
+                achievement_pokemon[achievement.achievement_id] = {
+                    'name': pokemon.name,
+                    'url': pokemon.url
+                }
     
     return render_template('view_profile.html',
-                         user=user,
-                         words_learned=word_count,
-                         pokemon=pokemon,
-                         pokemon_display_name=pokemon_display_name,
-                         user_achievements=user_achievements,
-                         all_achievements=all_achievements,
-                         achievement_pokemon=achievement_pokemon,
-                         is_own_profile=is_own_profile,
-                         current_user=current_user)
+        user=viewed_user,
+        is_own_profile=is_own_profile,
+        collected_pokemon_count=viewed_collected_count,
+        unique_pokemon_count=viewed_unique_count,
+        words_learned=viewed_words_learned,
+        pokemon=viewed_partner,
+        pokemon_display_name=viewed_user.pokemon_name if viewed_user.pokemon_name else (viewed_partner.name if viewed_partner else "No Pokémon"),
+        user_achievements_dict=viewed_achievements_dict,
+        all_achievements=all_achievements,
+        achievement_pokemon=achievement_pokemon
+    )
 
 
 @app.route("/add_word", methods=["GET", "POST"])
@@ -1940,188 +2285,121 @@ def add_word():
     form = AddWordForm()
     user = get_current_user()
     
-    # Function to check and update Pokémon evolution
-    def check_and_update_pokemon_evolution(user):
-        """Check if user qualifies for Pokémon evolution and update if needed."""
-        if not user.pokemon_id:
-            return False, None, None
+    if form.validate_on_submit():
+        # Get the word data from the form
+        word_text = form.word.data.strip().lower()
+        definition = form.definition.data.strip()
+        sentence = form.sentence.data.strip()
         
+        # First, check if word already exists in Vocabulary table
+        existing_vocab = Vocabulary.query.filter_by(word=word_text).first()
+        
+        # Get Philippine Time
+        ph_tz = pytz.timezone('Asia/Manila')
+        ph_time = datetime.now(ph_tz)
+        
+        if existing_vocab:
+            # Check if user already has this word
+            existing_user_word = UserWords.query.filter_by(
+                user_id=user.user_id, 
+                word_id=existing_vocab.word_id
+            ).first()
+            
+            if existing_user_word:
+                flash(f'"{word_text}" is already in your vocabulary!', 'danger')
+                return redirect(url_for('add_word'))
+            
+            # User doesn't have this word yet, so create UserWords entry
+            new_user_word = UserWords(
+                user_id=user.user_id,
+                word_id=existing_vocab.word_id,
+                date_learned=ph_time  # Use Philippine time
+            )
+            db.session.add(new_user_word)
+            
+        else:
+            # Word doesn't exist in Vocabulary table, so create both
+            new_vocab = Vocabulary(
+                word=word_text,
+                definition=definition,
+                example_sentence=sentence,
+                # category field exists but we're not using it
+                category=None,
+                points_value=10,
+                is_word_of_day=False
+            )
+            db.session.add(new_vocab)
+            db.session.flush()  # Get the ID of the new vocab word
+            
+            # Create UserWords entry
+            new_user_word = UserWords(
+                user_id=user.user_id,
+                word_id=new_vocab.word_id,
+                date_learned=ph_time  # Use Philippine time
+            )
+            db.session.add(new_user_word)
+        
+        # Update user's total points (10 points per word)
+        user.total_points += 10
+        db.session.commit()
+        
+        # CHECK ACHIEVEMENTS AFTER ADDING A WORD
+        check_and_update_achievements(user)
+        
+        # Check for Pokémon evolution
+        evolved, old_pokemon, new_pokemon = check_and_update_pokemon_evolution(user)
+        
+        if evolved:
+            flash(f'Word added successfully! {old_pokemon} evolved into {new_pokemon}! 🎉', 'success')
+        else:
+            flash(f'Word added successfully! +10 EXP', 'success')
+        
+        return redirect(url_for('add_word'))
+    
+    # Get current Pokémon for display
+    current_pokemon = None
+    if user.pokemon_id:
         current_pokemon = Pokemon.query.get(user.pokemon_id)
-        if not current_pokemon:
-            return False, None, None
-        
-        # Get all Pokémon in the same family
-        evolution_line = (
+    
+    # Calculate progress data
+    progress_data = None
+    if current_pokemon:
+        # Get next evolution
+        next_evolution = (
             Pokemon.query
             .filter_by(family_id=current_pokemon.family_id)
+            .filter(Pokemon.min_points_required > current_pokemon.min_points_required)
             .order_by(Pokemon.min_points_required)
-            .all()
+            .first()
         )
         
-        # Find the highest evolution the user qualifies for
-        highest_evolution = None
-        for evo in evolution_line:
-            if user.total_points >= evo.min_points_required:
-                highest_evolution = evo
-        
-        # If we found a higher evolution than current
-        if highest_evolution and highest_evolution.pokemon_id != current_pokemon.pokemon_id:
-            # Update user's Pokémon
-            user.pokemon_id = highest_evolution.pokemon_id
-            
-            # Keep the user's custom Pokémon name if they have one
-            if not user.pokemon_name:
-                # If no custom name, set to new Pokémon's name
-                user.pokemon_name = highest_evolution.name
-            
-            return True, current_pokemon.name, highest_evolution.name
-        
-        return False, None, None
-    
-    # Function to calculate evolution progress
-    def calculate_evolution_progress(user, current_pokemon, evolution_line):
-        """Calculate evolution progress based on user's current points."""
-        progress_data = {}
-        
-        if not current_pokemon or not evolution_line:
-            return progress_data
-        
-        # Find current Pokémon index in evolution line
-        current_index = -1
-        for i, evo in enumerate(evolution_line):
-            if evo.pokemon_id == current_pokemon.pokemon_id:
-                current_index = i
-                break
-        
-        if current_index < len(evolution_line) - 1:
-            # There's a next evolution
-            next_evo = evolution_line[current_index + 1]
-            current_points = user.total_points or 0
-            current_min = current_pokemon.min_points_required
-            next_min = next_evo.min_points_required
-            
-            # Calculate progress
-            progress_points = current_points - current_min
-            total_needed = next_min - current_min
-            progress_percentage = (progress_points / total_needed * 100) if total_needed > 0 else 100
+        if next_evolution:
+            total_needed = next_evolution.min_points_required - current_pokemon.min_points_required
+            current_progress = user.total_points - current_pokemon.min_points_required
+            exp_to_next = max(0, next_evolution.min_points_required - user.total_points)
             
             progress_data = {
-                'current_points': current_points,
-                'next_required': next_min,
-                'progress_points': progress_points,
+                'progress_points': current_progress,
                 'total_needed': total_needed,
-                'progress_percentage': min(max(progress_percentage, 0), 100),
-                'next_evolution': next_evo.name,
-                'exp_to_next': max(next_min - current_points, 0),
+                'progress_percentage': (current_progress / total_needed) * 100 if total_needed > 0 else 0,
+                'exp_to_next': exp_to_next,
+                'next_evolution': next_evolution.name,
                 'is_max_evolution': False
             }
         else:
-            # This is the final evolution
             progress_data = {
                 'is_max_evolution': True
             }
-        
-        return progress_data
-    
-    # Get current Pokémon for display (initial state)
-    current_pokemon = None
-    evolution_line = []
-    progress_data = {}
-    
-    if user.pokemon_id:
-        starter = Pokemon.query.get(user.pokemon_id)
-        if starter:
-            # Get all Pokémon in the same family
-            evolution_line = (
-                Pokemon.query
-                .filter_by(family_id=starter.family_id)
-                .order_by(Pokemon.min_points_required)
-                .all()
-            )
-            
-            # Find current Pokémon based on points (before adding new word)
-            for evo in evolution_line:
-                if user.total_points >= evo.min_points_required:
-                    current_pokemon = evo
-            
-            # If no evolution qualifies yet, show the starter
-            if not current_pokemon:
-                current_pokemon = starter
-            
-            # Calculate initial progress
-            progress_data = calculate_evolution_progress(user, current_pokemon, evolution_line)
-    
-    if form.validate_on_submit():
-        word_text = form.word.data.strip().lower()
-        vocab = Vocabulary.query.filter_by(word=word_text).first()
-        
-        if not vocab:
-            vocab = Vocabulary(
-                word=word_text,
-                definition=form.definition.data.strip(),
-                example_sentence=form.sentence.data.strip(),
-                category=form.category.data.strip()
-            )
-            db.session.add(vocab)
-            db.session.flush()
-        
-        existing_link = UserWords.query.filter_by(user_id=user.user_id, word_id=vocab.word_id).first()
-        
-        if not existing_link:
-            # Track old points before adding new word
-            old_points = user.total_points or 0
-            
-            user_word = UserWords(user_id=user.user_id, word_id=vocab.word_id)
-            db.session.add(user_word)
-            user.total_points = old_points + vocab.points_value
-            
-            # Check for evolution after adding points
-            evolved, evolved_from, evolved_to = check_and_update_pokemon_evolution(user)
-            
-            db.session.commit()
-            
-            # Recalculate current Pokémon and progress after evolution check
-            if user.pokemon_id:
-                starter = Pokemon.query.get(user.pokemon_id)
-                if starter:
-                    # Get evolution line again (in case it changed)
-                    evolution_line = (
-                        Pokemon.query
-                        .filter_by(family_id=starter.family_id)
-                        .order_by(Pokemon.min_points_required)
-                        .all()
-                    )
-                    
-                    # Find current Pokémon based on NEW points
-                    current_pokemon = None
-                    for evo in evolution_line:
-                        if user.total_points >= evo.min_points_required:
-                            current_pokemon = evo
-                    
-                    if not current_pokemon:
-                        current_pokemon = starter
-                    
-                    # Recalculate progress with updated points
-                    progress_data = calculate_evolution_progress(user, current_pokemon, evolution_line)
-            
-            # Show appropriate flash message
-            if evolved:
-                flash(f"Word '{form.word.data}' added successfully! 🎉 Your {evolved_from} evolved into {evolved_to}!", "success")
-            else:
-                flash(f"Word '{form.word.data}' added successfully! +{vocab.points_value} EXP", "success")
-        else:
-            flash(f"Word '{form.word.data}' is already in your collection!", "info")
-            db.session.commit()
     
     return render_template(
-        "addword.html", 
-        form=form, 
-        current_pokemon=current_pokemon, 
+        'addword.html',
+        form=form,
         user=user,
-        progress_data=progress_data,
-        evolution_line=evolution_line
+        current_pokemon=current_pokemon,
+        progress_data=progress_data
     )
-
+    
+    
 
 
 @app.route('/flashcard')
@@ -2233,61 +2511,769 @@ def matchingtype():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
+
+    ph_tz = pytz.timezone('Asia/Manila')
+    ph_now = datetime.now(ph_tz)
+    
     # Get statistics for the dashboard
-    total_users = UserAcc.query.count()
+    total_users = UserAcc.query.filter_by(is_admin=False).count()
     
     # Get total words stored (sum of words learned by all users)
-    total_words = db.session.query(db.func.count(UserWords.user_word_id)).scalar() or 0
+    total_words_stored = db.session.query(db.func.count(UserWords.user_word_id)).scalar() or 0
     
-    # Get active users (users with last login in the last 7 days)
-    week_ago = datetime.now(ph_timezone) - timedelta(days=7)
-    active_users = UserAcc.query.filter(UserAcc.last_login >= week_ago).count()
+    # Get today's new registrations - EXCLUDE ADMIN
+    today = ph_now.date()
+    today_start = ph_tz.localize(datetime.combine(today, datetime.min.time()))
+    today_end = ph_tz.localize(datetime.combine(today, datetime.max.time()))
     
-    # Get today's new registrations
-    today = datetime.now(ph_timezone).date()
     today_registrations = UserAcc.query.filter(
-        db.func.date(UserAcc.date_created) == today
+        UserAcc.date_created >= today_start,
+        UserAcc.date_created <= today_end,
+        UserAcc.is_admin == False  # Exclude admin
     ).count()
     
+    # Get active sessions (users where last_login is later than last_logout) - EXCLUDE ADMIN
+    active_sessions = 0
+    all_non_admin_users = UserAcc.query.filter_by(is_admin=False).all()
+    
+    for user in all_non_admin_users:
+        if user.last_login:
+            # Convert last_login and last_logout to Philippine timezone for comparison
+            last_login_ph = user.last_login.replace(tzinfo=pytz.UTC).astimezone(ph_tz)
+            
+            if user.last_logout:
+                last_logout_ph = user.last_logout.replace(tzinfo=pytz.UTC).astimezone(ph_tz)
+                if last_login_ph > last_logout_ph:
+                    active_sessions += 1
+            else:
+                # If user has never logged out (last_logout is None), they are active
+                active_sessions += 1
+    
     # Get recent users (last 5 registrations)
-    recent_users = UserAcc.query.order_by(UserAcc.date_created.desc()).limit(5).all()
+    recent_users = UserAcc.query.filter_by(is_admin=False).order_by(
+        UserAcc.date_created.desc()
+    ).limit(5).all()
     
-    # Get recent activities (you can create an ActivityLog model later)
-    recent_activities = [
-        {"text": f"New user registered: {recent_users[0].name if recent_users else 'N/A'}", "time": "Recently"},
-        {"text": "System maintenance completed", "time": "2 hours ago"},
-        {"text": "Database backup successful", "time": "Yesterday"},
-    ]
+    # Get recent activities from various sources
+    recent_activities = []
     
+    # 1. Recent user registrations
+    for user in recent_users:
+        if user.date_created:
+            # Convert user.date_created to Philippine timezone for comparison
+            user_date_ph = user.date_created.replace(tzinfo=pytz.UTC).astimezone(ph_tz)
+            time_diff = ph_now - user_date_ph
+            if time_diff.total_seconds() < 60:
+                time_ago = "Just now"
+            elif time_diff.total_seconds() < 3600:
+                minutes = int(time_diff.total_seconds() // 60)
+                time_ago = f"{minutes} minutes ago"
+            elif time_diff.total_seconds() < 86400:
+                hours = int(time_diff.total_seconds() // 3600)
+                time_ago = f"{hours} hours ago"
+            elif time_diff.days == 1:
+                time_ago = "1 day ago"
+            else:
+                time_ago = f"{time_diff.days} days ago"
+        else:
+            time_ago = "Recently"
+        
+        recent_activities.append({
+            "text": f"New user registered: {user.name}",
+            "time": time_ago
+        })
+    
+    # 2. Recent word additions - use UserWords with date_learned
+    recent_words_learned = UserWords.query.order_by(
+        UserWords.date_learned.desc()
+    ).limit(5).all()
+    
+    for user_word in recent_words_learned:
+        user = UserAcc.query.get(user_word.user_id)
+        word = Vocabulary.query.get(user_word.word_id)
+        if user and word:
+            recent_activities.append({
+                "text": f"User {user.name} learned word '{word.word}'",
+                "time": "Recently"
+            })
+    
+    # 3. Recent achievements unlocked
+    recent_achievements = UserAchievement.query.order_by(
+        UserAchievement.date_earned.desc()
+    ).limit(5).all()
+    
+    for user_achievement in recent_achievements:
+        user = UserAcc.query.get(user_achievement.user_id)
+        ach = Achievement.query.get(user_achievement.achievement_id)
+        if user and ach:
+            recent_activities.append({
+                "text": f"User {user.name} unlocked achievement '{ach.name}'",
+                "time": "Recently"
+            })
+    
+    # 4. Recent notifications (excluding auto/system ones)
+    recent_notifications = Notification.query.filter(
+        Notification.notification_type != 'auto'
+    ).order_by(
+        Notification.created_at.desc()
+    ).limit(3).all()
+    
+    for notification in recent_notifications:
+        user = UserAcc.query.get(notification.user_id)
+        if user:
+            recent_activities.append({
+                "text": f"Notification sent to {user.name}: {notification.title}",
+                "time": "Recently"
+            })
+    
+    # 5. Pokémon evolutions based on total_points
+    evolved_users = UserAcc.query.filter(
+        UserAcc.pokemon_id.isnot(None),
+        UserAcc.total_points > 0
+    ).order_by(
+        UserAcc.date_created.desc()
+    ).limit(3).all()
+    
+    for user in evolved_users:
+        pokemon = Pokemon.query.get(user.pokemon_id)
+        if pokemon:
+            evolutions = user.total_points // 50  # evolve every 50 EXP
+            if evolutions > 0:
+                recent_activities.append({
+                    "text": f"User {user.name}'s {pokemon.name} reached level {evolutions}",
+                    "time": "Recently"
+                })
+    
+    # Limit to 5 most recent activities
+    recent_activities = recent_activities[:5]
+    
+    # Format the numbers for display
     return render_template(
         'admin_dashboard.html',
         total_users=total_users,
-        total_words=total_words,
-        active_users=active_users,
+        total_words=total_words_stored,
+        active_sessions=active_sessions,
         today_registrations=today_registrations,
         recent_users=recent_users,
         recent_activities=recent_activities
     )
 
-
-@app.route('/admin/users')
+@app.route('/admin/users', methods=['GET', 'POST'])
 @admin_required
 def admin_users():
-    """User management page"""
-    # Get all users
-    all_users = UserAcc.query.order_by(UserAcc.date_created.desc()).all()
+    """Main user management page - FILTERS NON-ADMIN USERS ONLY"""
+    # Get query parameters from URL
+    search_term = request.args.get('search', '')
+    status_filter = request.args.get('status', 'all')
+    date_from_str = request.args.get('date_from', '')
+    date_to_str = request.args.get('date_to', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
     
-    # Get statistics
-    total_users = UserAcc.query.count()
-    active_users = UserAcc.query.filter(UserAcc.last_login >= datetime.now(ph_timezone) - timedelta(days=7)).count()
+    # Handle POST request (form submission)
+    if request.method == 'POST':
+        # Create form with POST data
+        search_form = UserSearchForm(request.form)
+        
+        if search_form.validate():
+            # Get data from validated form
+            search_term = search_form.search.data or ''
+            status_filter = search_form.status.data or 'all'
+            
+            # Handle dates
+            date_from = search_form.date_from.data
+            date_to = search_form.date_to.data
+            
+            date_from_str = date_from.strftime('%Y-%m-%d') if date_from else ''
+            date_to_str = date_to.strftime('%Y-%m-%d') if date_to else ''
+            
+            page = 1  # Reset to first page when searching/filtering
+            
+            # Build redirect parameters
+            params = {
+                'search': search_term,
+                'status': status_filter,
+                'page': page
+            }
+            
+            # Only add date params if they exist
+            if date_from_str:
+                params['date_from'] = date_from_str
+            if date_to_str:
+                params['date_to'] = date_to_str
+                
+            # Redirect to GET with parameters (PRG pattern)
+            return redirect(url_for('admin_users', **params))
+        else:
+            # Form validation failed - reset filter parameters
+            search_term = ''
+            status_filter = 'all'
+            date_from_str = ''
+            date_to_str = ''
+            page = 1
+            
+            # Keep the form with errors to display them
+            # Continue to render template below
+    else:
+        # GET request - create form with query parameters
+        form_data = {
+            'search': search_term,
+            'status': status_filter
+        }
+        
+        # Parse dates for form
+        if date_from_str:
+            try:
+                form_data['date_from'] = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            except (ValueError, AttributeError):
+                form_data['date_from'] = None
+        
+        if date_to_str:
+            try:
+                form_data['date_to'] = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            except (ValueError, AttributeError):
+                form_data['date_to'] = None
+        
+        # Create form with the data
+        search_form = UserSearchForm(**form_data)
+    
+    # Parse dates for database querying
+    date_from = None
+    date_to = None
+    try:
+        if date_from_str:
+            date_from = datetime.strptime(date_from_str, '%Y-%m-%d')
+        if date_to_str:
+            date_to = datetime.strptime(date_to_str, '%Y-%m-%d')
+    except ValueError:
+        pass
+    
+    # Build query - FILTER NON-ADMIN USERS ONLY
+    query = UserAcc.query.filter_by(is_admin=False)
+    
+    # Apply search filter
+    if search_term:
+        search_like = f"%{search_term}%"
+        query = query.filter(
+            (UserAcc.name.ilike(search_like)) | 
+            (UserAcc.email.ilike(search_like))
+        )
+    
+    # Apply status filter (based on is_active column)
+    status_filters = {
+        'active': lambda q: q.filter_by(is_active=True),
+        'inactive': lambda q: q.filter_by(is_active=False),
+        'all': lambda q: q
+    }
+    
+    # Apply status filter using lambda
+    if status_filter in status_filters:
+        query = status_filters[status_filter](query)
+    
+    # Apply date filters (on date_created)
+    if date_from:
+        query = query.filter(UserAcc.date_created >= date_from)
+    if date_to:
+        # Add 1 day to include the entire end date
+        date_to_end = date_to + timedelta(days=1)
+        query = query.filter(UserAcc.date_created < date_to_end)
+    
+    # Get total count for pagination
+    total_users = query.count()
+    total_pages = (total_users + per_page - 1) // per_page if total_users > 0 else 1
+    offset = (page - 1) * per_page
+    
+    # Get users for current page
+    users = query.order_by(UserAcc.date_created.desc())\
+                .offset(offset)\
+                .limit(per_page)\
+                .all()
+    
+    # Prepare user data for template
+    users_data = []
+    for user in users:
+        # Get word count from UserWords table
+        word_count = UserWords.query.filter_by(user_id=user.user_id).count()
+        
+        # Get achievement count
+        achievement_count = UserAchievement.query.filter_by(user_id=user.user_id).count()
+        
+        # Determine status based on is_active column
+        user_status = "Active" if user.is_active else "Inactive"
+        
+        # Get Pokémon name if exists
+        pokemon_name = None
+        if user.pokemon_id:
+            pokemon = Pokemon.query.get(user.pokemon_id)
+            pokemon_name = pokemon.name if pokemon else None
+        if user.pokemon_name:
+            pokemon_name = user.pokemon_name
+        
+        users_data.append({
+            'user_id': user.user_id,
+            'username': user.name,
+            'email': user.email,
+            'joined_date': user.date_created.strftime('%Y-%m-%d') if user.date_created else 'Unknown',
+            'words_mastered': word_count,
+            'status': user_status,
+            'streak': user.current_streak or 0,
+            'total_points': user.total_points or 0,
+            'pokemon_name': pokemon_name or 'None',
+            'achievement_count': achievement_count,
+            'last_login': user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never',
+            'is_active': user.is_active  # Add this for template use
+        })
+    
+    # Check if we need to show view modal
+    view_user_id = request.args.get('view_user', type=int)
+    view_form = None
+    
+    if view_user_id:
+        user = UserAcc.query.get(view_user_id)
+        if user and not user.is_admin:
+            # Create view form with user data
+            view_form = ViewUserForm()
+            view_form.username.data = user.name
+            view_form.email.data = user.email
+            view_form.joined_date.data = user.date_created.strftime('%Y-%m-%d') if user.date_created else 'Unknown'
+            
+            # Find this user's word count from users_data
+            user_word_count = next((u['words_mastered'] for u in users_data if u['user_id'] == user.user_id), 0)
+            view_form.words_mastered.data = str(user_word_count)
+            
+            view_form.daily_streak.data = str(user.current_streak or 0)
+            view_form.total_points.data = str(user.total_points or 0)
+            
+            # Determine status based on is_active column
+            view_form.status.data = "Active" if user.is_active else "Inactive"
+            
+            # Get Pokémon name
+            pokemon_name = 'None'
+            if user.pokemon_id:
+                pokemon = Pokemon.query.get(user.pokemon_id)
+                pokemon_name = pokemon.name if pokemon else 'None'
+            if user.pokemon_name:
+                pokemon_name = user.pokemon_name
+            view_form.pokemon_name.data = pokemon_name
+            
+            # Get achievement count
+            achievement_count = UserAchievement.query.filter_by(user_id=user.user_id).count()
+            view_form.achievement_count.data = str(achievement_count)
+            
+            view_form.last_login.data = user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never'
+    
+    # Create other forms
+    action_form = UserActionForm()
+    pagination_form = PaginationForm()
     
     return render_template(
-        'user_management.html',  # Save the above HTML as user_management.html
-        all_users=all_users,
+        'user_management.html',
+        users=users_data,
+        search_form=search_form,  # This will now include error messages
+        action_form=action_form,
+        pagination_form=pagination_form,
+        view_form=view_form,
+        current_page=page,
+        total_pages=total_pages,
         total_users=total_users,
-        active_users=active_users
+        search_term=search_term,
+        status_filter=status_filter,
+        date_from=date_from_str,
+        date_to=date_to_str,
+        show_view_modal=bool(view_user_id)
     )
 
+
+@app.route('/admin/users/view/<int:user_id>')
+@admin_required
+def view_user(user_id):
+    """Redirect to user management with view parameter"""
+    return redirect(url_for('admin_users', 
+                          view_user=user_id,
+                          search=request.args.get('search', ''),
+                          status=request.args.get('status', 'all'),
+                          date_from=request.args.get('date_from', ''),
+                          date_to=request.args.get('date_to', ''),
+                          page=request.args.get('page', 1)))
+
+
+@app.route('/admin/users/action/<int:user_id>/<action>')
+@admin_required
+def user_action_redirect(user_id, action):
+    """Redirect to user management after action"""
+    if action in ['activate', 'deactivate']:
+        user = UserAcc.query.get(user_id)
+        
+        if user and not user.is_admin:
+            if action == 'activate':
+                user.is_active = True
+                db.session.commit()
+                flash(f"User {user.name} has been activated", "success")
+            else:  # deactivate
+                user.is_active = False
+                db.session.commit()
+                flash(f"User {user.name} has been deactivated", "warning")
+        elif user and user.is_admin:
+            flash("Cannot modify admin users", "error")
+    
+    return redirect(url_for('admin_users',
+                          search=request.args.get('search', ''),
+                          status=request.args.get('status', 'all'),
+                          date_from=request.args.get('date_from', ''),
+                          date_to=request.args.get('date_to', ''),
+                          page=request.args.get('page', 1)))
+
+
+@app.route('/admin/users/reset_filters')
+@admin_required
+def reset_user_filters():
+    """Reset all search filters"""
+    return redirect(url_for('admin_users'))
+
+   
+@app.route('/admin/achievements/add', methods=['POST'])
+@admin_required
+def add_achievement():
+    """Add a new achievement"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data or not all(key in data for key in ['name', 'pokemon_id', 'description', 'requirement']):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Check if Pokémon exists
+        pokemon = Pokemon.query.get(data['pokemon_id'])
+        if not pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not found'}), 404
+        
+        # Check for duplicate achievement (same name)
+        existing_achievement = Achievement.query.filter_by(name=data['name']).first()
+        if existing_achievement:
+            return jsonify({'success': False, 'error': 'Achievement with this name already exists'}), 409
+        
+        # Check for duplicate with same Pokémon reward
+        existing_pokemon_achievement = Achievement.query.filter_by(pokemon_id=data['pokemon_id']).first()
+        if existing_pokemon_achievement:
+            return jsonify({'success': False, 'error': 'An achievement with this Pokémon reward already exists'}), 409
+        
+        # Create new achievement
+        new_achievement = Achievement(
+            name=data['name'],
+            pokemon_id=data['pokemon_id'],
+            description=data['description'],
+            requirement=data['requirement'],
+            points_reward=data.get('points_reward', 0)
+        )
+        
+        db.session.add(new_achievement)
+        db.session.flush()  # Get the achievement_id without committing
+        
+        # Get all non-admin users
+        all_users = UserAcc.query.filter_by(is_admin=False).all()
+        
+        # Create UserAchievement entries for each user
+        for user in all_users:
+            user_achievement = UserAchievement(
+                user_id=user.user_id,
+                achievement_id=new_achievement.achievement_id,
+                current_progress=0,
+                date_earned=None  # Not earned yet
+            )
+            db.session.add(user_achievement)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Achievement added successfully. Created progress entries for {len(all_users)} users.',
+            'achievement_id': new_achievement.achievement_id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/achievements/delete/<int:achievement_id>', methods=['DELETE'])
+@admin_required
+def delete_achievement(achievement_id):
+    """Delete an achievement"""
+    try:
+        achievement = Achievement.query.get_or_404(achievement_id)
+        
+        # Delete all UserAchievement records associated with this achievement
+        deleted_count = UserAchievement.query.filter_by(achievement_id=achievement_id).delete()
+        
+        # Delete the achievement itself
+        db.session.delete(achievement)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Achievement deleted successfully. Removed {deleted_count} user progress records.'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/insert_sample_pokemon')
+@admin_required
+def insert_sample_pokemon():
+    """Insert sample Pokémon data into the database"""
+    try:
+        sample_pokemon = [
+            # Generation 1 Starters
+            (1, 'Bulbasaur', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png', 0, 'common', 1),  # Changed from starter to common
+            (2, 'Ivysaur', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png', 100, 'uncommon', 1),  # Changed from common to uncommon
+            (3, 'Venusaur', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png', 300, 'rare', 1),
+            
+            (4, 'Charmander', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png', 0, 'common', 2),  # Changed from starter to common
+            (5, 'Charmeleon', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png', 100, 'uncommon', 2),  # Changed from common to uncommon
+            (6, 'Charizard', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png', 300, 'rare', 2),
+            
+            (7, 'Squirtle', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png', 0, 'common', 3),  # Changed from starter to common
+            (8, 'Wartortle', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/8.png', 100, 'uncommon', 3),  # Changed from common to uncommon
+            (9, 'Blastoise', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png', 300, 'rare', 3),
+            
+            # Generation 2 Starters
+            (152, 'Chikorita', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png', 0, 'common', 4),  # Changed from starter to common
+            (153, 'Bayleef', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/153.png', 100, 'uncommon', 4),  # Changed from common to uncommon
+            (154, 'Meganium', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/154.png', 300, 'rare', 4),
+            
+            (155, 'Cyndaquil', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/155.png', 0, 'common', 5),  # Changed from starter to common
+            (156, 'Quilava', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/156.png', 100, 'uncommon', 5),  # Changed from common to uncommon
+            (157, 'Typhlosion', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/157.png', 300, 'rare', 5),
+            
+            (158, 'Totodile', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/158.png', 0, 'common', 6),  # Changed from starter to common
+            (159, 'Croconaw', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/159.png', 100, 'uncommon', 6),  # Changed from common to uncommon
+            (160, 'Feraligatr', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/160.png', 300, 'rare', 6),
+            
+            # Generation 3 Starters
+            (252, 'Treecko', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/252.png', 0, 'common', 7),  # Changed from starter to common
+            (253, 'Grovyle', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/253.png', 100, 'uncommon', 7),  # Changed from common to uncommon
+            (254, 'Sceptile', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/254.png', 300, 'rare', 7),
+            
+            (255, 'Torchic', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png', 0, 'common', 8),  # Changed from starter to common
+            (256, 'Combusken', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/256.png', 100, 'uncommon', 8),  # Changed from common to uncommon
+            (257, 'Blaziken', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/257.png', 300, 'rare', 8),
+            
+            (258, 'Mudkip', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png', 0, 'common', 9),  # Changed from starter to common
+            (259, 'Marshtomp', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/259.png', 100, 'uncommon', 9),  # Changed from common to uncommon
+            (260, 'Swampert', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/260.png', 300, 'rare', 9),
+            
+            # Generation 4 Starters
+            (387, 'Turtwig', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/387.png', 0, 'common', 10),  # Changed from starter to common
+            (388, 'Grotle', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/388.png', 100, 'uncommon', 10),  # Changed from common to uncommon
+            (389, 'Torterra', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/389.png', 300, 'rare', 10),
+            
+            (390, 'Chimchar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png', 0, 'common', 11),  # Changed from starter to common
+            (391, 'Monferno', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/391.png', 100, 'uncommon', 11),  # Changed from common to uncommon
+            (392, 'Infernape', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/392.png', 300, 'rare', 11),
+            
+            (393, 'Piplup', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/393.png', 0, 'common', 12),  # Changed from starter to common
+            (394, 'Prinplup', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/394.png', 100, 'uncommon', 12),  # Changed from common to uncommon
+            (395, 'Empoleon', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/395.png', 300, 'rare', 12),
+            
+            # Popular Pokémon (UNCHANGED)
+            (25, 'Pikachu', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png', 50, 'rare', 25),
+            (26, 'Raichu', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/26.png', 200, 'epic', 26),
+            
+            (133, 'Eevee', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png', 100, 'achievement', 133),
+            (134, 'Vaporeon', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/134.png', 250, 'epic', 134),
+            (135, 'Jolteon', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/135.png', 250, 'epic', 135),
+            (136, 'Flareon', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/136.png', 250, 'epic', 136),
+            
+            # Legendary Pokémon (UNCHANGED)
+            (144, 'Articuno', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/144.png', 500, 'legendary', 144),
+            (145, 'Zapdos', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/145.png', 500, 'legendary', 145),
+            (146, 'Moltres', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/146.png', 500, 'legendary', 146),
+            
+            (150, 'Mewtwo', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png', 1000, 'achievement', 150),
+            (151, 'Mew', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png', 1000, 'legendary', 151),
+            
+            # Additional achievement Pokémon (UNCHANGED)
+            (94, 'Gengar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png', 200, 'achievement', 94),
+            (149, 'Dragonite', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png', 300, 'achievement', 149),
+            (130, 'Gyarados', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png', 250, 'achievement', 130),
+            (143, 'Snorlax', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png', 150, 'achievement', 143),
+            
+            # More rare Pokémon (UNCHANGED)
+            (248, 'Tyranitar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png', 400, 'epic', 248),
+            (249, 'Lugia', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png', 600, 'legendary', 249),
+            (250, 'Ho-Oh', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/250.png', 600, 'legendary', 250),
+            
+            # Generation 5 Starters
+            (495, 'Snivy', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/495.png', 0, 'common', 13),  # Changed from starter to common
+            (496, 'Servine', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/496.png', 100, 'uncommon', 13),  # Changed from common to uncommon
+            (497, 'Serperior', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/497.png', 300, 'rare', 13),
+            
+            (498, 'Tepig', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/498.png', 0, 'common', 14),  # Changed from starter to common
+            (499, 'Pignite', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/499.png', 100, 'uncommon', 14),  # Changed from common to uncommon
+            (500, 'Emboar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/500.png', 300, 'rare', 14),
+            
+            (501, 'Oshawott', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/501.png', 0, 'common', 15),  # Changed from starter to common
+            (502, 'Dewott', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/502.png', 100, 'uncommon', 15),  # Changed from common to uncommon
+            (503, 'Samurott', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/503.png', 300, 'rare', 15),
+        ]
+        
+        inserted_count = 0
+        skipped_count = 0
+        
+        for pokemon_id, name, url, min_points, rarity, family_id in sample_pokemon:
+            # Check if Pokémon already exists
+            existing = Pokemon.query.filter_by(pokemon_id=pokemon_id).first()
+            if not existing:
+                pokemon = Pokemon(
+                    pokemon_id=pokemon_id,
+                    name=name,
+                    url=url,
+                    min_points_required=min_points,
+                    rarity=rarity,
+                    family_id=family_id
+                )
+                db.session.add(pokemon)
+                inserted_count += 1
+            else:
+                # Update existing Pokémon
+                existing.name = name
+                existing.url = url
+                existing.min_points_required = min_points
+                existing.rarity = rarity
+                existing.family_id = family_id
+                db.session.add(existing)
+                skipped_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Sample Pokémon data inserted successfully!',
+            'inserted': inserted_count,
+            'updated': skipped_count,
+            'total': inserted_count + skipped_count
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
+@app.route('/api/get_pokemon/<int:pokemon_id>')
+@admin_required
+def get_pokemon_details(pokemon_id):
+    """Get details for a specific Pokémon"""
+    try:
+        pokemon = Pokemon.query.get(pokemon_id)
+        
+        if not pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'pokemon': {
+                'id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'img': pokemon.url or f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemon.pokemon_id}.png'
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/admin/achievements/api/used-pokemon')
+@admin_required
+def get_used_pokemon():
+    """Get list of Pokémon IDs already used in achievements"""
+    try:
+        # Query all achievements and get their Pokémon IDs
+        used_pokemon_ids = [a.pokemon_id for a in Achievement.query.with_entities(Achievement.pokemon_id).all()]
+        
+        return jsonify({
+            'success': True,
+            'used_pokemon_ids': used_pokemon_ids
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/achievements/update/<int:achievement_id>', methods=['PUT'])
+@admin_required
+def update_achievement(achievement_id):
+    """Update an existing achievement"""
+    try:
+        data = request.get_json()
+        achievement = Achievement.query.get(achievement_id)
+        
+        if not achievement:
+            return jsonify({'success': False, 'error': 'Achievement not found'}), 404
+        
+        # Check for duplicate name (excluding current achievement)
+        if 'name' in data and data['name'] != achievement.name:
+            existing_achievement = Achievement.query.filter_by(name=data['name']).first()
+            if existing_achievement and existing_achievement.achievement_id != achievement_id:
+                return jsonify({'success': False, 'error': 'Achievement with this name already exists'}), 409
+        
+        # Check for duplicate Pokémon reward (excluding current achievement)
+        if 'pokemon_id' in data and data['pokemon_id'] != achievement.pokemon_id:
+            existing_pokemon_achievement = Achievement.query.filter_by(pokemon_id=data['pokemon_id']).first()
+            if existing_pokemon_achievement and existing_pokemon_achievement.achievement_id != achievement_id:
+                return jsonify({'success': False, 'error': 'An achievement with this Pokémon reward already exists'}), 409
+        
+        # Update fields
+        if 'name' in data:
+            achievement.name = data['name']
+        if 'pokemon_id' in data:
+            achievement.pokemon_id = data['pokemon_id']
+        if 'description' in data:
+            achievement.description = data['description']
+        if 'requirement' in data:
+            # If requirement changes, reset all user progress
+            old_requirement = achievement.requirement
+            new_requirement = data['requirement']
+            
+            if new_requirement != old_requirement:
+                achievement.requirement = new_requirement
+                # Reset progress for all users (optional - you may want to keep their progress)
+                UserAchievement.query.filter_by(achievement_id=achievement_id).update({'current_progress': 0})
+        
+        if 'points_reward' in data:
+            achievement.points_reward = data['points_reward']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Achievement updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+@app.route('/admin/achievements/<int:achievement_id>')
+@admin_required
+def get_achievement(achievement_id):
+    """Get achievement details for editing"""
+    achievement = Achievement.query.get_or_404(achievement_id)
+    
+    return jsonify({
+        'success': True,
+        'achievement': {
+            'achievement_id': achievement.achievement_id,
+            'name': achievement.name,
+            'description': achievement.description,
+            'requirement': achievement.requirement,
+            'pokemon_id': achievement.pokemon_id,
+            'points_reward': achievement.points_reward
+        }
+    })
+   
+   
 @app.route('/admin/achievements')
 @admin_required
 def admin_achievements():
@@ -2298,78 +3284,949 @@ def admin_achievements():
     # Get Pokémon for each achievement
     for achievement in achievements:
         achievement.pokemon = Pokemon.query.get(achievement.pokemon_id)
+        # Count how many users have this achievement
+        achievement.user_count = UserAchievement.query.filter_by(
+            achievement_id=achievement.achievement_id
+        ).count()
+    
+    # Get ONLY achievement Pokémon for the selector (rarity='achievement')
+    achievement_pokemon = Pokemon.query.filter_by(rarity='achievement').all()
     
     # Get total achievements count
-    total_achievements = Achievement.query.count()
+    total_achievements = len(achievements)
     
     return render_template(
-        'achievement_management.html',  # Save the above HTML as achievements_management.html
+        'achievement_management.html',
         achievements=achievements,
-        total_achievements=total_achievements
+        total_achievements=total_achievements,
+        all_pokemon=achievement_pokemon  # Pass only achievement Pokémon
     )
     
-@app.route('/admin/analytics')
+@app.route('/api/get_user_pokemon', methods=['GET'])
+def get_user_pokemon():
+    requested_user_id = request.args.get('user_id', type=int)
+    
+    if not requested_user_id:
+        if 'user_id' not in session:
+            return jsonify({'success': False, 'error': 'Not logged in'}), 401
+        requested_user_id = session['user_id']
+    
+    user_pokemon = UserPokemon.query.filter_by(user_id=requested_user_id).all()
+    
+    pokemon_list = []
+    for up in user_pokemon:
+        pokemon = Pokemon.query.get(up.pokemon_id)
+        if pokemon:
+            pokemon_data = {
+                'pokemon_id': up.pokemon_id,
+                'name': pokemon.name,
+                'custom_name': up.custom_name,
+                'url': pokemon.url,
+                'rarity': pokemon.rarity,
+                'min_points_required': pokemon.min_points_required,
+                'date_obtained': up.date_obtained.strftime('%Y-%m-%d') if up.date_obtained else None
+            }
+            pokemon_list.append(pokemon_data)
+    
+    unique_species = len(set([p['pokemon_id'] for p in pokemon_list]))
+    
+    return jsonify({
+        'success': True,
+        'pokemon': pokemon_list,
+        'total_collected': len(pokemon_list),
+        'unique_species': unique_species
+    })
+
+@app.route('/api/set_pokemon_partner', methods=['POST'])
+@login_required
+def set_pokemon_partner():
+    """Set a Pokémon from user's collection as their active partner"""
+    try:
+        user_id = session['user_id']
+        data = request.get_json()
+        
+        if not data or 'pokemon_id' not in data:
+            return jsonify({'success': False, 'error': 'Pokémon ID required'}), 400
+        
+        pokemon_id = data['pokemon_id']
+        
+        # Check if the user has collected this Pokémon
+        user_has_pokemon = UserPokemon.query.filter_by(
+            user_id=user_id, 
+            pokemon_id=pokemon_id
+        ).first()
+        
+        if not user_has_pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not in your collection'}), 400
+        
+        # Get the Pokémon details
+        pokemon = Pokemon.query.get(pokemon_id)
+        if not pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not found'}), 404
+        
+        # Get the user
+        user = UserAcc.query.get(user_id)
+        if not user:
+            return jsonify({'success': False, 'error': 'User not found'}), 404
+        
+        # Check if this is already the current partner
+        if user.pokemon_id == pokemon_id:
+            return jsonify({
+                'success': True, 
+                'message': 'This Pokémon is already your partner!'
+            })
+        
+        # Store the old partner info before changing
+        old_partner_info = None
+        if user.pokemon_id:
+            old_partner_pokemon = Pokemon.query.get(user.pokemon_id)
+            old_partner_user_entry = UserPokemon.query.filter_by(
+                user_id=user_id, 
+                pokemon_id=user.pokemon_id
+            ).first()
+            
+            # Save the current custom name to UserPokemon before switching away
+            if user.pokemon_name and old_partner_user_entry:
+                # Only save if it's different from the Pokémon's default name
+                pokemon_default_name = old_partner_pokemon.name if old_partner_pokemon else ""
+                if user.pokemon_name != pokemon_default_name:
+                    old_partner_user_entry.custom_name = user.pokemon_name
+            
+            old_partner_info = {
+                'name': old_partner_pokemon.name if old_partner_pokemon else "Unknown",
+                'custom_name': user.pokemon_name
+            }
+        
+        # Get the custom name for the new partner from UserPokemon
+        new_partner_user_entry = UserPokemon.query.filter_by(
+            user_id=user_id, 
+            pokemon_id=pokemon_id
+        ).first()
+        
+        # Update the partner in UserAcc
+        user.pokemon_id = pokemon_id
+        
+        # Set the name: Use custom name from UserPokemon if available, otherwise use Pokémon name
+        if new_partner_user_entry and new_partner_user_entry.custom_name:
+            user.pokemon_name = new_partner_user_entry.custom_name
+        else:
+            user.pokemon_name = pokemon.name
+        
+        # Create notification about partner change
+        old_partner_display = old_partner_info['custom_name'] if old_partner_info and old_partner_info['custom_name'] else (old_partner_info['name'] if old_partner_info else "None")
+        new_partner_display = user.pokemon_name
+        
+        notification = Notification(
+            user_id=user_id,
+            title='Partner Changed!',
+            message=f'You switched from {old_partner_display} to {new_partner_display}! ⚡',
+            notification_type='pokemon'
+        )
+        db.session.add(notification)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Switched partner to {user.pokemon_name}! ⚡',
+            'pokemon_name': user.pokemon_name,
+            'pokemon_url': pokemon.url,
+            'old_partner_name': old_partner_display
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error setting Pokémon partner: {str(e)}")
+        return jsonify({'success': False, 'error': 'Database error'}), 500
+
+@app.route('/admin/achievements/api/pokemon')
+@admin_required
+def get_achievement_pokemon():
+    """Get achievement Pokémon for the selector"""
+    try:
+        # Get only achievement Pokémon (rarity='achievement')
+        achievement_pokemon = Pokemon.query.filter_by(rarity='achievement').all()
+        
+        # Format for frontend
+        pokemon_list = []
+        for pokemon in achievement_pokemon:
+            pokemon_list.append({
+                'id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'img': pokemon.url or f'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/{pokemon.pokemon_id}.png'
+            })
+        
+        return jsonify({
+            'success': True,
+            'pokemon': pokemon_list
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+  
+  
+@app.route('/insert_achievement_pokemon_data')
+def insert_achievement_pokemon_data():
+    """Insert Pokémon specifically for achievements"""
+    achievement_pokemon_data = [
+        # Rare Pokémon for achievements
+        ('Pikachu', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png', 0, 'achievement', 25),
+        ('Eevee', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png', 0, 'achievement', 133),
+        ('Snorlax', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png', 0, 'achievement', 143),
+        ('Mew', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png', 0, 'achievement', 151),
+        ('Mewtwo', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png', 0, 'achievement', 150),
+        ('Dragonite', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png', 0, 'achievement', 149),
+        ('Charizard', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png', 0, 'achievement', 6),
+        ('Blastoise', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png', 0, 'achievement', 9),
+        ('Venusaur', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png', 0, 'achievement', 3),
+        ('Gyarados', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png', 0, 'achievement', 130),
+        ('Alakazam', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/65.png', 0, 'achievement', 65),
+        ('Gengar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png', 0, 'achievement', 94),
+        ('Machamp', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/68.png', 0, 'achievement', 68),
+        ('Typhlosion', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/157.png', 0, 'achievement', 157),
+        ('Feraligatr', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/160.png', 0, 'achievement', 160),
+        ('Meganium', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/154.png', 0, 'achievement', 154),
+        ('Tyranitar', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png', 0, 'achievement', 248),
+        ('Lugia', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png', 0, 'achievement', 249),
+        ('Ho-Oh', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/250.png', 0, 'achievement', 250),
+        ('Celebi', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/251.png', 0, 'achievement', 251),
+    ]
+
+    inserted_count = 0
+    for name, url, min_points, rarity, family_id in achievement_pokemon_data:
+        # Check if Pokémon already exists
+        existing = Pokemon.query.filter_by(name=name).first()
+        if not existing:
+            pokemon = Pokemon(
+                name=name, 
+                url=url, 
+                min_points_required=min_points, 
+                rarity=rarity, 
+                family_id=family_id
+            )
+            db.session.add(pokemon)
+            inserted_count += 1
+        else:
+            # Update existing Pokémon to achievement rarity
+            existing.rarity = 'achievement'
+            db.session.add(existing)
+
+    db.session.commit()
+    return f"Achievement Pokémon data inserted/updated successfully! {inserted_count} new Pokémon added."
+
+
+@app.route('/insert_sample_achievements')
+def insert_sample_achievements():
+    """Insert sample achievements with achievement Pokémon"""
+    # First make sure we have achievement Pokémon
+    achievement_pokemon = [
+        # Word Master achievements
+        ('Word Novice', 'Learn your first 10 words', 10, 50),
+        ('Word Apprentice', 'Master 50 vocabulary words', 50, 100),
+        ('Word Scholar', 'Master 100 vocabulary words', 100, 200),
+        ('Word Master', 'Master 250 vocabulary words', 250, 500),
+        ('Vocabulary King', 'Master 500 vocabulary words', 500, 1000),
+        
+        # Streak achievements
+        ('Streak Starter', 'Maintain a 3-day learning streak', 3, 50),
+        ('Weekly Warrior', 'Maintain a 7-day learning streak', 7, 100),
+        ('Monthly Master', 'Maintain a 30-day learning streak', 30, 500),
+        ('Dedicated Learner', 'Maintain a 90-day learning streak', 90, 1000),
+        
+        # Pokémon evolution achievements
+        ('First Evolution', 'Evolve your Pokémon for the first time', 1, 100),
+        ('Evolution Expert', 'Evolve your Pokémon 5 times', 5, 500),
+        ('Master Evolver', 'Evolve your Pokémon 10 times', 10, 1000),
+        
+        # Points achievements
+        ('Point Collector', 'Earn 100 total points', 100, 50),
+        ('Point Accumulator', 'Earn 500 total points', 500, 200),
+        ('Point Master', 'Earn 1000 total points', 1000, 500),
+        
+        # Special achievements
+        ('Daily Learner', 'Learn at least one word every day for a week', 7, 100),
+        ('Quick Learner', 'Learn 10 words in a single day', 10, 150),
+        ('Vocabulary Explorer', 'Learn words from 5 different categories', 5, 200),
+    ]
+
+    # Get achievement Pokémon from database
+    achievement_pokemon_list = Pokemon.query.filter_by(rarity='achievement').all()
+    
+    if not achievement_pokemon_list:
+        return "No achievement Pokémon found. Please run /insert_achievement_pokemon_data first."
+
+    inserted_count = 0
+    for i, (name, description, requirement, points_reward) in enumerate(achievement_pokemon):
+        # Check if achievement already exists
+        existing = Achievement.query.filter_by(name=name).first()
+        if not existing:
+            # Assign Pokémon from the list (cycling through them)
+            pokemon_index = i % len(achievement_pokemon_list)
+            pokemon = achievement_pokemon_list[pokemon_index]
+            
+            achievement = Achievement(
+                name=name,
+                description=description,
+                requirement=requirement,
+                points_reward=points_reward,
+                pokemon_id=pokemon.pokemon_id
+            )
+            db.session.add(achievement)
+            inserted_count += 1
+
+    db.session.commit()
+    return f"Sample achievements inserted successfully! {inserted_count} new achievements added."
+
+    
+@app.route('/admin/analytics', methods=['GET', 'POST'])
 @admin_required
 def admin_analytics():
-    """Analytics dashboard page"""
-    
-    # Get current date range (default to current month)
+    """Analytics dashboard page with date filtering"""
+    # Default to current month
     today = datetime.now(ph_timezone).date()
     first_day = today.replace(day=1)
     
-    # Get statistics
-    total_users = UserAcc.query.count()
-    total_words = db.session.query(db.func.count(UserWords.user_word_id)).scalar() or 0
+    # Get date parameters from form or use defaults
+    if request.method == 'POST':
+        # Handle form submission (non-AJAX)
+        date_from_str = request.form.get('date_from')
+        date_to_str = request.form.get('date_to')
+        
+        if date_from_str and date_to_str:
+            try:
+                date_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+            except ValueError:
+                date_from = first_day
+                date_to = today
+        else:
+            date_from = first_day
+            date_to = today
+    else:
+        # GET request - use default current month
+        date_from = first_day
+        date_to = today
     
-    # Active users (last 7 days)
-    week_ago = datetime.now(ph_timezone) - timedelta(days=7)
-    active_users = UserAcc.query.filter(UserAcc.last_login >= week_ago).count()
-    
-    # Calculate growth percentages (placeholder - in real app, compare with previous period)
-    user_growth = 10  # Example growth percentage
-    word_growth = 8   # Example growth percentage
-    
-    # Get top performing users (based on points and words learned)
-    top_users = UserAcc.query.order_by(
-        UserAcc.total_points.desc(), 
-        db.func.coalesce(
-            db.session.query(db.func.count(UserWords.user_word_id))
-            .filter(UserWords.user_id == UserAcc.user_id)
-            .scalar(), 0
-        ).desc()
-    ).limit(10).all()
-    
-    # Add words count to each user
-    for user in top_users:
-        user.words_count = db.session.query(db.func.count(UserWords.user_word_id))\
-            .filter_by(user_id=user.user_id).scalar() or 0
-        # Calculate accuracy (placeholder - in real app, track actual accuracy)
-        user.accuracy = min(95 + user.user_id % 5, 99)  # Random accuracy for demo
-    
-    # Get recent activities (placeholder - in real app, create ActivityLog model)
-    recent_activities = [
-        {"date": today.strftime('%Y-%m-%d'), "type": "User Registration", "user": "New User", "details": "Created account"},
-        {"date": (today - timedelta(days=1)).strftime('%Y-%m-%d'), "type": "Words Learned", "user": "TrainerAsh", "details": "50 new words"},
-        {"date": (today - timedelta(days=2)).strftime('%Y-%m-%d'), "type": "Achievement Unlocked", "user": "BrockRock", "details": "Word Master"},
-        {"date": (today - timedelta(days=3)).strftime('%Y-%m-%d'), "type": "Login Streak", "user": "ProfessorOak", "details": "90 days streak"},
-        {"date": (today - timedelta(days=4)).strftime('%Y-%m-%d'), "type": "Pokémon Evolved", "user": "MistyWater", "details": "Squirtle evolved"},
-    ]
-    
+    # Get statistics for the date range
     return render_template(
-        'analytics_dashboard.html',  # Save the above HTML as analytics_dashboard.html
-        total_users=total_users,
-        total_words=total_words,
-        active_users=active_users,
-        user_growth=user_growth,
-        word_growth=word_growth,
-        top_users=top_users,
-        recent_activities=recent_activities
+        'analytics_dashboard.html',
+        date_from=date_from,
+        date_to=date_to,
+        **get_analytics_data(date_from, date_to)  # Create a helper function
     )
+   
+   
+def get_analytics_data(date_from, date_to):
+    """Helper function to get analytics data for a date range"""
+    # Convert dates to datetime for queries
+    date_from_dt = datetime.combine(date_from, datetime.min.time())
+    date_to_dt = datetime.combine(date_to, datetime.max.time())
+    
+    # FIXED: Total users within the date range (NOT all time)
+    total_users = UserAcc.query.filter(
+        UserAcc.date_created >= date_from_dt,
+        UserAcc.date_created <= date_to_dt,
+        UserAcc.is_admin == False
+    ).count()
+    
+    # Words stored in date range
+    total_words = db.session.query(db.func.count(UserWords.user_word_id)).filter(
+        UserWords.date_learned >= date_from_dt,
+        UserWords.date_learned <= date_to_dt
+    ).scalar() or 0
+    
+    # Active sessions (users logged in within the last 30 minutes) - EXCLUDE ADMIN
+    thirty_minutes_ago = datetime.now(ph_timezone) - timedelta(minutes=30)
+    active_sessions = UserAcc.query.filter(
+        UserAcc.last_login >= thirty_minutes_ago,
+        UserAcc.is_admin == False
+    ).count()
+    
+    # Calculate growth vs previous period of same length
+    period_days = (date_to - date_from).days + 1
+    prev_date_from = date_from - timedelta(days=period_days)
+    prev_date_to = date_from - timedelta(days=1)
+    
+    # User growth (users created in current period)
+    current_users = total_users  # Already calculated above
+    
+    # Users in previous period
+    prev_users = UserAcc.query.filter(
+        UserAcc.date_created >= prev_date_from,
+        UserAcc.date_created <= prev_date_to,
+        UserAcc.is_admin == False
+    ).count()
+    
+    user_growth = calculate_growth(current_users, prev_users)
+    
+    # Words growth
+    prev_words = db.session.query(db.func.count(UserWords.user_word_id)).filter(
+        UserWords.date_learned >= prev_date_from,
+        UserWords.date_learned <= prev_date_to
+    ).scalar() or 0
+    
+    words_growth = calculate_growth(total_words, prev_words)
+    
+    # Get top performing users for the date range
+    top_users = get_top_users(date_from_dt, date_to_dt, limit=10)
+    
+    # Get learning hours estimate
+    learning_hours = round(total_words * 2 / 60, 0)
+    
+    return {
+        'total_users': total_users,  # Now within date range
+        'total_words': total_words,
+        'active_sessions': active_sessions,
+        'learning_hours': int(learning_hours),
+        'user_growth': round(user_growth, 1),
+        'words_growth': round(words_growth, 1),
+        'sessions_growth': 0,  # Not calculated for date ranges
+        'current_month_users': current_users,
+        'current_month_words': total_words,
+        'current_month_logins': 0,  # Not needed for date ranges
+        'top_users': top_users
+    }
+
+def calculate_growth(current, previous):
+    """Calculate percentage growth"""
+    if previous == 0:
+        return 100 if current > 0 else 0
+    return ((current - previous) / previous) * 100
+
+def get_top_users(date_from, date_to, limit=10):
+    """Get top users for a date range"""
+    top_users_query = db.session.query(
+        UserAcc.name,
+        db.func.count(UserWords.user_word_id).label('word_count'),
+        UserAcc.current_streak,
+        UserAcc.total_points
+    ).join(UserWords, UserAcc.user_id == UserWords.user_id).filter(
+        UserWords.date_learned >= date_from,
+        UserWords.date_learned <= date_to,
+        UserAcc.is_admin == False
+    ).group_by(UserAcc.user_id).order_by(
+        db.desc('word_count')
+    ).limit(limit).all()
+    
+    top_users = []
+    for user in top_users_query:
+        top_users.append({
+            'username': user[0],
+            'words_stored': user[1],
+            'streak': user[2] or 0,
+            'points': user[3] or 0
+        })
+    
+    return top_users 
+  
+   
+@app.route('/admin/api/analytics/filter', methods=['POST'])
+@admin_required
+def admin_api_analytics_filter():
+    """API endpoint to filter analytics data"""
+    try:
+        data = request.get_json()
+        
+        # Get date parameters
+        date_from_str = data.get('date_from')
+        date_to_str = data.get('date_to')
+        
+        # Parse dates with error handling
+        try:
+            # Parse as naive datetime first
+            date_from_naive = datetime.strptime(date_from_str, '%Y-%m-%d')
+            date_to_naive = datetime.strptime(date_to_str, '%Y-%m-%d')
+            
+            # Convert to Philippine Time
+            pht = pytz.timezone('Asia/Manila')
+            date_from = pht.localize(date_from_naive)
+            date_to = pht.localize(date_to_naive)
+            
+        except ValueError:
+            return jsonify({'success': False, 'error': 'Invalid date format'}), 400
+        
+        # Ensure date_to is at the end of the day (23:59:59 in PHT)
+        date_to = date_to.replace(hour=23, minute=59, second=59)
+        
+        # Calculate statistics for the date range
+        # Total users (all users registered)
+        total_users = UserAcc.query.count()
+        
+        # Total words stored (within date range) - using date_learned column
+        # Note: date_learned is stored in database time (UTC), need to compare properly
+        total_words = UserWords.query.filter(
+            UserWords.date_learned >= date_from,
+            UserWords.date_learned <= date_to
+        ).count()
+        
+        # Active sessions (users with activity in date range)
+        # Note: UserAcc doesn't have last_active field, using last_login instead
+        active_users = UserAcc.query.filter(
+            UserAcc.last_login >= date_from,
+            UserAcc.last_login <= date_to
+        ).count()
+        
+        # Top performing users
+        top_users_query = db.session.query(
+            UserAcc.name.label('username'),  # UserAcc has 'name' not 'username'
+            db.func.count(UserWords.user_word_id).label('words_stored'),
+            UserAcc.current_streak.label('streak'),  # UserAcc has 'current_streak' not 'streak'
+            UserAcc.total_points.label('points')  # UserAcc has 'total_points' not 'points'
+        ).join(UserWords, UserAcc.user_id == UserWords.user_id)\
+         .filter(
+            UserWords.date_learned >= date_from,
+            UserWords.date_learned <= date_to
+         )\
+         .group_by(UserAcc.user_id)\
+         .order_by(db.func.count(UserWords.user_word_id).desc())\
+         .limit(10)\
+         .all()
+        
+        top_users = []
+        for user in top_users_query:
+            top_users.append({
+                'username': user.username,
+                'words_stored': user.words_stored,
+                'streak': user.streak,
+                'points': user.points
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'total_users': total_users,
+                'total_words': total_words,
+                'active_sessions': active_users,
+                'top_users': top_users,
+                'date_from': date_from_str,
+                'date_to': date_to_str
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error filtering analytics: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
     
 @app.route('/admin/pokemon-config')
+@admin_required
 def pokemon_config():
     """Render the Pokémon configuration page"""
-    return render_template('pokemon_config.html')
+    search_form = PokemonSearchForm()
+    add_form = PokemonAddForm()
+    edit_form = PokemonEditForm()
+    delete_form = PokemonDeleteForm()
+    
+    return render_template('pokemon_config.html',
+                         form=search_form,
+                         add_form=add_form,
+                         edit_form=edit_form,
+                         delete_form=delete_form)
+
+
+@app.route('/admin/api/pokemon')
+@admin_required
+def admin_get_pokemon():
+    """Get all Pokémon from database for admin configuration"""
+    try:
+        # Get all Pokémon from database
+        all_pokemon = Pokemon.query.order_by(Pokemon.pokemon_id).all()
+        
+        # Format the data
+        pokemon_list = []
+        for pokemon in all_pokemon:
+            pokemon_list.append({
+                'pokemon_id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'url': pokemon.url or '',
+                'min_points_required': pokemon.min_points_required,
+                'rarity': pokemon.rarity,
+                'family_id': pokemon.family_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'pokemon': pokemon_list
+        })
+        
+    except Exception as e:
+        print(f"Error getting Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/api/pokemon/add', methods=['POST'])
+@admin_required
+def admin_add_pokemon():
+    """Add a new Pokémon to the database"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        # Check if Pokémon already exists (by name)
+        existing_name = Pokemon.query.filter_by(name=data.get('name')).first()
+        if existing_name:
+            return jsonify({'success': False, 'error': 'Pokémon with this name already exists'}), 400
+        
+        # If ID is provided, check if it exists
+        pokemon_id = data.get('pokemon_id')
+        if pokemon_id:
+            existing_id = Pokemon.query.filter_by(pokemon_id=pokemon_id).first()
+            if existing_id:
+                return jsonify({'success': False, 'error': 'Pokémon ID already exists'}), 400
+        else:
+            # Auto-generate ID
+            last_pokemon = Pokemon.query.order_by(Pokemon.pokemon_id.desc()).first()
+            pokemon_id = (last_pokemon.pokemon_id + 1) if last_pokemon else 1
+        
+        # Validate required fields
+        required_fields = ['name', 'url', 'family_id']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'error': f'Missing required field: {field}'}), 400
+        
+        # Create new Pokémon
+        new_pokemon = Pokemon(
+            pokemon_id=pokemon_id,
+            name=data['name'],
+            url=data['url'],
+            min_points_required=data.get('min_points_required', 0),
+            rarity=data.get('rarity', 'common'),
+            family_id=data['family_id']
+        )
+        
+        db.session.add(new_pokemon)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pokémon added successfully',
+            'pokemon_id': new_pokemon.pokemon_id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error adding Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/api/pokemon/update/<int:pokemon_id>', methods=['PUT'])
+@admin_required
+def admin_update_pokemon(pokemon_id):
+    """Update an existing Pokémon"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'success': False, 'error': 'No data provided'}), 400
+        
+        # Find the Pokémon
+        pokemon = Pokemon.query.filter_by(pokemon_id=pokemon_id).first()
+        if not pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not found'}), 404
+        
+        # Update fields
+        if 'rarity' in data:
+            pokemon.rarity = data['rarity']
+        
+        if 'min_points_required' in data:
+            pokemon.min_points_required = data['min_points_required']
+        
+        if 'family_id' in data:
+            pokemon.family_id = data['family_id']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Pokémon updated successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/api/pokemon/delete/<int:pokemon_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_pokemon(pokemon_id):
+    """Delete a Pokémon from the database"""
+    try:
+        pokemon = Pokemon.query.get(pokemon_id)
+        if not pokemon:
+            return jsonify({'success': False, 'error': 'Pokémon not found'}), 404
+        
+        # Check if Pokémon is being used by users
+        users_with_pokemon = UserAcc.query.filter_by(pokemon_id=pokemon_id).count()
+        if users_with_pokemon > 0:
+            return jsonify({
+                'success': False, 
+                'error': f'Cannot delete Pokémon. {users_with_pokemon} user(s) have this Pokémon.'
+            }), 400
+        
+        # Check if Pokémon is being used by achievements
+        achievements_with_pokemon = Achievement.query.filter_by(pokemon_id=pokemon_id).count()
+        if achievements_with_pokemon > 0:
+            return jsonify({
+                'success': False, 
+                'error': f'Cannot delete Pokémon. {achievements_with_pokemon} achievement(s) use this Pokémon.'
+            }), 400
+        
+        # Delete the Pokémon
+        db.session.delete(pokemon)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Pokémon deleted successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/api/pokemon/external')
+@admin_required
+def get_external_pokemon():
+    """Get Pokémon list from external API (for adding new Pokémon)"""
+    try:
+        # Extended list of popular Pokémon
+        popular_pokemon = [
+            # Generation 1
+            {"id": 1, "name": "Bulbasaur", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"},
+            {"id": 4, "name": "Charmander", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png"},
+            {"id": 7, "name": "Squirtle", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png"},
+            {"id": 25, "name": "Pikachu", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"},
+            {"id": 133, "name": "Eevee", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
+            {"id": 143, "name": "Snorlax", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png"},
+            {"id": 150, "name": "Mewtwo", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png"},
+            {"id": 151, "name": "Mew", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"},
+            
+            # Generation 2
+            {"id": 152, "name": "Chikorita", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png"},
+            {"id": 155, "name": "Cyndaquil", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/155.png"},
+            {"id": 158, "name": "Totodile", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/158.png"},
+            {"id": 249, "name": "Lugia", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png"},
+            {"id": 250, "name": "Ho-Oh", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/250.png"},
+            
+            # Generation 3
+            {"id": 252, "name": "Treecko", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/252.png"},
+            {"id": 255, "name": "Torchic", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png"},
+            {"id": 258, "name": "Mudkip", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png"},
+            {"id": 384, "name": "Rayquaza", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/384.png"},
+            
+            # Generation 4
+            {"id": 387, "name": "Turtwig", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/387.png"},
+            {"id": 390, "name": "Chimchar", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png"},
+            {"id": 393, "name": "Piplup", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/393.png"},
+            {"id": 483, "name": "Dialga", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/483.png"},
+            {"id": 484, "name": "Palkia", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/484.png"},
+            
+            # Generation 5
+            {"id": 495, "name": "Snivy", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/495.png"},
+            {"id": 498, "name": "Tepig", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/498.png"},
+            {"id": 501, "name": "Oshawott", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/501.png"},
+            {"id": 643, "name": "Reshiram", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/643.png"},
+            {"id": 644, "name": "Zekrom", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/644.png"},
+            
+            # Generation 6
+            {"id": 650, "name": "Chespin", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/650.png"},
+            {"id": 653, "name": "Fennekin", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/653.png"},
+            {"id": 656, "name": "Froakie", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/656.png"},
+            
+            # Generation 7
+            {"id": 722, "name": "Rowlet", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/722.png"},
+            {"id": 725, "name": "Litten", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/725.png"},
+            {"id": 728, "name": "Popplio", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/728.png"},
+            
+            # Generation 8
+            {"id": 810, "name": "Grookey", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/810.png"},
+            {"id": 813, "name": "Scorbunny", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/813.png"},
+            {"id": 816, "name": "Sobble", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/816.png"},
+            
+            # Generation 9
+            {"id": 906, "name": "Sprigatito", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png"},
+            {"id": 909, "name": "Fuecoco", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/909.png"},
+            {"id": 912, "name": "Quaxly", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/912.png"},
+            
+            # Popular evolutions and others
+            {"id": 2, "name": "Ivysaur", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/2.png"},
+            {"id": 3, "name": "Venusaur", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png"},
+            {"id": 5, "name": "Charmeleon", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/5.png"},
+            {"id": 6, "name": "Charizard", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"},
+            {"id": 8, "name": "Wartortle", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/8.png"},
+            {"id": 9, "name": "Blastoise", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png"},
+            {"id": 94, "name": "Gengar", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png"},
+            {"id": 130, "name": "Gyarados", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/130.png"},
+            {"id": 149, "name": "Dragonite", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png"},
+            {"id": 248, "name": "Tyranitar", "url": "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/248.png"},
+        ]
+        
+        return jsonify({
+            'success': True,
+            'pokemon': popular_pokemon
+        })
+        
+    except Exception as e:
+        print(f"Error getting external Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/api/pokemon/common')
+@admin_required
+def get_common_pokemon_for_starter():
+    """Get Pokémon with rarity 'common' for starter selection"""
+    try:
+        common_pokemon = Pokemon.query.filter_by(rarity='common').order_by(Pokemon.pokemon_id).all()
+        
+        pokemon_list = []
+        for pokemon in common_pokemon:
+            pokemon_list.append({
+                'pokemon_id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'url': pokemon.url or '',
+                'rarity': pokemon.rarity,
+                'family_id': pokemon.family_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'pokemon': pokemon_list
+        })
+        
+    except Exception as e:
+        print(f"Error getting common Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/admin/api/pokemon/starters')
+@admin_required
+def get_starter_pokemon():
+    """Get starter Pokémon (rarity: starter) and their family members"""
+    try:
+        # Get all starter Pokémon
+        starter_pokemon = Pokemon.query.filter_by(rarity='starter').all()
+        
+        if not starter_pokemon:
+            return jsonify({'success': True, 'pokemon': []})
+        
+        # Get all Pokémon that share family IDs with starters
+        starter_family_ids = [pokemon.family_id for pokemon in starter_pokemon]
+        
+        # Get all Pokémon in those families
+        family_pokemon = Pokemon.query.filter(
+            Pokemon.family_id.in_(starter_family_ids)
+        ).order_by(Pokemon.family_id, Pokemon.min_points_required).all()
+        
+        # Format the data
+        pokemon_list = []
+        for pokemon in family_pokemon:
+            pokemon_list.append({
+                'pokemon_id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'url': pokemon.url or '',
+                'min_points_required': pokemon.min_points_required,
+                'rarity': pokemon.rarity,
+                'family_id': pokemon.family_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'pokemon': pokemon_list
+        })
+        
+    except Exception as e:
+        print(f"Error getting starter Pokémon: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+    
+@app.route('/admin/api/pokemon/family/<int:family_id>')
+@admin_required
+def get_pokemon_by_family(family_id):
+    """Get all Pokémon in a specific family, ordered by evolution"""
+    try:
+        family_pokemon = Pokemon.query.filter_by(family_id=family_id)\
+                                      .order_by(Pokemon.min_points_required)\
+                                      .all()
+        
+        pokemon_list = []
+        for pokemon in family_pokemon:
+            pokemon_list.append({
+                'pokemon_id': pokemon.pokemon_id,
+                'name': pokemon.name,
+                'url': pokemon.url or '',
+                'min_points_required': pokemon.min_points_required,
+                'rarity': pokemon.rarity,
+                'family_id': pokemon.family_id
+            })
+        
+        return jsonify({
+            'success': True,
+            'pokemon': pokemon_list
+        })
+        
+    except Exception as e:
+        print(f"Error getting Pokémon by family: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+    
+    
+    
+@app.route('/admin/analytics/export', methods=['POST'])
+@admin_required
+def export_analytics():
+    """Export analytics data as TXT"""
+    try:
+        data = request.get_json()
+        date_from_str = data.get('date_from')
+        date_to_str = data.get('date_to')
+        
+        # Parse dates
+        date_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+        date_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
+        
+        # Get analytics data
+        analytics_data = get_analytics_data(date_from, date_to)
+        
+        # Create TXT content with simple format
+        txt_content = []
+        
+        # Add header
+        txt_content.append("Analytics Dashboard Export")
+        txt_content.append(f"Date Range: {date_from_str} to {date_to_str}")
+        txt_content.append(f"Exported on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        txt_content.append("")
+        
+        # Platform Statistics
+        txt_content.append(f"Total Users: {analytics_data['total_users']}")
+        txt_content.append(f"Words Stored: {analytics_data['total_words']}")
+        txt_content.append(f"Active Sessions: {analytics_data['active_sessions']}")
+        txt_content.append("")
+        
+        # Top Performing Users
+        txt_content.append("Top Performing")
+        txt_content.append("Names:")
+        
+        if analytics_data['top_users']:
+            for i, user in enumerate(analytics_data['top_users'], 1):
+                txt_content.append(f"{i}. {user['username']}")
+        else:
+            txt_content.append("No users found")
+        
+        # Convert to TXT string
+        txt_output = "\n".join(txt_content)
+        
+        # Create response
+        response = make_response(txt_output)
+        response.headers['Content-Type'] = 'text/plain'
+        response.headers['Content-Disposition'] = f'attachment; filename=analytics_{date_from_str}_to_{date_to_str}.txt'
+        
+        return response
+        
+    except Exception as e:
+        print(f"Export error: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():

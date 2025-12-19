@@ -1,124 +1,136 @@
-{%extends "base.html"%}
-{%block title%}
+{% extends "base.html" %}
+{% block title %}
     <title>User Management - VocabuLearner Admin</title>
-{%endblock%}
+{% endblock %}
 
-{%block content%}
-{%block logo_link %}
-            <a href="{{ url_for('admin_dashboard') }}" class="logo-link">
-                <div class="logo-icon">
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                    <div class="pokeball-mini"></div>
-                </div>
-                VocabuLearner
-            </a>
-    {% endblock %}
-    {%block header%}
-        <div class="header-actions">
-            <button class="back-btn" onclick="goToDashboard()">Back to Dashboard</button>
-            <button class="logout-btn" onclick="showLogoutConfirm()">Logout</button>
+
+{% block content %}
+{% block logo_link %}
+    <a href="{{ url_for('admin_dashboard') }}" class="logo-link">
+        <div class="logo-icon">
+            <div class="pokeball-mini"></div>
+            <div class="pokeball-mini"></div>
+            <div class="pokeball-mini"></div>
         </div>
-    {%endblock%}
+        VocabuLearner
+    </a>
+{% endblock %}
 
-    <style>
-        /* User Management Specific Styles */
-        .management-container { 
-            margin-top: 120px; 
-            max-width: 1400px; 
-            margin-left: auto; 
-            margin-right: auto; 
-            padding: 20px; 
-            position: relative; 
-            z-index: 10; 
-        }
 
-        /* Page Header */
-        .page-header { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 8px 8px 0 #000; 
-            text-align: center;
-        }
-        .page-header h1 { 
-            font-size: 24px; 
-            color: #ffd700; 
-            text-shadow: 4px 4px 0 #000; 
-            margin-bottom: 15px; 
-        }
-        .page-header p { 
-            font-size: 12px; 
-            color: #fff; 
-            text-shadow: 2px 2px 0 #000; 
-            margin-bottom: 20px; 
-        }
+{% block header %}
+    <div class="header-actions">
+        <button class="back-btn1" onclick="goToDashboard()">Back to Dashboard</button>
+        <button class="logout-btn" onclick="showLogoutConfirm()">Logout</button>
+    </div>
+{% endblock %}
 
-        /* Search and Filter */
-        .search-filter { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 8px 8px 0 #000; 
-        }
-        .search-box { 
-            display: flex; 
-            gap: 15px; 
-            margin-bottom: 20px; 
-            flex-wrap: wrap; 
-        }
-        .search-input { 
-            flex: 1; 
-            min-width: 300px; 
-            padding: 12px; 
-            border: 3px solid #000; 
-            background: rgba(255,255,255,0.9); 
-            font-family: 'Press Start 2P', monospace; 
-            font-size: 10px; 
-            box-shadow: 4px 4px 0 #000; 
-        }
-        .filter-options { 
-            display: flex; 
-            gap: 15px; 
-            flex-wrap: wrap; 
-            align-items: center;
-        }
-        .filter-select { 
-            padding: 10px; 
-            border: 3px solid #000; 
-            background: rgba(255,255,255,0.9); 
-            font-family: 'Press Start 2P', monospace; 
-            font-size: 10px; 
-            box-shadow: 4px 4px 0 #000; 
-            min-width: 150px; 
-        }
-        .date-filter { 
-            display: flex; 
-            gap: 10px; 
-            align-items: center; 
-        }
-        .date-input { 
-            padding: 10px; 
-            border: 3px solid #000; 
-            background: rgba(255,255,255,0.9); 
-            font-family: 'Press Start 2P', monospace; 
-            font-size: 10px; 
-            box-shadow: 4px 4px 0 #000; 
-            min-width: 150px; 
-        }
-        .date-label { 
-            font-size: 10px; 
-            color: #fff; 
-            text-shadow: 2px 2px 0 #000; 
-            margin-right: 5px; 
-        }
 
-        /* Buttons */
-        .back-btn {
+<style>
+    /* User Management Specific Styles */
+    .management-container {
+        margin-top: 120px;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 20px;
+        position: relative;
+        z-index: 10;
+    }
+
+
+
+    /* Page Header */
+    .page-header {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border: 4px solid #000;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 8px 8px 0 #000;
+        text-align: center;
+    }
+    .page-header h1 {
+        font-size: 24px;
+        color: #ffd700;
+        text-shadow: 4px 4px 0 #000;
+        margin-bottom: 15px;
+    }
+    .page-header p {
+        font-size: 12px;
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        margin-bottom: 20px;
+    }
+
+
+    /* Search and Filter */
+    .search-filter {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border: 4px solid #000;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 8px 8px 0 #000;
+    }
+    .search-box {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .search-input {
+        flex: 1;
+        min-width: 300px;
+        padding: 12px;
+        border: 3px solid #000;
+        background: rgba(255,255,255,0.9);
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px; /* Increased from 10px */
+        box-shadow: 4px 4px 0 #000;
+        color: #000;
+    }
+
+    .filter-options {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filter-select {
+        padding: 10px;
+        border: 3px solid #000;
+        background: rgba(255,255,255,0.9);
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px; /* Increased from 10px */
+        box-shadow: 4px 4px 0 #000;
+        min-width: 150px;
+        color: #000;
+    }
+    .date-filter {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+    .date-input {
+        padding: 10px;
+        border: 3px solid #000;
+        background: rgba(255,255,255,0.9);
+        font-family: 'Press Start 2P', monospace;
+        font-size: 12px; /* Increased from 10px */
+        box-shadow: 4px 4px 0 #000;
+        min-width: 150px;
+        color: #000;
+    }
+    .date-label {
+        font-size: 10px;
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        margin-right: 5px;
+    }
+
+
+    /* Buttons */
+    .back-btn1 {
             background: #4169e1;
             color: #fff;
             border: 3px solid #000;
@@ -130,34 +142,38 @@
             font-family: 'Press Start 2P', monospace;
             transition: all 0.2s;
         }
-        .back-btn:hover {
+        .back-btn1:hover {
             transform: translate(2px, 2px);
             box-shadow: 2px 2px 0 #000;
             background: #3558c7;
         }
 
-        .action-btn {
-            background: #4169e1;
-            color: #fff;
-            border: 3px solid #000;
-            padding: 8px 12px;
-            font-size: 8px;
-            box-shadow: 3px 3px 0 #000;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-family: 'Press Start 2P', monospace;
-            transition: all 0.2s;
-        }
-        .action-btn:hover {
-            transform: translate(2px, 2px);
-            box-shadow: 1px 1px 0 #000;
-        }
-        
-        .action-btn.red {
-            background: #ff4444;
-        }
 
-        .logout-btn {
+    .action-btn {
+        background: #4169e1;
+        color: #fff;
+        border: 3px solid #000;
+        padding: 10px 15px; /* Increased padding */
+        font-size: 10px; /* Increased from 8px */
+        box-shadow: 3px 3px 0 #000;
+        cursor: pointer;
+        text-transform: uppercase;
+        font-family: 'Press Start 2P', monospace;
+        transition: all 0.2s;
+        text-shadow: 1px 1px 0 #000;
+        font-weight: bold;
+    }
+    .action-btn:hover {
+        transform: translate(2px, 2px);
+        box-shadow: 1px 1px 0 #000;
+    }
+   
+    .action-btn.red {
+        background: #ff4444;
+    }
+
+
+    .logout-btn {
             background: #ff4444;
             color: #fff;
             border: 3px solid #000;
@@ -175,233 +191,248 @@
             background: #ff3333;
         }
 
-        /* Users Table */
-        .users-table-container { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 8px 8px 0 #000; 
-            overflow-x: auto; 
-        }
-        .users-table { 
-            width: 100%; 
-            border-collapse: collapse; 
-        }
-        .users-table th { 
-            background: rgba(0,0,0,0.3); 
-            padding: 15px; 
-            text-align: left; 
-            font-size: 12px; 
-            color: #ffd700; 
-            text-shadow: 2px 2px 0 #000; 
-            border-bottom: 3px solid #000; 
-        }
-        .users-table td { 
-            padding: 15px; 
-            font-size: 10px; 
-            color: #fff; 
-            text-shadow: 1px 1px 0 #000; 
-            border-bottom: 2px solid rgba(0,0,0,0.3); 
-        }
-        .users-table tr:hover { 
-            background: rgba(255,255,255,0.1); 
-        }
-        
-        .user-status { 
-            padding: 5px 10px; 
-            font-size: 8px; 
-            border: 2px solid #000; 
-            display: inline-block; 
-        }
-        .status-active { 
-            background: #76c442; 
-            color: #fff; 
-        }
-        .status-inactive { 
-            background: #ff4444; 
-            color: #fff; 
-        }
-        .status-pending { 
-            background: #ffd700; 
-            color: #000; 
-        }
-        
-        .user-actions { 
-            display: flex; 
-            gap: 8px; 
-        }
 
-        /* Pagination */
-        .pagination { 
-            display: flex; 
-            justify-content: center; 
-            gap: 10px; 
-            margin-top: 30px; 
-        }
-        .pagination-btn { 
-            background: rgba(255,255,255,0.15); 
-            color: #fff; 
-            border: 3px solid #000; 
-            padding: 10px 15px; 
-            font-size: 10px; 
-            box-shadow: 4px 4px 0 #000; 
-            cursor: pointer; 
-            font-family: 'Press Start 2P', monospace; 
-            transition: all 0.2s; 
-        }
-        .pagination-btn.active { 
-            background: #4169e1; 
-            color: #fff; 
-        }
-        .pagination-btn:hover:not(.disabled) { 
-            transform: translate(2px, 2px); 
-            box-shadow: 2px 2px 0 #000; 
-        }
-        .pagination-btn.disabled { 
-            opacity: 0.5; 
-            cursor: not-allowed; 
-        }
+    /* Users Table */
+    .users-table-container {
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border: 4px solid #000;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 8px 8px 0 #000;
+        overflow-x: auto;
+    }
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .users-table th {
+    background: rgba(0,0,0,0.5);
+    padding: 15px;
+    text-align: left;
+    font-size: 14px; /* Increased from 12px */
+    color: #ffd700;
+    text-shadow: 3px 3px 0 #000;
+    border-bottom: 3px solid #000;
+    }
 
-        /* Modal Styles */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.8); 
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: center; 
-        }
-        .modal.active { 
-            display: flex; 
-        }
-        .modal-content { 
-            background: rgba(255,255,255,0.95); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 40px; 
-            max-width: 500px; 
-            width: 90%; 
-            box-shadow: 12px 12px 0 #000; 
-            text-align: center; 
-        }
-        .modal-content h2 { 
-            font-size: 20px; 
-            color: #228b22; 
-            text-shadow: 3px 3px 0 #ffd700; 
-            margin-bottom: 20px; 
-        }
-        .modal-content p { 
-            font-size: 12px; 
-            color: #000; 
-            margin-bottom: 20px; 
-            line-height: 1.6; 
-        }
-        .modal-actions { 
-            display: flex; 
-            gap: 10px; 
-            justify-content: center; 
-            margin-top: 20px; 
-        }
-        .btn-confirm { 
-            background: #76c442; 
-            color: #fff; 
-            border: 4px solid #000; 
-            padding: 12px 25px; 
-            font-size: 12px; 
-            box-shadow: 6px 6px 0 #000; 
-            cursor: pointer; 
-            font-family: 'Press Start 2P', monospace; 
-        }
-        .btn-cancel { 
-            background: #ff4444; 
-            color: #fff; 
-            border: 4px solid #000; 
-            padding: 12px 25px; 
-            font-size: 12px; 
-            box-shadow: 6px 6px 0 #000; 
-            cursor: pointer; 
-            font-family: 'Press Start 2P', monospace; 
-        }
-        .btn-confirm:hover, .btn-cancel:hover { 
-            transform: translate(3px, 3px); 
-            box-shadow: 3px 3px 0 #000; 
-        }
+    .users-table td {
+        padding: 15px;
+        font-size: 14px; /* Increased from 10px */
+        color: #fff;
+        text-shadow: 2px 2px 0 #000;
+        border-bottom: 2px solid rgba(0,0,0,0.3);
+        background: rgba(0,0,0,0.2);
+    }
+    .users-table tr:hover {
+        background: rgba(255,255,255,0.1);
+    }
+   
+    .user-status {
+        padding: 6px 12px; /* Increased padding */
+        font-size: 10px; /* Increased from 8px */
+        border: 2px solid #000;
+        display: inline-block;
+        font-weight: bold;
+    }
+    .status-active {
+        background: #76c442;
+        color: #fff;
+    }
+    .status-inactive {
+        background: #ff4444;
+        color: #fff;
+    }
+    .status-pending {
+        background: #ffd700;
+        color: #000;
+    }
+   
+    .user-actions {
+        display: flex;
+        gap: 8px;
+    }
 
-        /* Responsive adjustments */
-        @media (max-width: 900px) {
-            .search-box {
-                flex-direction: column;
-            }
-            
-            .search-input {
-                min-width: auto;
-            }
-            
-            .filter-options {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .date-filter {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .users-table {
-                display: block;
-                overflow-x: auto;
-            }
-            
-            .header-actions {
-                flex-wrap: wrap;
-                justify-content: flex-end;
-            }
+
+    /* Pagination */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 30px;
+    }
+    .pagination-btn {
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        border: 3px solid #000;
+        padding: 10px 15px;
+        font-size: 10px;
+        box-shadow: 4px 4px 0 #000;
+        cursor: pointer;
+        font-family: 'Press Start 2P', monospace;
+        transition: all 0.2s;
+    }
+    .pagination-btn.active {
+        background: #4169e1;
+        color: #fff;
+    }
+    .pagination-btn:hover:not(.disabled) {
+        transform: translate(2px, 2px);
+        box-shadow: 2px 2px 0 #000;
+    }
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+    }
+    .modal.active {
+        display: flex;
+    }
+    .modal-content {
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px);
+        border: 4px solid #000;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 12px 12px 0 #000;
+        text-align: center;
+    }
+    .modal-content h2 {
+        font-size: 20px;
+        color: #228b22;
+        text-shadow: 3px 3px 0 #ffd700;
+        margin-bottom: 20px;
+    }
+    .modal-content p {
+        font-size: 12px;
+        color: #000;
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .btn-confirm {
+        background: #76c442;
+        color: #fff;
+        border: 4px solid #000;
+        padding: 12px 25px;
+        font-size: 12px;
+        box-shadow: 6px 6px 0 #000;
+        cursor: pointer;
+        font-family: 'Press Start 2P', monospace;
+    }
+    .btn-cancel {
+        background: #ff4444;
+        color: #fff;
+        border: 4px solid #000;
+        padding: 12px 25px;
+        font-size: 12px;
+        box-shadow: 6px 6px 0 #000;
+        cursor: pointer;
+        font-family: 'Press Start 2P', monospace;
+    }
+    .btn-confirm:hover, .btn-cancel:hover {
+        transform: translate(3px, 3px);
+        box-shadow: 3px 3px 0 #000;
+    }
+
+
+    /* Responsive adjustments */
+    @media (max-width: 900px) {
+        .search-box {
+            flex-direction: column;
         }
-    </style>
+       
+        .search-input {
+            min-width: auto;
+        }
+       
+        .filter-options {
+            flex-direction: column;
+            align-items: stretch;
+        }
+       
+        .date-filter {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+       
+        .users-table {
+            display: block;
+            overflow-x: auto;
+        }
+       
+        .header-actions {
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+    }
+</style>
 
-    <div class="management-container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1>User Management</h1>
-            <p>Manage all user accounts and status</p>
-        </div>
 
-        <!-- Search and Filter -->
-        <div class="search-filter">
+<div class="management-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>User Management</h1>
+        <p>Manage all user accounts and status</p>
+    </div>
+
+
+    <!-- Search and Filter -->
+    <div class="search-filter">
+        <form method="POST" action="{{ url_for('admin_users') }}" id="searchForm">
+            {{ search_form.csrf_token }}
             <div class="search-box">
-                <input type="text" class="search-input" placeholder="Search users by name or email..." id="searchInput">
-                <button class="action-btn" onclick="searchUsers()">Search</button>
+                {{ search_form.search(class="search-input") }}
+                {{ search_form.submit(class="action-btn") }}
             </div>
             <div class="filter-options">
-                <select class="filter-select" id="statusFilter">
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
-                
+                {{ search_form.status(class="filter-select") }}
+               
                 <div class="date-filter">
                     <span class="date-label">From:</span>
-                    <input type="date" class="date-input" id="dateFrom">
+                    {{ search_form.date_from(class="date-input") }}
                 </div>
-                
+
                 <div class="date-filter">
                     <span class="date-label">To:</span>
-                    <input type="date" class="date-input" id="dateTo">
+                    {{ search_form.date_to(class="date-input") }}
                 </div>
-                
-                <button class="action-btn" onclick="applyFilters()">Apply Filters</button>
-                <button class="action-btn red" onclick="resetFilters()">Reset</button>
+               
+                {{ search_form.filter_btn(class="action-btn") }}
+                <a href="{{ url_for('reset_user_filters') }}" class="action-btn red">Reset</a>
+                {% if search_form.date_from.errors %}
+                        <div class="error" style="color: #ff4444; font-size: 10px; margin-top: 5px;">
+                            {{ search_form.date_from.errors[0] }}
+                        </div>
+                    {% endif %}
             </div>
-        </div>
+        </form>
+    </div>
 
-        <!-- Users Table -->
-        <div class="users-table-container">
+
+    <!-- Users Table -->
+    <div class="users-table-container">
+        {% if users %}
             <table class="users-table">
                 <thead>
                     <tr>
@@ -415,280 +446,245 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for user in users %}
                     <tr>
-                        <td>#1001</td>
-                        <td>TrainerAsh</td>
-                        <td>ash@pokemon.trainer</td>
-                        <td>2024-01-15</td>
-                        <td>247</td>
-                        <td><span class="user-status status-active">Active</span></td>
+                        <td>#{{ user.user_id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.joined_date }}</td>
+                        <td>{{ user.words_mastered }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="user-status status-active">Active</span>
+                            {% else %}
+                                <span class="user-status status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1001)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1001)">Deactivate</button>
+                                <a href="{{ url_for('view_user', user_id=user.user_id, search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}" class="action-btn">View</a>
+                                {% if user.is_active %}
+                                    <a href="{{ url_for('user_action_redirect', user_id=user.user_id, action='deactivate', search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}" class="action-btn red">Deactivate</a>
+                                {% else %}
+                                    <a href="{{ url_for('user_action_redirect', user_id=user.user_id, action='activate', search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}" class="action-btn">Activate</a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
-                    <tr>
-                        <td>#1002</td>
-                        <td>MistyWater</td>
-                        <td>misty@cerulean.gym</td>
-                        <td>2024-02-10</td>
-                        <td>189</td>
-                        <td><span class="user-status status-active">Active</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1002)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1002)">Deactivate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#1003</td>
-                        <td>BrockRock</td>
-                        <td>brock@pewter.gym</td>
-                        <td>2024-02-28</td>
-                        <td>512</td>
-                        <td><span class="user-status status-active">Active</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1003)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1003)">Deactivate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#1004</td>
-                        <td>GaryOak</td>
-                        <td>gary@research.lab</td>
-                        <td>2024-03-05</td>
-                        <td>324</td>
-                        <td><span class="user-status status-inactive">Inactive</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1004)">View</button>
-                                <button class="action-btn" onclick="activateUser(1004)">Activate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#1005</td>
-                        <td>JessieRocket</td>
-                        <td>jessie@teamrocket.org</td>
-                        <td>2024-03-12</td>
-                        <td>45</td>
-                        <td><span class="user-status status-active">Active</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1005)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1005)">Deactivate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#1006</td>
-                        <td>JamesRocket</td>
-                        <td>james@teamrocket.org</td>
-                        <td>2024-03-12</td>
-                        <td>38</td>
-                        <td><span class="user-status status-active">Active</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1006)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1006)">Deactivate</button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#1007</td>
-                        <td>ProfessorOak</td>
-                        <td>oak@pokemon.research</td>
-                        <td>2024-01-01</td>
-                        <td>1,024</td>
-                        <td><span class="user-status status-active">Active</span></td>
-                        <td>
-                            <div class="user-actions">
-                                <button class="action-btn" onclick="viewUser(1007)">View</button>
-                                <button class="action-btn red" onclick="deactivateUser(1007)">Deactivate</button>
-                            </div>
-                        </td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="pagination">
-            <button class="pagination-btn disabled">Previous</button>
-            <button class="pagination-btn active">1</button>
-            <button class="pagination-btn">2</button>
-            <button class="pagination-btn">3</button>
-            <button class="pagination-btn">4</button>
-            <button class="pagination-btn">5</button>
-            <button class="pagination-btn">Next</button>
-        </div>
-    </div>
-
-    <!-- View User Modal -->
-    <div class="modal" id="viewUserModal">
-        <div class="modal-content">
-            <h2>User Details</h2>
-            <p><strong>Username:</strong> TrainerAsh</p>
-            <p><strong>Email:</strong> ash@pokemon.trainer</p>
-            <p><strong>Joined Date:</strong> 2024-01-15</p>
-            <p><strong>Words Mastered:</strong> 247</p>
-            <p><strong>Daily Streak:</strong> 14 days</p>
-            <p><strong>Status:</strong> Active</p>
-            <div class="modal-actions">
-                <button class="btn-cancel" onclick="closeModal('viewUserModal')">Close</button>
+        {% else %}
+            <div style="text-align: center; padding: 40px;">
+                <p style="color: #fff; font-size: 14px; text-shadow: 2px 2px 0 #000;">No users found matching your criteria.</p>
             </div>
-        </div>
+        {% endif %}
     </div>
 
-    <!-- Deactivate Confirmation Modal -->
-    <div class="modal" id="deactivateModal">
-        <div class="modal-content">
-            <h2>Confirm Deactivation</h2>
-            <p>Are you sure you want to deactivate this user? They will not be able to access their account.</p>
-            <div class="modal-actions">
-                <button class="btn-confirm red" onclick="confirmDeactivate()">Deactivate</button>
-                <button class="btn-cancel" onclick="closeModal('deactivateModal')">Cancel</button>
-            </div>
+
+    <!-- Pagination -->
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        <form method="GET" action="{{ url_for('admin_users') }}" style="display: contents;">
+            <input type="hidden" name="search" value="{{ search_term }}">
+            <input type="hidden" name="status" value="{{ status_filter }}">
+            <input type="hidden" name="date_from" value="{{ date_from }}">
+            <input type="hidden" name="date_to" value="{{ date_to }}">
+           
+            {% if current_page > 1 %}
+                <button type="submit" name="page" value="{{ current_page - 1 }}" class="pagination-btn">Previous</button>
+            {% else %}
+                <button type="button" class="pagination-btn disabled">Previous</button>
+            {% endif %}
+           
+            {% for page_num in range(1, total_pages + 1) %}
+                {% if page_num == current_page %}
+                    <button type="button" class="pagination-btn active">{{ page_num }}</button>
+                {% elif page_num <= 5 or page_num >= total_pages - 4 or (page_num >= current_page - 2 and page_num <= current_page + 2) %}
+                    <button type="submit" name="page" value="{{ page_num }}" class="pagination-btn">{{ page_num }}</button>
+                {% elif page_num == 6 and total_pages > 10 %}
+                    <span style="color: #fff; padding: 10px 5px;">...</span>
+                {% endif %}
+            {% endfor %}
+           
+            {% if current_page < total_pages %}
+                <button type="submit" name="page" value="{{ current_page + 1 }}" class="pagination-btn">Next</button>
+            {% else %}
+                <button type="button" class="pagination-btn disabled">Next</button>
+            {% endif %}
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- View User Modal -->
+{% if show_view_modal and view_form %}
+<div class="modal active" id="viewUserModal">
+    <div class="modal-content">
+        <h2>User Details</h2>
+        <p><strong>Username:</strong> {{ view_form.username.data }}</p>
+        <p><strong>Email:</strong> {{ view_form.email.data }}</p>
+        <p><strong>Joined Date:</strong> {{ view_form.joined_date.data }}</p>
+        <p><strong>Words Mastered:</strong> {{ view_form.words_mastered.data }}</p>
+        <p><strong>Daily Streak:</strong> {{ view_form.daily_streak.data }} days</p>
+        <p><strong>Total Points:</strong> {{ view_form.total_points.data }}</p>
+        <p><strong>Pokémon:</strong> {{ view_form.pokemon_name.data }}</p>
+        <p><strong>Achievements:</strong> {{ view_form.achievement_count.data }}</p>
+        <p><strong>Status:</strong> {{ view_form.status.data }}</p>
+        <p><strong>Last Login:</strong> {{ view_form.last_login.data }}</p>
+        <div class="modal-actions">
+            <a href="{{ url_for('admin_users', search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}" class="btn-cancel">Close</a>
         </div>
     </div>
+</div>
+{% endif %}
 
-    <!-- Activate Confirmation Modal -->
-    <div class="modal" id="activateModal">
-        <div class="modal-content">
-            <h2>Confirm Activation</h2>
-            <p>Are you sure you want to activate this user? They will be able to access their account again.</p>
-            <div class="modal-actions">
-                <button class="btn-confirm" onclick="confirmActivate()">Activate</button>
-                <button class="btn-cancel" onclick="closeModal('activateModal')">Cancel</button>
-            </div>
+
+<!-- Deactivate Confirmation Modal -->
+<div class="modal" id="deactivateModal">
+    <div class="modal-content">
+        <h2>Confirm Deactivation</h2>
+        <p>Are you sure you want to deactivate this user? They will not be able to access their account.</p>
+        <div class="modal-actions">
+            <button class="btn-confirm red" onclick="confirmDeactivate()">Deactivate</button>
+            <button class="btn-cancel" onclick="closeModal('deactivateModal')">Cancel</button>
         </div>
     </div>
+</div>
 
-    <!-- Logout Modal -->
-    <div class="modal" id="logoutModal">
-        <div class="modal-content">
-            <h2>Confirm Logout</h2>
-            <p>Are you sure you want to logout?</p>
-            <div class="modal-actions">
-                <button class="btn-confirm" onclick="performLogout()">Yes, Logout</button>
-                <button class="btn-cancel" onclick="closeModal('logoutModal')">Cancel</button>
-            </div>
+
+<!-- Activate Confirmation Modal -->
+<div class="modal" id="activateModal">
+    <div class="modal-content">
+        <h2>Confirm Activation</h2>
+        <p>Are you sure you want to activate this user? They will be able to access their account again.</p>
+        <div class="modal-actions">
+            <button class="btn-confirm" onclick="confirmActivate()">Activate</button>
+            <button class="btn-cancel" onclick="closeModal('activateModal')">Cancel</button>
         </div>
     </div>
+</div>
 
-    <script>
-        // Navigation Functions
-        function goToDashboard() {
-            window.location.href = "{{ url_for('admin_dashboard') }}";
+
+<!-- Logout Modal -->
+<div class="modal" id="logoutModal">
+    <div class="modal-content">
+        <h2>Confirm Logout</h2>
+        <p>Are you sure you want to logout?</p>
+        <div class="modal-actions">
+            <a href="{{ url_for('logout') }}" class="btn-confirm">Yes, Logout</a>
+            <button class="btn-cancel" onclick="closeModal('logoutModal')">Cancel</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Navigation Functions
+    function goToDashboard() {
+        window.location.href = "{{ url_for('admin_dashboard') }}";
+    }
+
+
+    function showLogoutConfirm() {
+        document.getElementById('logoutModal').classList.add('active');
+    }
+
+
+    // Modal Functions
+    function showModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+    }
+
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+
+    // User Management Functions
+    function searchUsers() {
+        document.getElementById('searchForm').submit();
+    }
+
+
+    function applyFilters() {
+        document.getElementById('searchForm').submit();
+    }
+
+
+    function resetFilters() {
+        window.location.href = "{{ url_for('reset_user_filters') }}";
+    }
+
+
+    function viewUser(userId) {
+        currentUserId = userId;
+        document.getElementById('viewUserModal').classList.add('active');
+    }
+
+
+    function deactivateUser(userId) {
+        currentUserId = userId;
+        document.getElementById('deactivateModal').classList.add('active');
+    }
+
+
+    function activateUser(userId) {
+        currentUserId = userId;
+        document.getElementById('activateModal').classList.add('active');
+    }
+
+
+    function confirmDeactivate() {
+        window.location.href = "{{ url_for('user_action_redirect', user_id=0, action='deactivate', search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}".replace('/0/', '/' + currentUserId + '/');
+    }
+
+
+    function confirmActivate() {
+        window.location.href = "{{ url_for('user_action_redirect', user_id=0, action='activate', search=search_term, status=status_filter, date_from=date_from, date_to=date_to, page=current_page) }}".replace('/0/', '/' + currentUserId + '/');
+    }
+
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.classList.remove('active');
         }
+    }
 
-        function showLogoutConfirm() {
-            document.getElementById('logoutModal').classList.add('active');
-        }
 
-        function performLogout() {
-            window.location.href = "{{ url_for('logout') }}";
-        }
-
-        // Modal Functions
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // User Management Functions
-        function searchUsers() {
-            const searchTerm = document.getElementById('searchInput').value;
-            if (searchTerm) {
-                alert('Searching for: ' + searchTerm);
-                // In real implementation, this would filter the table
-            }
-        }
-
-        function applyFilters() {
-            const status = document.getElementById('statusFilter').value;
-            const dateFrom = document.getElementById('dateFrom').value;
-            const dateTo = document.getElementById('dateTo').value;
-            
-            let filterMessage = `Applying filters:\nStatus: ${status}`;
-            
-            if (dateFrom) {
-                filterMessage += `\nFrom Date: ${dateFrom}`;
-            }
-            
-            if (dateTo) {
-                filterMessage += `\nTo Date: ${dateTo}`;
-            }
-            
-            // In real implementation, this would filter the table
-            console.log('Filters applied:', { status, dateFrom, dateTo });
-        }
-
-        function resetFilters() {
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-            document.getElementById('searchInput').value = '';
-            // In real implementation, this would reset the table
-        }
-
-        function viewUser(userId) {
-            currentUserId = userId;
-            document.getElementById('viewUserModal').classList.add('active');
-        }
-
-        function deactivateUser(userId) {
-            currentUserId = userId;
-            document.getElementById('deactivateModal').classList.add('active');
-        }
-
-        function activateUser(userId) {
-            currentUserId = userId;
-            document.getElementById('activateModal').classList.add('active');
-        }
-
-        function confirmDeactivate() {
-            alert('User ID: ' + currentUserId + ' has been deactivated');
-            closeModal('deactivateModal');
-            // In real implementation, send API request to deactivate user
-        }
-
-        function confirmActivate() {
-            alert('User ID: ' + currentUserId + ' has been activated');
-            closeModal('activateModal');
-            // In real implementation, send API request to activate user
-        }
-
-        // Close modals when clicking outside
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal')) {
-                event.target.classList.remove('active');
-            }
-        }
-
-        // Set default date values to current month
-        window.onload = function() {
-            const today = new Date();
-            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-            
-            // Format dates as YYYY-MM-DD
-            const formatDate = (date) => {
-                return date.toISOString().split('T')[0];
-            };
-            
-            document.getElementById('dateFrom').value = formatDate(firstDay);
-            document.getElementById('dateTo').value = formatDate(today);
+    // Set default date values to current month
+    window.onload = function() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+       
+        // Format dates as YYYY-MM-DD
+        const formatDate = (date) => {
+            return date.toISOString().split('T')[0];
         };
+       
+        // Only set defaults if the fields are empty
+        const dateFromInput = document.getElementById('dateFrom');
+        const dateToInput = document.getElementById('dateTo');
+       
+        if (dateFromInput && !dateFromInput.value) {
+            dateFromInput.value = formatDate(firstDay);
+        }
+       
+        if (dateToInput && !dateToInput.value) {
+            dateToInput.value = formatDate(today);
+        }
+       
+        // Auto-show view modal if needed
+        {% if show_view_modal and view_form %}
+        document.getElementById('viewUserModal').classList.add('active');
+        {% endif %}
+    };
 
-        // Global variable for current user ID
-        let currentUserId = null;
-    </script>
-{%endblock%}
+
+    // Global variable for current user ID
+    let currentUserId = null;
+</script>
+{% endblock %}

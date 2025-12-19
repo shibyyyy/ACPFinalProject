@@ -42,11 +42,50 @@
             </a>
             {% endblock %}
         </div>
+        
+        <!-- THEME TOGGLE BUTTON -->
+        <div class="theme-toggle-container">
+            <button id="themeToggle" class="theme-toggle-btn" aria-label="Toggle dark mode">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+        
     {%block header%}
     {%endblock%}
     </header>
     {%block content%}
     {%endblock%}
+    
+    <!-- THEME TOGGLE SCRIPT -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.querySelector('.theme-icon');
+            
+            // Check for saved theme preference or default to light
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+            
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = document.documentElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+            
+            function updateThemeIcon(theme) {
+                themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+            }
+            
+            // Apply theme immediately to prevent flash
+            document.documentElement.style.opacity = '0';
+            setTimeout(() => {
+                document.documentElement.style.opacity = '1';
+            }, 50);
+        });
+    </script>
 </body>
 </html>
-

@@ -3,6 +3,13 @@
     <title>Achievements & Rewards - VocabuLearner Admin</title>
 {%endblock%}
 
+
+
+
+
+
+
+
 {%block content%}
 {%block logo_link %}
             <a href="{{ url_for('admin_dashboard') }}" class="logo-link">
@@ -16,48 +23,61 @@
     {% endblock %}
     {%block header%}
         <div class="header-actions">
-            <button class="back-btn" onclick="goToDashboard()">Back to Dashboard</button>
+            <button class="back-btn1" onclick="goToDashboard()">Back to Dashboard</button>
             <button class="logout-btn" onclick="showLogoutConfirm()">Logout</button>
         </div>
     {%endblock%}
 
+
+
+
+
+
+
+
     <style>
         /* Achievements Specific Styles */
-        .management-container { 
-            margin-top: 120px; 
-            max-width: 1400px; 
-            margin-left: auto; 
-            margin-right: auto; 
-            padding: 20px; 
-            position: relative; 
-            z-index: 10; 
+        .management-container {
+            margin-top: 120px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
         }
+
+
+
+
+
+
+
 
         /* Page Header */
-        .page-header { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 8px 8px 0 #000; 
+        .page-header {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 8px 8px 0 #000;
             text-align: center;
         }
-        .page-header h1 { 
-            font-size: 24px; 
-            color: #ffd700; 
-            text-shadow: 4px 4px 0 #000; 
-            margin-bottom: 15px; 
+        .page-header h1 {
+            font-size: 24px;
+            color: #ffd700;
+            text-shadow: 4px 4px 0 #000;
+            margin-bottom: 15px;
         }
-        .page-header p { 
-            font-size: 12px; 
-            color: #fff; 
-            text-shadow: 2px 2px 0 #000; 
-            margin-bottom: 20px; 
+        .page-header p {
+            font-size: 12px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 20px;
         }
-
         /* Buttons */
-        .back-btn {
+        .back-btn1 {
             background: #4169e1;
             color: #fff;
             border: 3px solid #000;
@@ -69,7 +89,7 @@
             font-family: 'Press Start 2P', monospace;
             transition: all 0.2s;
         }
-        .back-btn:hover {
+        .back-btn1:hover {
             transform: translate(2px, 2px);
             box-shadow: 2px 2px 0 #000;
             background: #3558c7;
@@ -98,7 +118,7 @@
             color: #fff;
             border: 3px solid #000;
             padding: 8px 12px;
-            font-size: 8px;
+            font-size: 12px;
             box-shadow: 3px 3px 0 #000;
             cursor: pointer;
             text-transform: uppercase;
@@ -109,107 +129,162 @@
             transform: translate(2px, 2px);
             box-shadow: 1px 1px 0 #000;
         }
-        
+       
         .action-btn.green {
             background: #76c442;
         }
-        
+       
         .action-btn.red {
             background: #ff4444;
         }
 
         /* Achievements Grid */
-        .achievements-grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 30px; 
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        .achievement-card { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 20px; 
-            box-shadow: 8px 8px 0 #000; 
+        .achievement-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 20px;
+            box-shadow: 8px 8px 0 #000;
+            display: flex;
+            flex-direction: column;
+            min-height: 250px;
+            position: relative;
         }
-        .achievement-header { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 15px; 
+
+        .achievement-content {
+            flex: 1;
+            margin-bottom: 15px;
         }
-        .achievement-title { 
-            font-size: 14px; 
-            color: #ffd700; 
-            text-shadow: 3px 3px 0 #000; 
+
+        .achievement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
-        .achievement-icon { 
-            font-size: 32px; 
+        .achievement-title {
+            font-size: 18px;
+            color: #ffd700;
+            text-shadow: 3px 3px 0 #000;
+            max-width: 70%;
         }
-        .achievement-desc { 
-            font-size: 10px; 
-            color: #fff; 
-            text-shadow: 1px 1px 0 #000; 
-            margin-bottom: 15px; 
-            line-height: 1.5; 
+        .achievement-icon {
+            font-size: 32px;
+            flex-shrink: 0;
         }
-        .achievement-stats { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 15px; 
+        .achievement-desc {
+            font-size: 14px;
+            color: #fff;
+            text-shadow: 1px 1px 0 #000;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            min-height: 60px;
         }
-        .achievement-stat { 
-            text-align: center; 
+        .achievement-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
         }
-        .stat-label { 
-            font-size: 8px; 
-            color: #fff; 
-            opacity: 0.8; 
+        .achievement-stat {
+            text-align: center;
+            flex: 1;
+            padding: 0 5px;
         }
-        .stat-number { 
-            font-size: 12px; 
-            color: #ffd700; 
-            text-shadow: 2px 2px 0 #000; 
+
+        .stat-label {
+            font-size: 12px;
+            color: #fff;
+            opacity: 0.8;
+            margin-bottom: 4px;
         }
-        .achievement-actions { 
-            display: flex; 
-            gap: 10px; 
+
+        .stat-number {
+            font-size: 16px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            word-break: break-word;
+        }
+
+        .achievement-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 2px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .achievement-actions .action-btn {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 80px;
         }
 
         /* Add Achievement Form */
-        .add-achievement-form { 
-            background: rgba(255,255,255,0.15); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 25px; 
-            margin-bottom: 30px; 
-            box-shadow: 8px 8px 0 #000; 
+        .add-achievement-form {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 8px 8px 0 #000;
         }
-        .form-row { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 20px; 
+
+        /* Edit Achievement Form */
+        .edit-achievement-form {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 8px 8px 0 #000;
+            animation: slideIn 0.3s ease-out;
         }
-        .form-group { 
-            margin-bottom: 15px; 
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
             position: relative;
         }
-        .form-label { 
-            display: block; 
-            font-size: 10px; 
-            color: #ffd700; 
-            text-shadow: 2px 2px 0 #000; 
-            margin-bottom: 8px; 
+        .form-label {
+            display: block;
+            font-size: 10px;
+            color: #ffd700;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 8px;
         }
-        .form-input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 3px solid #000; 
-            background: rgba(255,255,255,0.9); 
-            font-family: 'Press Start 2P', monospace; 
-            font-size: 10px; 
-            box-shadow: 4px 4px 0 #000; 
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid #000;
+            background: rgba(255,255,255,0.9);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            box-shadow: 4px 4px 0 #000;
         }
         .select-pokemon-btn {
             width: 100%;
@@ -226,10 +301,10 @@
         .select-pokemon-btn:hover {
             background: rgba(255,255,255,1);
         }
-        .form-actions { 
-            display: flex; 
-            gap: 15px; 
-            margin-top: 25px; 
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
         }
 
         /* Pokémon Selector Modal */
@@ -318,72 +393,72 @@
         }
 
         /* Modal Styles */
-        .modal { 
-            display: none; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: rgba(0,0,0,0.8); 
-            z-index: 2000; 
-            justify-content: center; 
-            align-items: center; 
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
         }
-        .modal.active { 
-            display: flex; 
+        .modal.active {
+            display: flex;
         }
-        .modal-content { 
-            background: rgba(255,255,255,0.95); 
-            backdrop-filter: blur(10px); 
-            border: 4px solid #000; 
-            padding: 40px; 
-            max-width: 500px; 
-            width: 90%; 
-            box-shadow: 12px 12px 0 #000; 
-            text-align: center; 
+        .modal-content {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #000;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 12px 12px 0 #000;
+            text-align: center;
         }
-        .modal-content h2 { 
-            font-size: 20px; 
-            color: #228b22; 
-            text-shadow: 3px 3px 0 #ffd700; 
-            margin-bottom: 20px; 
+        .modal-content h2 {
+            font-size: 20px;
+            color: #228b22;
+            text-shadow: 3px 3px 0 #ffd700;
+            margin-bottom: 20px;
         }
-        .modal-content p { 
-            font-size: 12px; 
-            color: #000; 
-            margin-bottom: 20px; 
-            line-height: 1.6; 
+        .modal-content p {
+            font-size: 12px;
+            color: #000;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
-        .modal-actions { 
-            display: flex; 
-            gap: 10px; 
-            justify-content: center; 
-            margin-top: 20px; 
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
         }
-        .btn-confirm { 
-            background: #76c442; 
-            color: #fff; 
-            border: 4px solid #000; 
-            padding: 12px 25px; 
-            font-size: 12px; 
-            box-shadow: 6px 6px 0 #000; 
-            cursor: pointer; 
-            font-family: 'Press Start 2P', monospace; 
+        .btn-confirm1 {
+            background: #76c442;
+            color: #fff;
+            border: 4px solid #000;
+            padding: 12px 25px;
+            font-size: 12px;
+            box-shadow: 6px 6px 0 #000;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
         }
-        .btn-cancel { 
-            background: #ff4444; 
-            color: #fff; 
-            border: 4px solid #000; 
-            padding: 12px 25px; 
-            font-size: 12px; 
-            box-shadow: 6px 6px 0 #000; 
-            cursor: pointer; 
-            font-family: 'Press Start 2P', monospace; 
+        .btn-cancel1 {
+            background: #ff4444;
+            color: #fff;
+            border: 4px solid #000;
+            padding: 12px 25px;
+            font-size: 12px;
+            box-shadow: 6px 6px 0 #000;
+            cursor: pointer;
+            font-family: 'Press Start 2P', monospace;
         }
-        .btn-confirm:hover, .btn-cancel:hover { 
-            transform: translate(3px, 3px); 
-            box-shadow: 3px 3px 0 #000; 
+        .btn-confirm1:hover, .btn-cancel1:hover {
+            transform: translate(3px, 3px);
+            box-shadow: 3px 3px 0 #000;
         }
 
         /* Selected Pokémon Display */
@@ -413,16 +488,16 @@
             .achievements-grid {
                 grid-template-columns: 1fr;
             }
-            
+           
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
+           
             .header-actions {
                 flex-wrap: wrap;
                 justify-content: flex-end;
             }
-            
+           
             .pokemon-grid {
                 grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
@@ -436,8 +511,11 @@
             <p>Configure achievement badges, requirements, and reward systems</p>
         </div>
 
+
+
+
         <!-- Add New Achievement Form -->
-        <div class="add-achievement-form">
+        <div class="add-achievement-form" id="addAchievementForm">
             <h2 style="color: #ffd700; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; text-align: center;">Add New Achievement</h2>
             <div class="form-row">
                 <div class="form-group">
@@ -449,7 +527,7 @@
                     <input type="number" class="form-input" placeholder="e.g., 100 (for 100 words)" id="achieveReq">
                 </div>
             </div>
-            
+           
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Description</label>
@@ -468,36 +546,80 @@
                     <input type="hidden" id="pokemonName" value="">
                 </div>
             </div>
-            
+           
             <div class="form-actions">
                 <button class="action-btn green" onclick="addAchievement()">Add Achievement</button>
                 <button class="action-btn" onclick="clearForm()">Clear Form</button>
             </div>
         </div>
 
+        <!-- Edit Achievement Form (Initially Hidden) -->
+        <div class="edit-achievement-form" id="editAchievementForm" style="display: none;">
+            <h2 style="color: #ffd700; text-shadow: 3px 3px 0 #000; margin-bottom: 20px; text-align: center;">Edit Achievement</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Achievement Name</label>
+                    <input type="text" class="form-input" placeholder="Enter achievement name" id="editAchieveName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Requirement (Number)</label>
+                    <input type="number" class="form-input" placeholder="e.g., 100 (for 100 words)" id="editAchieveReq">
+                </div>
+            </div>
+           
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <input type="text" class="form-input" placeholder="Enter description" id="editAchieveDesc">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reward</label>
+                    <button type="button" class="select-pokemon-btn" onclick="showEditPokemonSelector()">
+                        Select Pokémon Reward
+                    </button>
+                    <div id="editSelectedPokemonDisplay" class="selected-pokemon-display" style="display: none;">
+                        <img id="editSelectedPokemonImg" src="" alt="Selected Pokémon">
+                        <div id="editSelectedPokemonInfo" class="selected-pokemon-info"></div>
+                    </div>
+                    <input type="hidden" id="editPokemonId" value="">
+                    <input type="hidden" id="editPokemonName" value="">
+                </div>
+            </div>
+           
+            <div class="form-actions">
+                <button class="action-btn green" onclick="saveAchievement()">Save Changes</button>
+                <button class="action-btn" onclick="cancelEdit()">Cancel Edit</button>
+            </div>
+        </div>
+
+
+
+
         <!-- Achievements Grid -->
         <div class="achievements-grid">
             <!-- Achievement cards will be loaded dynamically from database -->
             {% for achievement in achievements %}
             <div class="achievement-card">
-                <div class="achievement-header">
-                    <h3 class="achievement-title">{{ achievement.name }}</h3>
-                    <div class="achievement-icon">🏆</div>
-                </div>
-                <p class="achievement-desc">{{ achievement.description }}</p>
-                <div class="achievement-stats">
-                    <div class="achievement-stat">
-                        <div class="stat-label">Requirement</div>
-                        <div class="stat-number">{{ achievement.requirement }}</div>
+                <div class="achievement-content">
+                    <div class="achievement-header">
+                        <h3 class="achievement-title">{{ achievement.name }}</h3>
+                        <div class="achievement-icon">🏆</div>
                     </div>
-                    <div class="achievement-stat">
-                        <div class="stat-label">Reward</div>
-                        <div class="stat-number">
-                            {% if achievement.pokemon %}
-                                {{ achievement.pokemon.name }}
-                            {% else %}
-                                No Pokémon
-                            {% endif %}
+                    <p class="achievement-desc">{{ achievement.description }}</p>
+                    <div class="achievement-stats">
+                        <div class="achievement-stat">
+                            <div class="stat-label">Requirement</div>
+                            <div class="stat-number">{{ achievement.requirement }}</div>
+                        </div>
+                        <div class="achievement-stat">
+                            <div class="stat-label">Reward</div>
+                            <div class="stat-number">
+                                {% if achievement.pokemon %}
+                                    {{ achievement.pokemon.name }}
+                                {% else %}
+                                    No Pokémon
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -510,7 +632,10 @@
         </div>
     </div>
 
-    <!-- Pokémon Selector Modal -->
+
+
+
+    <!-- Pokémon Selector Modal for Adding -->
     <div class="pokemon-selector-modal" id="pokemonSelectorModal">
         <div class="pokemon-selector-content">
             <h2>Select Pokémon Reward</h2>
@@ -518,45 +643,60 @@
                 <!-- Pokémon will be loaded here by JavaScript -->
             </div>
             <div class="pokemon-selector-actions">
-                <button class="btn-confirm" onclick="confirmPokemonSelection()">Confirm Selection</button>
-                <button class="btn-cancel" onclick="closePokemonSelector()">Cancel</button>
+                <button class="btn-confirm1" onclick="confirmPokemonSelection()">Confirm Selection</button>
+                <button class="btn-cancel1" onclick="closePokemonSelector()">Cancel</button>
             </div>
         </div>
     </div>
+
+
+
+
+    <!-- Pokémon Selector Modal for Editing -->
+    <div class="pokemon-selector-modal" id="editPokemonSelectorModal">
+        <div class="pokemon-selector-content">
+            <h2>Select Pokémon Reward</h2>
+            <div class="pokemon-grid" id="editPokemonGrid">
+                <!-- Pokémon will be loaded here by JavaScript -->
+            </div>
+            <div class="pokemon-selector-actions">
+                <button class="btn-confirm1" onclick="confirmEditPokemonSelection()">Confirm Selection</button>
+                <button class="btn-cancel1" onclick="closeEditPokemonSelector()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+
 
     <!-- Modals -->
-    <div class="modal" id="editAchievementModal">
-        <div class="modal-content">
-            <h2>Edit Achievement</h2>
-            <p>Editing achievement ID: <span id="editAchieveId"></span></p>
-            <div class="modal-actions">
-                <button class="btn-confirm" onclick="saveAchievement()">Save Changes</button>
-                <button class="btn-cancel" onclick="closeModal('editAchievementModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <div class="modal" id="deleteAchievementModal">
         <div class="modal-content">
             <h2>Delete Achievement</h2>
             <p>Are you sure you want to delete this achievement? This action cannot be undone.</p>
             <div class="modal-actions">
-                <button class="btn-confirm red" onclick="confirmDeleteAchievement()">Delete</button>
-                <button class="btn-cancel" onclick="closeModal('deleteAchievementModal')">Cancel</button>
+                <button class="btn-confirm1 red" onclick="confirmDeleteAchievement()">Delete</button>
+                <button class="btn-cancel1" onclick="closeModal('deleteAchievementModal')">Cancel</button>
             </div>
         </div>
     </div>
+
+
+
 
     <div class="modal" id="logoutModal">
         <div class="modal-content">
             <h2>Confirm Logout</h2>
             <p>Are you sure you want to logout?</p>
             <div class="modal-actions">
-                <button class="btn-confirm" onclick="performLogout()">Yes, Logout</button>
-                <button class="btn-cancel" onclick="closeModal('logoutModal')">Cancel</button>
+                <button class="btn-confirm1" onclick="performLogout()">Yes, Logout</button>
+                <button class="btn-cancel1" onclick="closeModal('logoutModal')">Cancel</button>
             </div>
         </div>
     </div>
+
+
+
 
     <script>
         // Navigation Functions
@@ -564,113 +704,153 @@
             window.location.href = "{{ url_for('admin_dashboard') }}";
         }
 
+
+
+
         function showLogoutConfirm() {
             document.getElementById('logoutModal').classList.add('active');
         }
 
+
+
+
         function performLogout() {
             window.location.href = "{{ url_for('logout') }}";
         }
+
+
+
 
         // Modal Functions
         function showModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
 
+
+
+
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // Pokémon Data (could be loaded from your database)
-        const pokemonList = [
-            { id: 1, name: "Bulbasaur", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png" },
-            { id: 4, name: "Charmander", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png" },
-            { id: 7, name: "Squirtle", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png" },
-            { id: 25, name: "Pikachu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png" },
-            { id: 133, name: "Eevee", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png" },
-            { id: 143, name: "Snorlax", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png" },
-            { id: 152, name: "Chikorita", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png" },
-            { id: 155, name: "Cyndaquil", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/155.png" },
-            { id: 158, name: "Totodile", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/158.png" },
-            { id: 172, name: "Pichu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/172.png" },
-            { id: 175, name: "Togepi", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/175.png" },
-            { id: 179, name: "Mareep", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/179.png" },
-            { id: 183, name: "Marill", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/183.png" },
-            { id: 187, name: "Hoppip", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/187.png" },
-            { id: 194, name: "Wooper", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/194.png" },
-            { id: 252, name: "Treecko", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/252.png" },
-            { id: 255, name: "Torchic", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png" },
-            { id: 258, name: "Mudkip", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png" },
-            { id: 280, name: "Ralts", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/280.png" },
-            { id: 387, name: "Turtwig", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/387.png" },
-            { id: 390, name: "Chimchar", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png" },
-            { id: 393, name: "Piplup", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/393.png" },
-            { id: 495, name: "Snivy", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/495.png" },
-            { id: 498, name: "Tepig", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/498.png" },
-            { id: 501, name: "Oshawott", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/501.png" },
-            { id: 650, name: "Chespin", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/650.png" },
-            { id: 653, name: "Fennekin", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/653.png" },
-            { id: 656, name: "Froakie", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/656.png" },
-            { id: 722, name: "Rowlet", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/722.png" },
-            { id: 725, name: "Litten", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/725.png" },
-            { id: 728, name: "Popplio", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/728.png" },
-            { id: 810, name: "Grookey", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/810.png" },
-            { id: 813, name: "Scorbunny", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/813.png" },
-            { id: 816, name: "Sobble", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/816.png" },
-            { id: 906, name: "Sprigatito", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/906.png" },
-            { id: 909, name: "Fuecoco", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/909.png" },
-            { id: 912, name: "Quaxly", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/912.png" }
-        ];
 
-        // Pokémon Selector Functions
+
+
+        // Global variables
+        let pokemonList = [];
+        let currentAchievementId = null;
         let selectedPokemon = null;
+        let editSelectedPokemon = null;
 
+
+
+
+        // Function to load Pokémon from backend
+        function loadPokemonFromBackend() {
+            fetch('/admin/achievements/api/pokemon')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        pokemonList = data.pokemon;
+                    } else {
+                        console.error('Failed to load Pokémon:', data.error);
+                        alert('Failed to load Pokémon. Please refresh the page.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading Pokémon:', error);
+                    alert('Network error loading Pokémon. Please refresh the page.');
+                });
+        }
+
+
+
+
+        // Pokémon Selector Functions for Adding
         function showPokemonSelector() {
             const modal = document.getElementById('pokemonSelectorModal');
             const grid = document.getElementById('pokemonGrid');
-            
+
             // Clear previous selections
             grid.innerHTML = '';
             selectedPokemon = null;
-            
-            // Load Pokémon options
-            pokemonList.forEach(pokemon => {
-                const pokemonOption = document.createElement('div');
-                pokemonOption.className = 'pokemon-option';
-                pokemonOption.dataset.id = pokemon.id;
-                pokemonOption.dataset.name = pokemon.name;
-                pokemonOption.dataset.img = pokemon.img;
-                pokemonOption.onclick = function() {
-                    selectPokemon(this);
-                };
-                
-                pokemonOption.innerHTML = `
-                    <div class="pokemon-icon">
-                        <img src="${pokemon.img}" alt="${pokemon.name}">
-                    </div>
-                    <div class="pokemon-name">${pokemon.name}</div>
-                    <div class="pokemon-id">#${pokemon.id}</div>
-                `;
-                
-                grid.appendChild(pokemonOption);
-            });
-            
-            modal.classList.add('active');
+
+            // Step 1: Fetch IDs of Pokémon already used in achievements
+            fetch('/admin/achievements/api/used-pokemon')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const usedPokemonIds = data.used_pokemon_ids; // Array of Pokémon IDs
+
+                        // Step 2: Filter out unavailable Pokémon if pokemonList is loaded
+                        if (pokemonList.length === 0) {
+                            alert('Loading Pokémon... Please try again in a moment.');
+                            loadPokemonFromBackend();
+                            return;
+                        }
+
+                        // Filter the list to exclude Pokémon that are already used
+                        const availablePokemon = pokemonList.filter(pokemon => 
+                            !usedPokemonIds.includes(pokemon.id)
+                        );
+
+                        // Step 3: Load only the available Pokémon as options
+                        availablePokemon.forEach(pokemon => {
+                            const pokemonOption = document.createElement('div');
+                            pokemonOption.className = 'pokemon-option';
+                            pokemonOption.dataset.id = pokemon.id;
+                            pokemonOption.dataset.name = pokemon.name;
+                            pokemonOption.dataset.img = pokemon.img;
+                            pokemonOption.onclick = function() {
+                                selectPokemon(this);
+                            };
+
+                            pokemonOption.innerHTML = `
+                                <div class="pokemon-icon">
+                                    <img src="${pokemon.img}" alt="${pokemon.name}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'">
+                                </div>
+                                <div class="pokemon-name">${pokemon.name}</div>
+                                <div class="pokemon-id">#${pokemon.id}</div>
+                            `;
+
+                            grid.appendChild(pokemonOption);
+                        });
+
+                        modal.classList.add('active');
+
+                        // Optional: Show a message if all Pokémon are taken
+                        if (availablePokemon.length === 0) {
+                            grid.innerHTML = `<p style="color: #fff; text-align: center; padding: 20px;">All available Pokémon are already assigned to achievements.</p>`;
+                        }
+                    } else {
+                        alert('Failed to load used Pokémon data: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching used Pokémon:', error);
+                    alert('Network error loading Pokémon data.');
+                });
         }
+
+
+
 
         function closePokemonSelector() {
             document.getElementById('pokemonSelectorModal').classList.remove('active');
         }
 
+
+
+
         function selectPokemon(element) {
             // Remove selection from all options
-            document.querySelectorAll('.pokemon-option').forEach(option => {
+            document.querySelectorAll('#pokemonGrid .pokemon-option').forEach(option => {
                 option.classList.remove('selected');
             });
-            
+           
             // Add selection to clicked option
             element.classList.add('selected');
-            
+           
             // Store selected Pokémon
             selectedPokemon = {
                 id: element.dataset.id,
@@ -679,25 +859,28 @@
             };
         }
 
+
+
+
         function confirmPokemonSelection() {
             if (selectedPokemon) {
                 // Update the form with selected Pokémon
                 document.getElementById('pokemonId').value = selectedPokemon.id;
                 document.getElementById('pokemonName').value = selectedPokemon.name;
-                
+               
                 // Show selected Pokémon display
                 const display = document.getElementById('selectedPokemonDisplay');
                 const img = document.getElementById('selectedPokemonImg');
                 const info = document.getElementById('selectedPokemonInfo');
-                
+               
                 img.src = selectedPokemon.img;
                 img.alt = selectedPokemon.name;
                 info.textContent = `${selectedPokemon.name} (#${selectedPokemon.id})`;
                 display.style.display = 'flex';
-                
+               
                 // Update button text
-                document.querySelector('.select-pokemon-btn').textContent = 'Change Pokémon Selection';
-                
+                document.querySelector('.add-achievement-form .select-pokemon-btn').textContent = 'Change Pokémon Selection';
+               
                 // Close modal
                 closePokemonSelector();
             } else {
@@ -705,16 +888,159 @@
             }
         }
 
-        // Achievement Functions
-        let currentAchievementId = null;
 
+
+
+        // Pokémon Selector Functions for Editing
+        function showEditPokemonSelector() {
+            const modal = document.getElementById('editPokemonSelectorModal');
+            const grid = document.getElementById('editPokemonGrid');
+            
+            // Clear previous selections
+            grid.innerHTML = '';
+            editSelectedPokemon = null;
+            
+            // Check if Pokémon are loaded
+            if (pokemonList.length === 0) {
+                alert('Loading Pokémon... Please try again in a moment.');
+                loadPokemonFromBackend();
+                return;
+            }
+            
+            // FIRST: Fetch used Pokémon IDs from the server
+            fetch('/admin/achievements/api/used-pokemon')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Failed to load used Pokémon data: ' + data.error);
+                        return;
+                    }
+                    
+                    const usedPokemonIds = data.used_pokemon_ids; // Get the list of used IDs
+                    const currentPokemonId = document.getElementById('editPokemonId').value;
+                    
+                    // IMPORTANT: Filter Pokémon correctly
+                    // Show only Pokémon that are NOT used OR are the current one being edited
+                    const availablePokemon = pokemonList.filter(pokemon => 
+                        !usedPokemonIds.includes(pokemon.id) || pokemon.id == currentPokemonId
+                    );
+                    
+                    // Check if any Pokémon are available
+                    if (availablePokemon.length === 0) {
+                        grid.innerHTML = `<p style="color: #fff; text-align: center; padding: 20px;">All available Pokémon are already assigned to achievements.</p>`;
+                        modal.classList.add('active');
+                        return;
+                    }
+                    
+                    // Load only the available Pokémon options
+                    availablePokemon.forEach(pokemon => {
+                        const pokemonOption = document.createElement('div');
+                        pokemonOption.className = 'pokemon-option';
+                        pokemonOption.dataset.id = pokemon.id;
+                        pokemonOption.dataset.name = pokemon.name;
+                        pokemonOption.dataset.img = pokemon.img;
+                        
+                        // Pre-select if this is the current Pokémon
+                        if (pokemon.id == currentPokemonId) {
+                            pokemonOption.classList.add('selected');
+                            editSelectedPokemon = {
+                                id: pokemon.id,
+                                name: pokemon.name,
+                                img: pokemon.img
+                            };
+                        }
+                        
+                        pokemonOption.onclick = function() {
+                            selectEditPokemon(this);
+                        };
+                        
+                        pokemonOption.innerHTML = `
+                            <div class="pokemon-icon">
+                                <img src="${pokemon.img}" alt="${pokemon.name}" onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/0.png'">
+                            </div>
+                            <div class="pokemon-name">${pokemon.name}</div>
+                            <div class="pokemon-id">#${pokemon.id}</div>
+                        `;
+                        
+                        grid.appendChild(pokemonOption);
+                    });
+                    
+                    // NOW open the modal
+                    modal.classList.add('active');
+                })
+                .catch(error => {
+                    console.error('Error fetching used Pokémon:', error);
+                    alert('Network error loading Pokémon data.');
+                });
+        }
+
+
+
+
+        function closeEditPokemonSelector() {
+            document.getElementById('editPokemonSelectorModal').classList.remove('active');
+        }
+
+
+
+
+        function selectEditPokemon(element) {
+            // Remove selection from all options
+            document.querySelectorAll('#editPokemonGrid .pokemon-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+           
+            // Add selection to clicked option
+            element.classList.add('selected');
+           
+            // Store selected Pokémon
+            editSelectedPokemon = {
+                id: element.dataset.id,
+                name: element.dataset.name,
+                img: element.dataset.img
+            };
+        }
+
+
+
+
+        function confirmEditPokemonSelection() {
+            if (editSelectedPokemon) {
+                // Update the form with selected Pokémon
+                document.getElementById('editPokemonId').value = editSelectedPokemon.id;
+                document.getElementById('editPokemonName').value = editSelectedPokemon.name;
+               
+                // Show selected Pokémon display
+                const display = document.getElementById('editSelectedPokemonDisplay');
+                const img = document.getElementById('editSelectedPokemonImg');
+                const info = document.getElementById('editSelectedPokemonInfo');
+               
+                img.src = editSelectedPokemon.img;
+                img.alt = editSelectedPokemon.name;
+                info.textContent = `${editSelectedPokemon.name} (#${editSelectedPokemon.id})`;
+                display.style.display = 'flex';
+               
+                // Update button text
+                document.querySelector('.edit-achievement-form .select-pokemon-btn').textContent = 'Change Pokémon Selection';
+               
+                // Close modal
+                closeEditPokemonSelector();
+            } else {
+                alert('Please select a Pokémon first!');
+            }
+        }
+
+
+
+
+        // Achievement Functions
         function addAchievement() {
             const name = document.getElementById('achieveName').value;
             const pokemonId = document.getElementById('pokemonId').value;
             const pokemonName = document.getElementById('pokemonName').value;
             const desc = document.getElementById('achieveDesc').value;
             const req = document.getElementById('achieveReq').value;
-            
+       
             if (name && pokemonId && pokemonName && desc && req) {
                 // Send AJAX request to add achievement
                 fetch('/admin/achievements/add', {
@@ -724,9 +1050,12 @@
                     },
                     body: JSON.stringify({
                         name: name,
-                        pokemon_id: pokemonId,
+                        pokemon_id: parseInt(pokemonId),
+                        pokemon_name: pokemonName,  // Add Pokémon name
                         description: desc,
-                        requirement: req
+                        requirement: parseInt(req),
+                        points_reward: 50,
+                        rarity: "achievement"  // Explicitly set rarity to "achievement"
                     })
                 })
                 .then(response => response.json())
@@ -734,7 +1063,6 @@
                     if (data.success) {
                         alert('Achievement added successfully!');
                         clearForm();
-                        // Refresh page or update grid
                         window.location.reload();
                     } else {
                         alert('Error: ' + data.error);
@@ -749,6 +1077,9 @@
             }
         }
 
+
+
+
         function clearForm() {
             document.getElementById('achieveName').value = '';
             document.getElementById('achieveDesc').value = '';
@@ -756,36 +1087,108 @@
             document.getElementById('pokemonId').value = '';
             document.getElementById('pokemonName').value = '';
             document.getElementById('selectedPokemonDisplay').style.display = 'none';
-            document.querySelector('.select-pokemon-btn').textContent = 'Select Pokémon Reward';
+            document.querySelector('.add-achievement-form .select-pokemon-btn').textContent = 'Select Pokémon Reward';
         }
+
+
+
 
         function editAchievement(id) {
-            currentAchievementId = id;
-            document.getElementById('editAchieveId').textContent = id;
-            document.getElementById('editAchievementModal').classList.add('active');
+            // Hide add form and show edit form
+            document.getElementById('addAchievementForm').style.display = 'none';
+            document.getElementById('editAchievementForm').style.display = 'block';
+           
+            // Scroll to edit form
+            document.getElementById('editAchievementForm').scrollIntoView({ behavior: 'smooth' });
+           
+            // Fetch achievement details and populate form
+            fetch(`/admin/achievements/${id}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const achievement = data.achievement;
+                   
+                    // Populate edit form
+                    document.getElementById('editAchieveName').value = achievement.name;
+                    document.getElementById('editAchieveDesc').value = achievement.description;
+                    document.getElementById('editAchieveReq').value = achievement.requirement;
+                    document.getElementById('editPokemonId').value = achievement.pokemon_id;
+                   
+                    // Store current achievement ID
+                    currentAchievementId = id;
+                   
+                    // Get Pokémon details and update display
+                    fetch(`/api/get_pokemon/${achievement.pokemon_id}`)
+                        .then(response => response.json())
+                        .then(pokemonData => {
+                            if (pokemonData.success) {
+                                const display = document.getElementById('editSelectedPokemonDisplay');
+                                const img = document.getElementById('editSelectedPokemonImg');
+                                const info = document.getElementById('editSelectedPokemonInfo');
+                                const button = document.querySelector('.edit-achievement-form .select-pokemon-btn');
+                               
+                                img.src = pokemonData.pokemon.img || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${achievement.pokemon_id}.png`;
+                                img.alt = pokemonData.pokemon.name;
+                                info.textContent = `${pokemonData.pokemon.name} (#${achievement.pokemon_id})`;
+                                display.style.display = 'flex';
+                                button.textContent = 'Change Pokémon Selection';
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading Pokémon:', error);
+                        });
+                } else {
+                    alert('Failed to load achievement details: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load achievement details');
+            });
         }
+
+
+
 
         function saveAchievement() {
-            // In real implementation, send AJAX request to save changes
-            alert('Achievement ' + currentAchievementId + ' saved successfully!');
-            closeModal('editAchievementModal');
-        }
-
-        function deleteAchievement(id) {
-            currentAchievementId = id;
-            document.getElementById('deleteAchievementModal').classList.add('active');
-        }
-
-        function confirmDeleteAchievement() {
-            // Send AJAX request to delete achievement
-            fetch('/admin/achievements/delete/' + currentAchievementId, {
-                method: 'DELETE'
+            const name = document.getElementById('editAchieveName').value;
+            const pokemonId = document.getElementById('editPokemonId').value;
+            const desc = document.getElementById('editAchieveDesc').value;
+            const req = document.getElementById('editAchieveReq').value;
+           
+            if (!name || !pokemonId || !desc || !req) {
+                alert('Please fill in all fields');
+                return;
+            }
+           
+            if (!currentAchievementId) {
+                alert('No achievement selected for editing');
+                return;
+            }
+           
+            // Send AJAX request to update achievement
+            fetch(`/admin/achievements/update/${currentAchievementId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    pokemon_id: parseInt(pokemonId),
+                    description: desc,
+                    requirement: parseInt(req),
+                    points_reward: 50
+                })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Achievement deleted successfully!');
-                    // Refresh page or remove from grid
+                    alert('Achievement updated successfully!');
+                    // Hide edit form and show add form
+                    document.getElementById('editAchievementForm').style.display = 'none';
+                    document.getElementById('addAchievementForm').style.display = 'block';
+                    currentAchievementId = null;
+                    // Refresh page
                     window.location.reload();
                 } else {
                     alert('Error: ' + data.error);
@@ -795,9 +1198,56 @@
                 console.error('Error:', error);
                 alert('Network error. Please try again.');
             });
-            
+        }
+
+
+
+
+        function cancelEdit() {
+            // Hide edit form and show add form
+            document.getElementById('editAchievementForm').style.display = 'none';
+            document.getElementById('addAchievementForm').style.display = 'block';
+            currentAchievementId = null;
+            // Scroll to add form
+            document.getElementById('addAchievementForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+
+
+        function deleteAchievement(id) {
+            currentAchievementId = id;
+            document.getElementById('deleteAchievementModal').classList.add('active');
+        }
+
+
+
+
+        function confirmDeleteAchievement() {
+            // Send AJAX request to delete achievement
+            fetch(`/admin/achievements/delete/${currentAchievementId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Achievement deleted successfully!');
+                    // Refresh page
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
+           
             closeModal('deleteAchievementModal');
         }
+
+
+
 
         // Close modals when clicking outside
         window.onclick = function(event) {
@@ -805,5 +1255,12 @@
                 event.target.classList.remove('active');
             }
         }
+
+
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPokemonFromBackend();
+        });
     </script>
 {%endblock%}

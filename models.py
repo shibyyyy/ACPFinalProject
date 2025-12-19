@@ -32,14 +32,27 @@ class UserAcc(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    is_active = db.Column(db.Boolean, default=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     last_login = db.Column(db.DateTime)
+    last_logout = db.Column(db.DateTime)
     pokemon_name = db.Column(db.String(100))
     pokemon_id = db.Column(db.Integer, db.ForeignKey('pokemon.pokemon_id'))
     profile_picture = db.Column(db.String(200))
     current_streak = db.Column(db.Integer, default=0)
     longest_streak = db.Column(db.Integer, default=0)
     total_points = db.Column(db.Integer, default=0)  # Pokémon EXP
+    collected_pokemon = db.relationship('UserPokemon', backref='owner', lazy=True, cascade='all, delete-orphan')
+    
+class UserPokemon(db.Model):
+    user_pokemon_id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user_acc.user_id'), nullable=False)
+    pokemon_id = db.Column(db.Integer, db.ForeignKey('pokemon.pokemon_id'), nullable=False)
+    date_obtained = db.Column(db.DateTime, nullable=False)
+    custom_name = db.Column(db.String(100))
+    
+    # Optional: Add unique constraint to prevent duplicate entries
+    __table_args__ = (db.UniqueConstraint('user_id', 'pokemon_id', name='unique_user_pokemon'),)
 
 
 # ---------------- VOCABULARY TABLE ----------------
@@ -67,14 +80,7 @@ class UserAchievement(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user_acc.user_id'), nullable=False)
     achievement_id = db.Column(db.Integer, db.ForeignKey('achievement.achievement_id'), nullable=False)
     current_progress = db.Column(db.Integer, default=0)
-    date_earned = db.Column(db.DateTime, default=datetime.utcnow)
-   
-   
- # ---------------- WORD HISTORY TABLE ----------------  
-class WordHistory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    word_id = db.Column(db.Integer, db.ForeignKey('vocabulary.word_id'), nullable=False)
-    date_shown = db.Column(db.Date, nullable=False)
+    date_earned = db.Column(db.DateTime)
 
 
 # ---------------- NOTIFICATION TABLE ----------------  
@@ -86,4 +92,3 @@ class Notification(db.Model):
     notification_type = db.Column(db.String(50), nullable=False)  # e.g., 'achievement', 'streak', 'level_up', 'pokemon', 'reminder'
     is_read = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    data = db.Column(db.Text)  # Store JSON as string

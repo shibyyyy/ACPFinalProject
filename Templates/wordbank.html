@@ -21,6 +21,13 @@
 
 
     <div class="dashboard-container">
+        <!-- Back Button -->
+        <div class="back-button-container">
+            <a href="{{ url_for('dashboard') }}" class="back-button">
+                ← Back to Dashboard
+            </a>
+        </div>
+
         <!-- Welcome Section -->
         <div class="welcome-section">
             <h1>My WordBank</h1>
@@ -45,34 +52,35 @@
 
         <!-- Words Grid -->
         <div class="words-grid" id="wordsGrid">
-            {% for user_word, vocab in words %}
-        <div class="word-card2"
-            onclick="openWordModal('{{ vocab.word }}',
-                            '{{ vocab.definition }}',
-                            '{{ vocab.example_sentence }}',
-                            '{{ user_word.date_learned.strftime("%Y-%m-%d")}}',
-                            '{{ vocab.word_id }}')">
+            {% for user_word, vocab, ph_date in words %}
+            <div class="word-card2"
+                onclick="openWordModal('{{ vocab.word }}',
+                                '{{ vocab.definition }}',
+                                '{{ vocab.example_sentence }}',
+                                '{{ ph_date }}',
+                                '{{ vocab.word_id }}')">
 
 
-        <div class="word-header">
-                        <h3 class="word-text">{{ vocab.word }}</h3>
-                        <span class="word-type">{{ vocab.category or "N/A" }}</span>
+            <div class="word-header">
+                            <h3 class="word-text">{{ vocab.word }}</h3>
+                            <span class="word-type">{{ vocab.category or "N/A" }}</span>
+                        </div>
+                        <p class="word-definition">{{ vocab.definition }}</p>
+                        <div class="word-example">"{{ vocab.example_sentence }}"</div>
+                        <div class="word-stats">
+                            <span>🟡 Learned</span>
+                            <!-- Use ph_date instead of user_word.date_learned -->
+                            <span>📅 {{ ph_date }}</span>
+                        </div>
                     </div>
-                    <p class="word-definition">{{ vocab.definition }}</p>
-                    <div class="word-example">"{{ vocab.example_sentence }}"</div>
-                    <div class="word-stats">
-                        <span>🟡 Learned</span>
-                        <span>📅 {{ user_word.date_learned.strftime('%Y-%m-%d') }}</span>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
 
 
         <!-- WordBank Actions -->
         <div class="wordbank-actions">
-            <button class="btn-primary" onclick="window.location.href='/add_word'">ADD NEW WORD</button>
-            <button class="btn-secondary" onclick="window.location.href='/review'">PRACTICE WORDS</button>
+            <button class="btn-primary1" onclick="window.location.href='/add_word'">ADD NEW WORD</button>
+            <button class="btn-secondary1" onclick="window.location.href='/review'">PRACTICE WORDS</button>
         </div>
     </div>
 
@@ -103,6 +111,36 @@
         <p>© 2025 VocabuLearner</p>
     </footer>
 
+
+    <style>
+        /* Back Button Styles */
+        .back-button-container {
+            margin-bottom: 20px;
+        }
+        
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+        }
+        
+        .back-button:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-button:active {
+            transform: translateY(0);
+        }
+    </style>
 
     <script>
         let currentWordId = null;

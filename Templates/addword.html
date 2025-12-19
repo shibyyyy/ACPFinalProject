@@ -4,318 +4,624 @@
 
 {% block content %}
     {% block logo_link %}
-        <a href="{{ url_for('dashboard') }}" class="logo-link">
-            <div class="logo-icon">
-                <div class="pokeball-mini"></div>
-                <div class="pokeball-mini"></div>
-                <div class="pokeball-mini"></div>
-            </div>
-            VocabuLearner
-        </a>
+    <a href="{{ url_for('dashboard') }}" class="logo-link">
+    <div class="logo-icon">
+    <div class="pokeball-mini"></div>
+    <div class="pokeball-mini"></div>
+    <div class="pokeball-mini"></div>
+    </div>
+    VocabuLearner
+    </a>
     {% endblock %}
     {% block header %}{% endblock %}
     {{ form.hidden_tag() }}
 
     <!-- WORD ENTRY FORM -->
     <div class="container" id="wordEntry">
-        <h1>Add Your Words</h1>
-       
-        <!-- Pokémon Evolution Area -->
-        <div class="pokemon-evolution">
-            <h3 class="section-title">Your Vocabulary Partner</h3>
-            
-            <div class="pokemon-container">
-                <div class="pokemon-card" id="currentPokemon">
-                    {% if current_pokemon %}
-                        <div class="pokemon-main">
-                            <div class="pokemon-image-container">
-                                <img src="{{ current_pokemon.url }}" class="pokemon-sprite-large" alt="{{ current_pokemon.name }}">
+        <!-- Back Button -->
+        <div class="back-button-container">
+            <a href="{{ url_for('dashboard') }}" class="back-button">
+                ← Back to Dashboard
+            </a>
+    </div>
+    <h1>Add Your Words</h1>
+   
+    <!-- Flash messages display -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message flash-{{ category }}">
+                        <span class="flash-icon">
+                            {% if category == 'success' %}
+                                ✓
+                            {% elif category == 'danger' %}
+                                ✗
+                            {% elif category == 'info' %}
+                                ℹ
+                            {% else %}
+                                •
+                            {% endif %}
+                        </span>
+                        <span class="flash-text">{{ message }}</span>
+                        <button type="button" class="flash-close" onclick="this.parentElement.style.display='none'">
+                            &times;
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+   
+    <!-- Pokémon Evolution Area -->
+    <div class="pokemon-evolution">
+        <h3 class="section-title">Your Vocabulary Partner</h3>
+        
+        <div class="pokemon-container">
+            <div class="pokemon-card" id="currentPokemon">
+                {% if current_pokemon %}
+                    <div class="pokemon-main">
+                        <div class="pokemon-image-container">
+                            <img src="{{ current_pokemon.url }}" class="pokemon-sprite-large" alt="{{ current_pokemon.name }}">
+                        </div>
+                        
+                        <div class="pokemon-details">
+                            <div class="pokemon-name-large">
+                                {{ user.pokemon_name or current_pokemon.name }}
                             </div>
                             
-                            <div class="pokemon-details">
-                                <div class="pokemon-name-large">
-                                    {{ user.pokemon_name or current_pokemon.name }}
-                                </div>
-                                
-                                <div class="pokemon-stats-compact">
-                                    <div class="stats-row">
-                                        <span class="stat-label">Pokémon</span>
-                                        <span class="stat-value">{{ current_pokemon.name }}</span>
-                                        <span class="stat-separator">|</span>
-                                        <span class="stat-label">EXP</span>
-                                        <span class="stat-value">{{ user.total_points or 0 }}</span>
-                                    </div>
+                            <div class="pokemon-stats-compact">
+                                <div class="stats-row">
+                                    <span class="stat-label">Pokémon</span>
+                                    <span class="stat-value">{{ current_pokemon.name }}</span>
+                                    <span class="stat-separator">|</span>
+                                    <span class="stat-label">EXP</span>
+                                    <span class="stat-value">{{ user.total_points or 0 }}</span>
                                 </div>
                             </div>
                         </div>
-                    {% else %}
-                        <div class="no-pokemon">
-                            <div class="pokeball-placeholder">⚪</div>
-                            <p class="no-pokemon-text">No Pokémon selected!</p>
-                            <a href="{{ url_for('dashboard') }}" class="btn-select-pokemon">Select Pokémon</a>
-                        </div>
-                    {% endif %}
-                </div>
+                    </div>
+                {% else %}
+                    <div class="no-pokemon">
+                        <div class="pokeball-placeholder">⚪</div>
+                        <p class="no-pokemon-text">No Pokémon selected!</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn-select-pokemon">Select Pokémon</a>
+                    </div>
+                {% endif %}
             </div>
-            
-            {% if current_pokemon %}
-                <div class="evolution-progress">
-                    {% if progress_data and not progress_data.is_max_evolution %}
-                        <div class="progress-header">
-                            <h4 class="progress-title">Evolution Progress</h4>
-                            <span class="progress-count">{{ progress_data.progress_points|int }}/{{ progress_data.total_needed }}</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: {{ progress_data.progress_percentage|int }}%"></div>
-                        </div>
-                        <p class="progress-remaining">{{ progress_data.exp_to_next }} EXP to evolve into {{ progress_data.next_evolution }}</p>
-                    {% elif progress_data and progress_data.is_max_evolution %}
-                        <div class="progress-header">
-                            <h4 class="progress-title">Maximum Evolution Reached!</h4>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                        <p class="progress-remaining">Your {{ current_pokemon.name }} is fully evolved! 🎉</p>
-                    {% else %}
-                        <div class="progress-header">
-                            <h4 class="progress-title">Evolution Progress</h4>
-                            <span class="progress-count">0/100</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 0%"></div>
-                        </div>
-                        <p class="progress-remaining">100 EXP to next evolution</p>
-                    {% endif %}
-                </div>
-            {% else %}
-                <p class="selection-prompt">Select a Pokémon partner from your dashboard!</p>
-            {% endif %}
         </div>
-       
-        <!-- Connect inputs to Flask-WTF AddWordForm -->
-        <form class="word-form" id="wordForm" method="POST" action="{{ url_for('add_word') }}">
-            {{ form.hidden_tag() }}
-           
-            <input type="text" placeholder="Word" id="wordInput" name="word" required />
-           
-            <textarea placeholder="Definition" id="meaningInput" name="definition" rows="3" required></textarea>
-           
-            <textarea placeholder="Example Sentence" id="exampleInput" name="sentence" rows="3" required></textarea>
-           
-            <!-- Part of Speech / Category -->
-            <select id="categoryInput" name="category" class="word-input" required>
-                <option value="">Select Category</option>
-                <option value="noun">Noun</option>
-                <option value="verb">Verb</option>
-                <option value="adjective">Adjective</option>
-                <option value="adverb">Adverb</option>
-            </select>
-           
-            <button type="submit" class="btn-primary" id="addWordBtn">Add Word</button>
-        </form>
+        
+        {% if current_pokemon %}
+            <div class="evolution-progress">
+                {% if progress_data and not progress_data.is_max_evolution %}
+                    <div class="progress-header">
+                        <h4 class="progress-title">Evolution Progress</h4>
+                        <span class="progress-count">{{ progress_data.progress_points|int }}/{{ progress_data.total_needed }}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: {{ progress_data.progress_percentage|int }}%"></div>
+                    </div>
+                    <p class="progress-remaining">{{ progress_data.exp_to_next }} EXP to evolve into {{ progress_data.next_evolution }}</p>
+                {% elif progress_data and progress_data.is_max_evolution %}
+                    <div class="progress-header">
+                        <h4 class="progress-title">Maximum Evolution Reached!</h4>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%"></div>
+                    </div>
+                    <p class="progress-remaining">Your {{ current_pokemon.name }} is fully evolved! 🎉</p>
+                {% else %}
+                    <div class="progress-header">
+                        <h4 class="progress-title">Evolution Progress</h4>
+                        <span class="progress-count">0/100</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <p class="progress-remaining">100 EXP to next evolution</p>
+                {% endif %}
+            </div>
+        {% else %}
+            <p class="selection-prompt">Select a Pokémon partner from your dashboard!</p>
+        {% endif %}
     </div>
+   
+    <!-- Connect inputs to Flask-WTF AddWordForm -->
+    <form class="word-form" id="wordForm" method="POST" action="{{ url_for('add_word') }}">
+        {{ form.hidden_tag() }}
+       
+        {{ form.word(class="word-input", id="wordInput") }}
+        {% if form.word.errors %}
+            <div class="form-error">
+                {% for error in form.word.errors %}
+                    <span class="error-message">✗ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {{ form.definition(class="word-input", id="meaningInput") }}
+        {% if form.definition.errors %}
+            <div class="form-error">
+                {% for error in form.definition.errors %}
+                    <span class="error-message">✗ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+       
+        {{ form.sentence(class="word-input", id="exampleInput", 
+            placeholder="Example Sentence (Must start with capital letter and end with . ! or ?)") }}
+        {% if form.sentence.errors %}
+            <div class="form-error">
+                {% for error in form.sentence.errors %}
+                    <span class="error-message">✗ {{ error }}</span>
+                {% endfor %}
+            </div>
+        {% endif %}
+       
+        <button type="submit" class="btn-primary" id="addWordBtn">Add Word</button>
+    </form>
+</div>
 
-    <!-- FOOTER -->
-    <footer class="footer">
-        <p>© 2025 VocabuLearner</p>
-    </footer>
+<!-- FOOTER -->
+<footer class="footer">
+    <p>© 2025 VocabuLearner</p>
+</footer>
 
-    <script>
-    // DOM Elements
-    const wordForm = document.getElementById('wordForm');
-    const wordInput = document.getElementById('wordInput');
-    const meaningInput = document.getElementById('meaningInput');
-    const categoryInput = document.getElementById('categoryInput');
-    
-    // Debounce variables
-    let debounceTimer;
-    const DEBOUNCE_DELAY = 800; // 800ms delay for better validation
-    
-    // Store original placeholder
-    const originalPlaceholder = meaningInput.placeholder;
-    
-    // Last fetched word to avoid duplicate API calls
-    let lastFetchedWord = '';
+<style>
+/* Back Button Styles - Same as other pages */
+.back-button-container {
+    margin-bottom: 20px;
+}
 
-    // Fetch meaning from DictionaryAPI with better error handling
-    async function fetchWordData(word) {
-        // Don't fetch if it's the same word we just fetched
-        if (word.toLowerCase() === lastFetchedWord.toLowerCase()) {
-            return;
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid #ddd;
+}
+
+.back-button:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.back-button:active {
+    transform: translateY(0);
+}
+
+/* Form Error Styles */
+.form-error {
+    margin-top: 5px;
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    animation: fadeIn 0.3s ease;
+}
+
+.error-message {
+    color: #721c24;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.error-message:last-child {
+    margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Flash Message Styles */
+.flash-messages {
+    margin-bottom: 25px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.flash-message {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 15px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.flash-message::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.flash-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.flash-success::before {
+    background-color: #28a745;
+}
+
+.flash-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.flash-danger::before {
+    background-color: #dc3545;
+}
+
+.flash-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.flash-info::before {
+    background-color: #17a2b8;
+}
+
+.flash-icon {
+    font-size: 18px;
+    margin-right: 12px;
+    font-weight: bold;
+}
+
+.flash-text {
+    flex-grow: 1;
+}
+
+.flash-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+    padding: 0;
+    margin-left: 15px;
+    line-height: 1;
+}
+
+.flash-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Existing JavaScript remains the same, just adding auto-hide for flash messages */
+</style>
+
+<script>
+// DOM Elements
+const wordForm = document.getElementById('wordForm');
+const wordInput = document.getElementById('wordInput');
+const meaningInput = document.getElementById('meaningInput');
+const exampleInput = document.getElementById('exampleInput');
+
+// Debounce variables
+let debounceTimer;
+const DEBOUNCE_DELAY = 800; // 800ms delay for better validation
+
+// Store original placeholder
+const originalPlaceholder = meaningInput.placeholder;
+
+// Last fetched word to avoid duplicate API calls
+let lastFetchedWord = '';
+
+// Fetch meaning from DictionaryAPI with better error handling
+async function fetchWordData(word) {
+    // Don't fetch if it's the same word we just fetched
+    if (word.toLowerCase() === lastFetchedWord.toLowerCase()) {
+        return;
+    }
+    
+    // Show loading state
+    meaningInput.placeholder = "Fetching definition...";
+    meaningInput.value = "";
+    
+    try {
+        const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                throw new Error("Word not found in dictionary");
+            } else {
+                throw new Error(`API error: ${response.status}`);
+            }
         }
         
-        // Show loading state
-        meaningInput.placeholder = "Fetching definition...";
-        meaningInput.value = "";
-        categoryInput.value = "";
+        const data = await response.json();
         
-        try {
-            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-            
-            if (!response.ok) {
-                if (response.status === 404) {
-                    throw new Error("Word not found in dictionary");
-                } else {
-                    throw new Error(`API error: ${response.status}`);
-                }
-            }
-            
-            const data = await response.json();
-            
-            if (!data || data.length === 0) {
-                throw new Error("No dictionary data found");
-            }
+        if (!data || data.length === 0) {
+            throw new Error("No dictionary data found");
+        }
 
-            const entry = data[0];
-            const meaningBlock = entry.meanings?.[0];
-            const definitionBlock = meaningBlock?.definitions?.[0];
+        const entry = data[0];
+        const meaningBlock = entry.meanings?.[0];
+        const definitionBlock = meaningBlock?.definitions?.[0];
 
-            const definition = definitionBlock?.definition || "No definition found";
-            let partOfSpeech = meaningBlock?.partOfSpeech || "";
+        const definition = definitionBlock?.definition || "No definition found";
 
-            // Normalize to lowercase so it matches <select> options
-            partOfSpeech = partOfSpeech.toLowerCase();
+        // Auto‑fill definition
+        meaningInput.value = definition;
+        
+        // Store the successfully fetched word
+        lastFetchedWord = word;
+        
+    } catch (error) {
+        console.error('Dictionary API error:', error);
+        
+        if (error.message.includes('Word not found') || error.message.includes('404')) {
+            meaningInput.value = "Word not found. Please check spelling or enter manually.";
+        } else if (error.message.includes('API error')) {
+            meaningInput.value = "Dictionary service unavailable. Please enter manually.";
+        } else {
+            meaningInput.value = "Unable to fetch definition. Please enter manually.";
+        }
+        
+        lastFetchedWord = ''; // Reset on error
+    } finally {
+        // Restore placeholder
+        meaningInput.placeholder = originalPlaceholder;
+    }
+}
 
-            // Auto‑fill definition
-            meaningInput.value = definition;
-            
-            // Set category if it matches our options
-            const validCategories = ['noun', 'verb', 'adjective', 'adverb'];
-            if (validCategories.includes(partOfSpeech)) {
-                categoryInput.value = partOfSpeech;
-            } else {
-                categoryInput.value = "";
-            }
-            
-            // Store the successfully fetched word
-            lastFetchedWord = word;
-            
-        } catch (error) {
-            console.error('Dictionary API error:', error);
-            
-            if (error.message.includes('Word not found') || error.message.includes('404')) {
-                meaningInput.value = "Word not found. Please check spelling or enter manually.";
-            } else if (error.message.includes('API error')) {
-                meaningInput.value = "Dictionary service unavailable. Please enter manually.";
-            } else {
-                meaningInput.value = "Unable to fetch definition. Please enter manually.";
-            }
-            
-            categoryInput.value = "";
-            lastFetchedWord = ''; // Reset on error
-        } finally {
-            // Restore placeholder
-            meaningInput.placeholder = originalPlaceholder;
+// Validate if word looks like a real English word
+function isValidEnglishWord(word) {
+    // Basic validation - at least 2 letters
+    if (word.length < 2) return false;
+    
+    // Should contain only letters, apostrophes, or hyphens
+    if (!/^[a-zA-Z]+(?:['-][a-zA-Z]+)*$/.test(word)) return false;
+    
+    // Shouldn't be all caps (except for short words like "I")
+    if (word.length > 1 && word === word.toUpperCase()) return false;
+    
+    return true;
+}
+
+// Validate sentence in real-time
+function validateSentence(sentence, showError = true) {
+    const trimmedSentence = sentence.trim();
+    let isValid = true;
+    let errorMessage = '';
+    
+    if (trimmedSentence.length === 0) {
+        if (showError) {
+            exampleInput.style.borderColor = '';
+            exampleInput.style.boxShadow = '';
+        }
+        return true; // Let server handle required validation
+    }
+    
+    // Check capital letter
+    if (!trimmedSentence[0].isUpperCase()) {
+        isValid = false;
+        errorMessage = 'Sentence must start with a capital letter.';
+    }
+    
+    // Check ending punctuation
+    if (isValid && !trimmedSentence.endsWith('.') && !trimmedSentence.endsWith('!') && !trimmedSentence.endsWith('?')) {
+        isValid = false;
+        errorMessage = 'Sentence must end with proper punctuation (. ! or ?).';
+    }
+    
+    // Check minimum words (at least 3 words)
+    if (isValid && trimmedSentence.split(/\s+/).length < 3) {
+        isValid = false;
+        errorMessage = 'Sentence should be at least 3 words long.';
+    }
+    
+    // Check for proper spacing after punctuation (optional)
+    if (isValid) {
+        const punctuationMatch = trimmedSentence.match(/[.!?][a-zA-Z]/g);
+        if (punctuationMatch) {
+            isValid = false;
+            errorMessage = 'There should be a space after punctuation marks.';
         }
     }
-
-    // Validate if word looks like a real English word
-    function isValidEnglishWord(word) {
-        // Basic validation - at least 2 letters
-        if (word.length < 2) return false;
-        
-        // Should contain only letters, apostrophes, or hyphens
-        if (!/^[a-zA-Z]+(?:['-][a-zA-Z]+)*$/.test(word)) return false;
-        
-        // Shouldn't be all caps (except for short words like "I")
-        if (word.length > 1 && word === word.toUpperCase()) return false;
-        
-        return true;
+    
+    // Update UI
+    if (showError) {
+        if (isValid) {
+            exampleInput.style.borderColor = '#4CAF50';
+            exampleInput.style.boxShadow = '0 0 5px rgba(76, 175, 80, 0.5)';
+            clearExampleError();
+        } else {
+            exampleInput.style.borderColor = '#f44336';
+            exampleInput.style.boxShadow = '0 0 5px rgba(244, 67, 54, 0.5)';
+            if (errorMessage) {
+                showExampleError(errorMessage);
+            }
+        }
     }
+    
+    return isValid;
+}
 
-    // Debounced input listener with validation
-    wordInput.addEventListener("input", function() {
-        const word = this.value.trim();
-        
-        // Clear previous timer
-        clearTimeout(debounceTimer);
-        
-        // Reset if empty
-        if (word === '') {
-            meaningInput.value = '';
-            categoryInput.value = '';
-            meaningInput.placeholder = originalPlaceholder;
-            lastFetchedWord = '';
+// Show error message for example sentence
+function showExampleError(message) {
+    clearExampleError();
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'form-error';
+    errorDiv.innerHTML = `<span class="error-message">✗ ${message}</span>`;
+    errorDiv.id = 'exampleError';
+    exampleInput.parentNode.insertBefore(errorDiv, exampleInput.nextSibling);
+}
+
+// Clear example error message
+function clearExampleError() {
+    const existingError = document.getElementById('exampleError');
+    if (existingError && existingError.parentNode) {
+        existingError.parentNode.removeChild(existingError);
+    }
+}
+
+// Debounced input listener with validation
+wordInput.addEventListener("input", function() {
+    const word = this.value.trim();
+    
+    // Clear previous timer
+    clearTimeout(debounceTimer);
+    
+    // Reset if empty
+    if (word === '') {
+        meaningInput.value = '';
+        meaningInput.placeholder = originalPlaceholder;
+        lastFetchedWord = '';
+        return;
+    }
+    
+    // Basic length check
+    if (word.length < 3) {
+        meaningInput.value = "Enter at least 3 characters";
+        return;
+    }
+    
+    // Validate it's a potential English word
+    if (!isValidEnglishWord(word)) {
+        meaningInput.value = "Please enter a valid English word";
+        return;
+    }
+    
+    // Set debounce timer - only fetch after user stops typing
+    debounceTimer = setTimeout(() => {
+        fetchWordData(word);
+    }, DEBOUNCE_DELAY);
+});
+
+// Real-time validation for example sentence
+exampleInput.addEventListener("input", function() {
+    validateSentence(this.value, true);
+});
+
+// Validate on blur as well
+exampleInput.addEventListener("blur", function() {
+    validateSentence(this.value, true);
+});
+
+// Clear timer when user leaves the field
+wordInput.addEventListener("blur", function() {
+    clearTimeout(debounceTimer);
+});
+
+// Submit handler with better validation
+wordForm.addEventListener("submit", function(e) {
+    const word = wordInput.value.trim();
+    const meaning = meaningInput.value.trim();
+    const example = exampleInput.value.trim();
+
+    // Validation
+    let errorMessage = '';
+    
+    if (!word) errorMessage = "Please enter a word";
+    else if (!meaning) errorMessage = "Please enter a definition";
+    else if (!example) errorMessage = "Please enter an example sentence";
+    else if (meaning.includes("Word not found") || 
+             meaning.includes("Please enter") || 
+             meaning.includes("Dictionary service") ||
+             meaning.includes("Unable to fetch")) {
+        errorMessage = "Please enter a valid definition for the word";
+    }
+    
+    // Validate sentence before submission
+    if (!errorMessage && !validateSentence(example, false)) {
+        // Force validation to show error
+        validateSentence(example, true);
+        e.preventDefault();
+        return;
+    }
+    
+    if (errorMessage) {
+        alert(errorMessage);
+        e.preventDefault();
+        return;
+    }
+    
+    // Show success animation for Pokémon if exists
+    const pokemonSprite = document.querySelector('.pokemon-sprite-large');
+    if (pokemonSprite) {
+        pokemonSprite.classList.add('animate-pulse');
+        setTimeout(() => {
+            pokemonSprite.classList.remove('animate-pulse');
+        }, 1000);
+    }
+});
+
+// Allow manual editing of definition without triggering API
+meaningInput.addEventListener('focus', function() {
+    clearTimeout(debounceTimer);
+});
+
+// Prevent form from being submitted with Enter key in textareas
+document.querySelectorAll('textarea').forEach(textarea => {
+    textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            // Allow Ctrl+Enter for new lines
             return;
         }
-        
-        // Basic length check
-        if (word.length < 3) {
-            meaningInput.value = "Enter at least 3 characters";
-            categoryInput.value = "";
-            return;
-        }
-        
-        // Validate it's a potential English word
-        if (!isValidEnglishWord(word)) {
-            meaningInput.value = "Please enter a valid English word";
-            categoryInput.value = "";
-            return;
-        }
-        
-        // Set debounce timer - only fetch after user stops typing
-        debounceTimer = setTimeout(() => {
-            fetchWordData(word);
-        }, DEBOUNCE_DELAY);
     });
+});
 
-    // Clear timer when user leaves the field
-    wordInput.addEventListener("blur", function() {
-        clearTimeout(debounceTimer);
-    });
-
-    // Submit handler with better validation
-    wordForm.addEventListener("submit", function(e) {
-        const word = wordInput.value.trim();
-        const meaning = meaningInput.value.trim();
-        const example = document.getElementById("exampleInput").value.trim();
-        const category = categoryInput.value;
-
-        // Validation
-        let errorMessage = '';
-        
-        if (!word) errorMessage = "Please enter a word";
-        else if (!meaning) errorMessage = "Please enter a definition";
-        else if (!example) errorMessage = "Please enter an example sentence";
-        else if (!category) errorMessage = "Please select a category";
-        else if (meaning.includes("Word not found") || 
-                 meaning.includes("Please enter") || 
-                 meaning.includes("Dictionary service") ||
-                 meaning.includes("Unable to fetch")) {
-            errorMessage = "Please enter a valid definition for the word";
-        }
-        
-        if (errorMessage) {
-            alert(errorMessage);
-            e.preventDefault();
-            return;
-        }
-        
-        // Show success animation for Pokémon if exists
-        const pokemonSprite = document.querySelector('.pokemon-sprite-large');
-        if (pokemonSprite) {
-            pokemonSprite.classList.add('animate-pulse');
+// Auto-hide flash messages after 5 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const flashMessages = document.querySelectorAll('.flash-message');
+    flashMessages.forEach(message => {
+        setTimeout(() => {
+            message.style.transition = 'opacity 0.5s, transform 0.5s';
+            message.style.opacity = '0';
+            message.style.transform = 'translateY(-10px)';
             setTimeout(() => {
-                pokemonSprite.classList.remove('animate-pulse');
-            }, 1000);
-        }
-    });
-
-    // Allow manual editing of definition without triggering API
-    meaningInput.addEventListener('focus', function() {
-        clearTimeout(debounceTimer);
+                if (message.parentElement) {
+                    message.parentElement.removeChild(message);
+                }
+            }, 500);
+        }, 5000);
     });
     
-    // Prevent form from being submitted with Enter key in textareas
-    document.querySelectorAll('textarea').forEach(textarea => {
-        textarea.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.ctrlKey) {
-                // Allow Ctrl+Enter for new lines
-                return;
-            }
-        });
-    });
-    </script>
-
+    // Initial validation of example input if it has content
+    if (exampleInput.value.trim()) {
+        validateSentence(exampleInput.value, true);
+    }
+});
+</script>
 {% endblock %}
